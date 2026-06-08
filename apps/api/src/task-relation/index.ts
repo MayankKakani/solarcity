@@ -4,7 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
 import db from "../database";
-import { projectTable, taskRelationTable, taskTable } from "../database/schema";
+import { taskRelationTable, taskTable, zoneTable } from "../database/schema";
 import { requireWorkspacePermission } from "../utils/require-workspace-permission";
 import { validateWorkspaceAccess } from "../utils/validate-workspace-access";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
@@ -79,9 +79,9 @@ const taskRelation = new Hono<{
       }
       const { sourceTaskId } = c.req.valid("json");
       const [task] = await db
-        .select({ workspaceId: projectTable.workspaceId })
+        .select({ workspaceId: zoneTable.workspaceId })
         .from(taskTable)
-        .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+        .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
         .where(eq(taskTable.id, sourceTaskId))
         .limit(1);
       if (!task) {
@@ -135,9 +135,9 @@ const taskRelation = new Hono<{
         throw new HTTPException(404, { message: "Task relation not found" });
       }
       const [task] = await db
-        .select({ workspaceId: projectTable.workspaceId })
+        .select({ workspaceId: zoneTable.workspaceId })
         .from(taskTable)
-        .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+        .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
         .where(eq(taskTable.id, rel.sourceTaskId))
         .limit(1);
       if (!task) {

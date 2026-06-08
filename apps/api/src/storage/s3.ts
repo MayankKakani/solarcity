@@ -49,7 +49,7 @@ type StorageConfig = {
 
 type TaskImageUploadContext = {
   workspaceId: string;
-  projectId: string;
+  zoneId: string;
   taskId: string;
   surface: UploadSurface;
   filename: string;
@@ -191,7 +191,7 @@ export function buildObjectKeyPrefix(
     "workspace",
     sanitizePathSegment(context.workspaceId),
     "project",
-    sanitizePathSegment(context.projectId),
+    sanitizePathSegment(context.zoneId),
     "task",
     sanitizePathSegment(context.taskId),
     surfaceFolder,

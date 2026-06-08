@@ -3,7 +3,7 @@ import db from "../../../database";
 import { columnTable, workflowRuleTable } from "../../../database/schema";
 
 export async function resolveTargetStatus(
-  projectId: string,
+  zoneId: string,
   eventType: string,
   fallbackStatus: string,
 ): Promise<string> {
@@ -13,7 +13,7 @@ export async function resolveTargetStatus(
       slug: columnTable.slug,
     })
     .from(columnTable)
-    .where(eq(columnTable.projectId, projectId))
+    .where(eq(columnTable.zoneId, zoneId))
     .orderBy(asc(columnTable.position));
 
   if (projectColumns.length === 0) {
@@ -22,7 +22,7 @@ export async function resolveTargetStatus(
 
   const rule = await db.query.workflowRuleTable.findFirst({
     where: and(
-      eq(workflowRuleTable.projectId, projectId),
+      eq(workflowRuleTable.zoneId, zoneId),
       eq(workflowRuleTable.integrationType, "github"),
       eq(workflowRuleTable.eventType, eventType),
     ),

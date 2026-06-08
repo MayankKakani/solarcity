@@ -1,18 +1,22 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import updateTaskAssignee from "@/fetchers/task/update-task-assignee";
-import type Task from "@/types/task";
+
+type UpdateTaskAssigneeVariables = {
+  taskId: string;
+  zoneId: string;
+  assignees: { userId: string; role: "supervisor" | "engineer" }[];
+};
 
 export function useUpdateTaskAssignee() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (task: Task) => updateTaskAssignee(task.id, task),
-    onSuccess: (_, variables) => {
+    mutationFn: ({ taskId, assignees }: UpdateTaskAssigneeVariables) =>
+      updateTaskAssignee(taskId, assignees),
+    onSuccess: (data, variables) => {
+      queryClient.setQueryData(["task", variables.taskId], data);
       queryClient.invalidateQueries({
-        queryKey: ["task", variables.id],
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["tasks", variables.projectId],
+        queryKey: ["tasks", variables.zoneId],
       });
       queryClient.invalidateQueries({
         queryKey: ["notifications"],
@@ -21,7 +25,7 @@ export function useUpdateTaskAssignee() {
         queryKey: ["projects"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["activities", variables.id],
+        queryKey: ["activities", variables.taskId],
       });
       queryClient.invalidateQueries({
         queryKey: ["task-relations"],

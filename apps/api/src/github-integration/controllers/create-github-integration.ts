@@ -1,16 +1,16 @@
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { integrationTable, projectTable } from "../../database/schema";
+import { integrationTable, zoneTable } from "../../database/schema";
 import { defaultGitHubConfig } from "../../plugins/github/config";
 import { getGithubApp } from "../../plugins/github/utils/github-app";
 
 async function createGithubIntegration({
-  projectId,
+  zoneId,
   repositoryOwner,
   repositoryName,
 }: {
-  projectId: string;
+  zoneId: string;
   repositoryOwner: string;
   repositoryName: string;
 }) {
@@ -22,8 +22,8 @@ async function createGithubIntegration({
     });
   }
 
-  const project = await db.query.projectTable.findFirst({
-    where: eq(projectTable.id, projectId),
+  const project = await db.query.zoneTable.findFirst({
+    where: eq(zoneTable.id, zoneId),
   });
 
   if (!project) {
@@ -35,7 +35,7 @@ async function createGithubIntegration({
   });
 
   for (const integration of allGitHubIntegrations) {
-    if (integration.projectId === projectId) {
+    if (integration.zoneId === zoneId) {
       continue;
     }
 
@@ -70,7 +70,7 @@ async function createGithubIntegration({
 
   const existingIntegration = await db.query.integrationTable.findFirst({
     where: and(
-      eq(integrationTable.projectId, projectId),
+      eq(integrationTable.zoneId, zoneId),
       eq(integrationTable.type, "github"),
     ),
   });
@@ -92,7 +92,7 @@ async function createGithubIntegration({
       })
       .where(
         and(
-          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.zoneId, zoneId),
           eq(integrationTable.type, "github"),
         ),
       )
@@ -100,7 +100,7 @@ async function createGithubIntegration({
 
     return {
       id: updatedIntegration?.id,
-      projectId: updatedIntegration?.projectId,
+      zoneId: updatedIntegration?.zoneId,
       repositoryOwner,
       repositoryName,
       installationId,
@@ -113,7 +113,7 @@ async function createGithubIntegration({
   const [newIntegration] = await db
     .insert(integrationTable)
     .values({
-      projectId,
+      zoneId,
       type: "github",
       config: JSON.stringify(config),
       isActive: true,
@@ -122,7 +122,7 @@ async function createGithubIntegration({
 
   return {
     id: newIntegration?.id,
-    projectId: newIntegration?.projectId,
+    zoneId: newIntegration?.zoneId,
     repositoryOwner,
     repositoryName,
     installationId,

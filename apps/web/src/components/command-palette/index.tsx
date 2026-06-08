@@ -52,7 +52,7 @@ function CommandPalette() {
   const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false);
   const [isCreateProjectOpen, setIsCreateProjectOpen] = useState(false);
   const [isCreateWorkspaceOpen, setIsCreateWorkspaceOpen] = useState(false);
-  const projectIdFromRoute =
+  const zoneIdFromRoute =
     location.pathname.match(/\/project\/([^/]+)/)?.[1] ?? undefined;
 
   useRegisterShortcuts({
@@ -317,7 +317,7 @@ function CommandPalette() {
       <SearchCommandMenu open={isSearchOpen} setOpen={setIsSearchOpen} />
       <CreateTaskModal
         open={isCreateTaskOpen}
-        projectId={projectIdFromRoute}
+        zoneId={zoneIdFromRoute}
         onClose={() => setIsCreateTaskOpen(false)}
       />
       <CreateWorkspaceModal

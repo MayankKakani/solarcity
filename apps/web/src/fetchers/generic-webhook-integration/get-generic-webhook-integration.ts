@@ -2,7 +2,7 @@ import { getApiUrl } from "@/fetchers/get-api-url";
 
 export type GenericWebhookIntegration = {
   id: string;
-  projectId: string;
+  zoneId: string;
   webhookConfigured: boolean;
   maskedWebhookUrl: string | null;
   secretConfigured: boolean;
@@ -21,10 +21,10 @@ export type GenericWebhookIntegration = {
 };
 
 async function getGenericWebhookIntegration(
-  projectId: string,
+  zoneId: string,
 ): Promise<GenericWebhookIntegration | null> {
   const response = await fetch(
-    getApiUrl(`/generic-webhook-integration/project/${projectId}`),
+    getApiUrl(`/generic-webhook-integration/project/${zoneId}`),
     {
       credentials: "include",
     },

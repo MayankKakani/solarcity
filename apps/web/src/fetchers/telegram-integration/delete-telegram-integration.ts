@@ -1,8 +1,8 @@
 import { getApiUrl } from "@/fetchers/get-api-url";
 
-async function deleteTelegramIntegration(projectId: string) {
+async function deleteTelegramIntegration(zoneId: string) {
   const response = await fetch(
-    getApiUrl(`/telegram-integration/project/${projectId}`),
+    getApiUrl(`/telegram-integration/project/${zoneId}`),
     {
       method: "DELETE",
       credentials: "include",

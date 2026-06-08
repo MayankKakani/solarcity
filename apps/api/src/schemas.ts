@@ -23,7 +23,7 @@ export const projectSchema = v.object({
 
 export const taskSchema = v.object({
   id: v.string(),
-  projectId: v.string(),
+  zoneId: v.string(),
   position: v.nullable(v.number()),
   number: v.nullable(v.number()),
   userId: v.nullable(v.string()),
@@ -112,7 +112,7 @@ export const notificationPreferenceWorkspaceRuleSchema = v.object({
   gotifyEnabled: v.boolean(),
   webhookEnabled: v.boolean(),
   projectMode: v.picklist(["all", "selected"] as const),
-  selectedProjectIds: v.array(v.string()),
+  selectedzoneIds: v.array(v.string()),
   createdAt: v.date(),
   updatedAt: v.date(),
 });
@@ -143,7 +143,7 @@ export const notificationPreferenceSchema = v.object({
 
 export const githubIntegrationSchema = v.object({
   id: v.string(),
-  projectId: v.string(),
+  zoneId: v.string(),
   repositoryOwner: v.string(),
   repositoryName: v.string(),
   installationId: v.nullable(v.number()),
@@ -156,7 +156,7 @@ export const githubIntegrationSchema = v.object({
 
 export const giteaIntegrationSchema = v.object({
   id: v.string(),
-  projectId: v.string(),
+  zoneId: v.string(),
   baseUrl: v.string(),
   repositoryOwner: v.string(),
   repositoryName: v.string(),
@@ -181,7 +181,7 @@ export const integrationEventsSchema = v.object({
 
 export const slackIntegrationSchema = v.object({
   id: v.string(),
-  projectId: v.string(),
+  zoneId: v.string(),
   channelName: v.nullable(v.string()),
   webhookConfigured: v.boolean(),
   maskedWebhookUrl: v.string(),
@@ -193,7 +193,7 @@ export const slackIntegrationSchema = v.object({
 
 export const discordIntegrationSchema = v.object({
   id: v.string(),
-  projectId: v.string(),
+  zoneId: v.string(),
   channelName: v.nullable(v.string()),
   webhookConfigured: v.boolean(),
   maskedWebhookUrl: v.string(),
@@ -205,7 +205,7 @@ export const discordIntegrationSchema = v.object({
 
 export const genericWebhookIntegrationSchema = v.object({
   id: v.string(),
-  projectId: v.string(),
+  zoneId: v.string(),
   webhookConfigured: v.boolean(),
   maskedWebhookUrl: v.nullable(v.string()),
   secretConfigured: v.boolean(),
@@ -218,7 +218,7 @@ export const genericWebhookIntegrationSchema = v.object({
 
 export const telegramIntegrationSchema = v.object({
   id: v.string(),
-  projectId: v.string(),
+  zoneId: v.string(),
   chatId: v.string(),
   threadId: v.nullable(v.number()),
   chatLabel: v.nullable(v.string()),

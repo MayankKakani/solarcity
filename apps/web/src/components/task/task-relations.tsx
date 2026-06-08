@@ -54,7 +54,7 @@ import SubtaskStatusPopover from "./subtask-status-popover";
 
 type TaskRelationsProps = {
   taskId: string;
-  projectId: string;
+  zoneId: string;
   workspaceId: string;
 };
 
@@ -73,7 +73,7 @@ type TaskGroup = {
 
 export default function TaskRelations({
   taskId,
-  projectId,
+  zoneId,
   workspaceId,
 }: TaskRelationsProps) {
   const { t } = useTranslation();
@@ -86,8 +86,8 @@ export default function TaskRelations({
   >("related");
 
   const { data: relations = [] } = useGetTaskRelations(taskId);
-  const { data: projectData } = useGetTasks(projectId);
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: projectData } = useGetTasks(zoneId);
+  const { data: project } = useGetProject({ id: zoneId, workspaceId });
   const { data: workspace } = useActiveWorkspace();
   const { data: workspaceUsers } = useGetActiveWorkspaceUsers(
     workspace?.id ?? "",
@@ -220,8 +220,8 @@ export default function TaskRelations({
 
   const handleNavigateToTask = (linkedTaskId: string) => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
-      params: { workspaceId, projectId, taskId: linkedTaskId },
+      to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
+      params: { workspaceId, zoneId, taskId: linkedTaskId },
     });
   };
 
@@ -248,7 +248,7 @@ export default function TaskRelations({
     assigneeId: item.task.userId,
     assigneeName: item.task.assigneeName,
     assigneeImage: "",
-    projectId: item.task.projectId,
+    zoneId: item.task.zoneId,
   });
 
   const totalCount = nonSubtaskRelations.length;
@@ -306,7 +306,7 @@ export default function TaskRelations({
                         <div className="group flex items-center gap-2 py-1 px-2 rounded-md hover:bg-accent/50 transition-colors cursor-default">
                           <SubtaskStatusPopover
                             tasks={[taskObj]}
-                            projectId={projectId}
+                            zoneId={zoneId}
                           >
                             <button
                               type="button"

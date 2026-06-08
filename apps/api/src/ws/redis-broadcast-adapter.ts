@@ -2,15 +2,15 @@ import * as v from "valibot";
 import { closeRedis, getRedisPub, getRedisSub } from "../redis";
 import type { BroadcastAdapter, BroadcastMessage } from "./broadcast-adapter";
 
-const CHANNEL_PREFIX = "kaneo:ws:";
+const CHANNEL_PREFIX = "solarplan:ws:";
 const CHANNEL_SUFFIX = ":broadcast";
 const CHANNEL_PATTERN = `${CHANNEL_PREFIX}*${CHANNEL_SUFFIX}`;
 
 const broadcastMessageSchema = v.object({
-  projectId: v.string(),
+  zoneId: v.string(),
   message: v.object({
     type: v.string(),
-    projectId: v.string(),
+    zoneId: v.string(),
     taskId: v.optional(v.string()),
     sourceTaskId: v.optional(v.string()),
     targetTaskId: v.optional(v.string()),
@@ -26,7 +26,7 @@ export class RedisBroadcastAdapter implements BroadcastAdapter {
 
   async publish(msg: BroadcastMessage): Promise<void> {
     await getRedisPub().publish(
-      this.channelForProject(msg.projectId),
+      this.channelForProject(msg.zoneId),
       JSON.stringify(msg),
     );
   }
@@ -69,7 +69,7 @@ export class RedisBroadcastAdapter implements BroadcastAdapter {
     await closeRedis();
   }
 
-  private channelForProject(projectId: string): string {
-    return `${CHANNEL_PREFIX}${projectId}${CHANNEL_SUFFIX}`;
+  private channelForProject(zoneId: string): string {
+    return `${CHANNEL_PREFIX}${zoneId}${CHANNEL_SUFFIX}`;
   }
 }

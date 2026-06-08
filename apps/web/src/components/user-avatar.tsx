@@ -65,15 +65,17 @@ export function UserAvatar() {
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className="h-7 w-7 rounded-full p-0 hover:bg-sidebar-accent/70"
+          size="lg"
+          className="w-full rounded-full p-0 hover:bg-sidebar-accent/70 text-xs font-medium border border-border/30"
         >
-          <Avatar className="h-7 w-7">
+          {" "}
+          {user.name}
+          {/* <Avatar className="h-7 w-7">
             <AvatarImage src={user.image ?? ""} alt={user.name || ""} />
             <AvatarFallback className="text-xs font-medium border border-border/30">
               {initials}
             </AvatarFallback>
-          </Avatar>
+          </Avatar> */}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-52 p-0" side="bottom" align="start">

@@ -2,11 +2,11 @@ import { and, eq, inArray, or } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../database";
 import {
-  projectTable,
   userNotificationPreferenceTable,
-  userNotificationWorkspaceProjectTable,
   userNotificationWorkspaceRuleTable,
+  userNotificationWorkspacezoneTable,
   workspaceUserTable,
+  zoneTable,
 } from "../database/schema";
 import { assertPublicWebhookDestination } from "../plugins/generic-webhook/config";
 import { decryptSecret, encryptSecret } from "./secrets";
@@ -42,7 +42,7 @@ export type NotificationPreferenceResponse = {
     gotifyEnabled: boolean;
     webhookEnabled: boolean;
     projectMode: NotificationPreferenceProjectMode;
-    selectedProjectIds: string[];
+    selectedzoneIds: string[];
     createdAt: Date;
     updatedAt: Date;
   }>;
@@ -71,7 +71,7 @@ export type UpsertWorkspaceRuleInput = {
   gotifyEnabled: boolean;
   webhookEnabled: boolean;
   projectMode: NotificationPreferenceProjectMode;
-  selectedProjectIds?: string[];
+  selectedzoneIds?: string[];
 };
 
 type WorkspaceRuleChannelState = {
@@ -127,25 +127,25 @@ async function assertWorkspaceMembership(userId: string, workspaceId: string) {
 
 export async function validateProjectSelection(
   workspaceId: string,
-  selectedProjectIds: string[],
+  selectedzoneIds: string[],
 ) {
-  if (selectedProjectIds.length === 0) {
+  if (selectedzoneIds.length === 0) {
     throw new HTTPException(400, {
       message: "Select at least one project for selected project mode",
     });
   }
 
   const projects = await db
-    .select({ id: projectTable.id })
-    .from(projectTable)
+    .select({ id: zoneTable.id })
+    .from(zoneTable)
     .where(
       and(
-        eq(projectTable.workspaceId, workspaceId),
-        inArray(projectTable.id, selectedProjectIds),
+        eq(zoneTable.workspaceId, workspaceId),
+        inArray(zoneTable.id, selectedzoneIds),
       ),
     );
 
-  if (projects.length !== selectedProjectIds.length) {
+  if (projects.length !== selectedzoneIds.length) {
     throw new HTTPException(400, {
       message: "One or more selected projects are invalid",
     });
@@ -212,9 +212,7 @@ export async function getNotificationPreferences(
       webhookEnabled: rule.webhookEnabled ?? false,
       projectMode:
         rule.projectMode === "selected" ? "selected" : ("all" as const),
-      selectedProjectIds: rule.selectedProjects.map(
-        (project) => project.projectId,
-      ),
+      selectedzoneIds: rule.selectedProjects.map((project) => project.zoneId),
       createdAt: rule.createdAt,
       updatedAt: rule.updatedAt,
     })),
@@ -483,7 +481,7 @@ export async function upsertWorkspaceRule(
   await assertWorkspaceMembership(userId, workspaceId);
 
   if (input.projectMode === "selected") {
-    await validateProjectSelection(workspaceId, input.selectedProjectIds ?? []);
+    await validateProjectSelection(workspaceId, input.selectedzoneIds ?? []);
   }
 
   const preference = await db.query.userNotificationPreferenceTable.findFirst({
@@ -575,20 +573,17 @@ export async function upsertWorkspaceRule(
   const workspaceRuleId = ruleId;
 
   await db
-    .delete(userNotificationWorkspaceProjectTable)
+    .delete(userNotificationWorkspacezoneTable)
     .where(
-      eq(
-        userNotificationWorkspaceProjectTable.workspaceRuleId,
-        workspaceRuleId,
-      ),
+      eq(userNotificationWorkspacezoneTable.workspaceRuleId, workspaceRuleId),
     );
 
   if (input.projectMode === "selected") {
-    await db.insert(userNotificationWorkspaceProjectTable).values(
-      (input.selectedProjectIds ?? []).map((projectId) => ({
+    await db.insert(userNotificationWorkspacezoneTable).values(
+      (input.selectedzoneIds ?? []).map((zoneId) => ({
         workspaceId,
         workspaceRuleId,
-        projectId,
+        zoneId,
       })),
     );
   }

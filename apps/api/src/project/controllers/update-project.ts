@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { projectTable } from "../../database/schema";
+import { zoneTable } from "../../database/schema";
 
 async function updateProject(
   id: string,
@@ -14,10 +14,8 @@ async function updateProject(
 ) {
   const [existingProject] = await db
     .select()
-    .from(projectTable)
-    .where(
-      and(eq(projectTable.id, id), eq(projectTable.workspaceId, workspaceId)),
-    );
+    .from(zoneTable)
+    .where(and(eq(zoneTable.id, id), eq(zoneTable.workspaceId, workspaceId)));
 
   const isProjectExisting = Boolean(existingProject);
 
@@ -29,7 +27,7 @@ async function updateProject(
   }
 
   const [updatedWorkspace] = await db
-    .update(projectTable)
+    .update(zoneTable)
     .set({
       name,
       icon,
@@ -37,7 +35,7 @@ async function updateProject(
       description,
       isPublic,
     })
-    .where(eq(projectTable.id, id))
+    .where(eq(zoneTable.id, id))
     .returning();
 
   return updatedWorkspace;

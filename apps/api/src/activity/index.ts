@@ -187,26 +187,26 @@ subscribeToEvent<{
   userId: string;
   type: string;
   content: string;
-  fromProjectId: string;
+  fromzoneId: string;
   fromProjectName: string;
-  toProjectId: string;
+  tozoneId: string;
   toProjectName: string;
   oldStatus: string;
   newStatus: string;
 }>("task.moved", async (data) => {
   const {
-    fromProjectId,
+    fromzoneId,
     fromProjectName,
-    toProjectId,
+    tozoneId,
     toProjectName,
     oldStatus,
     newStatus,
   } = data;
 
   await createActivity(data.taskId, data.type, data.userId, null, {
-    fromProjectId,
+    fromzoneId,
     fromProjectName,
-    toProjectId,
+    tozoneId,
     toProjectName,
     oldStatus,
     newStatus,

@@ -116,10 +116,10 @@ function buildFullTaskUpdateBody(
   if (!priorityRaw || !isTaskPriority(priorityRaw))
     throw new Error("Cannot update task: invalid or missing priority.");
 
-  const projectId =
-    (patch.projectId as string) ??
-    (typeof existing.projectId === "string" ? existing.projectId : undefined);
-  if (!projectId) throw new Error("Cannot update task: missing projectId.");
+  const zoneId =
+    (patch.zoneId as string) ??
+    (typeof existing.zoneId === "string" ? existing.zoneId : undefined);
+  if (!zoneId) throw new Error("Cannot update task: missing zoneId.");
 
   const userId =
     patch.userId !== undefined
@@ -142,7 +142,7 @@ function buildFullTaskUpdateBody(
     description,
     status,
     priority: priorityRaw,
-    projectId,
+    zoneId,
     position,
   };
   if (startDate !== undefined) body.startDate = startDate;
@@ -183,7 +183,7 @@ export function registerMcpTools(
   server.registerTool(
     "whoami",
     {
-      description: "Return the current Kaneo session and user.",
+      description: "Return the current Solarplan session and user.",
       inputSchema: z.object({}),
     },
     async () =>
@@ -316,7 +316,7 @@ export function registerMcpTools(
     {
       description: "List tasks for a project (optionally filtered/sorted).",
       inputSchema: z.object({
-        projectId: nonEmptyString,
+        zoneId: nonEmptyString,
         status: optionalNonEmptyString,
         priority: prioritySchema.optional(),
         assigneeId: optionalNonEmptyString,
@@ -338,7 +338,7 @@ export function registerMcpTools(
       }),
     },
     async (args) => {
-      const { projectId, ...rest } = args;
+      const { zoneId, ...rest } = args;
       const qs = new URLSearchParams();
       for (const [k, v] of Object.entries(rest)) {
         if (v !== undefined && v !== null) qs.set(k, String(v));
@@ -346,7 +346,7 @@ export function registerMcpTools(
       const q = qs.toString();
       return run(() =>
         client.json(
-          `/api/task/tasks/${encodeURIComponent(projectId)}${q ? `?${q}` : ""}`,
+          `/api/task/tasks/${encodeURIComponent(zoneId)}${q ? `?${q}` : ""}`,
           { method: "GET" },
         ),
       );
@@ -372,7 +372,7 @@ export function registerMcpTools(
     {
       description: "Create a task in a project.",
       inputSchema: z.object({
-        projectId: nonEmptyString,
+        zoneId: nonEmptyString,
         title: nonEmptyString,
         description: z.string(),
         priority: prioritySchema,
@@ -393,7 +393,7 @@ export function registerMcpTools(
       if (args.dueDate !== undefined) body.dueDate = args.dueDate;
       if (args.userId !== undefined) body.userId = args.userId;
       return run(() =>
-        client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {
+        client.json(`/api/task/${encodeURIComponent(args.zoneId)}`, {
           method: "POST",
           body: JSON.stringify(body),
         }),
@@ -412,7 +412,7 @@ export function registerMcpTools(
         description: z.string().nullable().optional(),
         status: optionalNonEmptyString,
         priority: prioritySchema.optional(),
-        projectId: optionalNonEmptyString,
+        zoneId: optionalNonEmptyString,
         position: z.number().optional(),
         startDate: nullableOptionalIsoDateTimeSchema,
         dueDate: nullableOptionalIsoDateTimeSchema,
@@ -442,7 +442,7 @@ export function registerMcpTools(
         "Move a task to another project (and optional column status).",
       inputSchema: z.object({
         taskId: nonEmptyString,
-        destinationProjectId: nonEmptyString,
+        destinationzoneId: nonEmptyString,
         destinationStatus: optionalNonEmptyString,
       }),
     },
@@ -451,7 +451,7 @@ export function registerMcpTools(
         client.json(`/api/task/move/${encodeURIComponent(args.taskId)}`, {
           method: "PUT",
           body: JSON.stringify({
-            destinationProjectId: args.destinationProjectId,
+            destinationzoneId: args.destinationzoneId,
             ...(args.destinationStatus !== undefined
               ? { destinationStatus: args.destinationStatus }
               : {}),

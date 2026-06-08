@@ -17,14 +17,14 @@ import TaskPropertiesSidebar from "./task-properties-sidebar";
 
 type TaskDetailsSheetProps = {
   taskId: string | undefined;
-  projectId: string;
+  zoneId: string;
   workspaceId: string;
   onClose: () => void;
 };
 
 export default function TaskDetailsSheet({
   taskId,
-  projectId,
+  zoneId,
   workspaceId,
   onClose,
 }: TaskDetailsSheetProps) {
@@ -35,7 +35,7 @@ export default function TaskDetailsSheet({
   );
 
   const { data: task } = useGetTask(currentTaskId ?? "");
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project } = useGetProject({ id: zoneId, workspaceId });
 
   useEffect(() => {
     if (taskId) {
@@ -53,14 +53,14 @@ export default function TaskDetailsSheet({
   const handleOpenFullPage = useCallback(() => {
     if (!currentTaskId) return;
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+      to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
       params: {
         workspaceId,
-        projectId,
+        zoneId,
         taskId: currentTaskId,
       },
     });
-  }, [navigate, workspaceId, projectId, currentTaskId]);
+  }, [navigate, workspaceId, zoneId, currentTaskId]);
 
   return (
     <Sheet open={!!taskId} onOpenChange={(open) => !open && onClose()}>
@@ -109,7 +109,7 @@ export default function TaskDetailsSheet({
         >
           <TaskPropertiesSidebar
             taskId={currentTaskId}
-            projectId={projectId}
+            zoneId={zoneId}
             workspaceId={workspaceId}
             className="w-full bg-sidebar border-b border-border flex flex-col gap-0 overflow-y-auto shrink-0"
             compact={true}
@@ -119,7 +119,7 @@ export default function TaskDetailsSheet({
             <div className="px-4 py-4">
               <TaskDetailsContent
                 taskId={currentTaskId}
-                projectId={projectId}
+                zoneId={zoneId}
                 workspaceId={workspaceId}
                 className="flex flex-col gap-3"
               />

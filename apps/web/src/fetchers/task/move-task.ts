@@ -1,18 +1,18 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 async function moveTask({
   taskId,
-  destinationProjectId,
+  destinationzoneId,
   destinationStatus,
 }: {
   taskId: string;
-  destinationProjectId: string;
+  destinationzoneId: string;
   destinationStatus?: string;
 }) {
   const response = await client.task.move[":id"].$put({
     param: { id: taskId },
     json: {
-      destinationProjectId,
+      destinationzoneId,
       destinationStatus,
     },
   });

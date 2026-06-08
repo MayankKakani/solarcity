@@ -23,12 +23,12 @@ import { toast } from "@/lib/toast";
 import { cn } from "@/lib/utils";
 
 type ColumnEditorProps = {
-  projectId: string;
+  zoneId: string;
 };
 
-export default function ColumnEditor({ projectId }: ColumnEditorProps) {
+export default function ColumnEditor({ zoneId }: ColumnEditorProps) {
   const { t } = useTranslation();
-  const { data: columns, isLoading } = useGetColumns(projectId);
+  const { data: columns, isLoading } = useGetColumns(zoneId);
   const { mutateAsync: createColumn } = useCreateColumn();
   const { mutateAsync: updateColumn } = useUpdateColumn();
   const { mutateAsync: deleteColumn } = useDeleteColumn();
@@ -48,7 +48,7 @@ export default function ColumnEditor({ projectId }: ColumnEditorProps) {
     if (!newColumnName.trim()) return;
     try {
       await createColumn({
-        projectId,
+        zoneId,
         data: { name: newColumnName.trim(), icon: newColumnIcon },
       });
       setNewColumnName("");
@@ -65,7 +65,7 @@ export default function ColumnEditor({ projectId }: ColumnEditorProps) {
 
   const handleRename = async (id: string, name: string) => {
     try {
-      await updateColumn({ id, projectId, data: { name } });
+      await updateColumn({ id, zoneId, data: { name } });
       toast.success(t("settings:columnEditor.toastRenamed"));
     } catch (error) {
       toast.error(
@@ -78,7 +78,7 @@ export default function ColumnEditor({ projectId }: ColumnEditorProps) {
 
   const handleToggleFinal = async (id: string, isFinal: boolean) => {
     try {
-      await updateColumn({ id, projectId, data: { isFinal } });
+      await updateColumn({ id, zoneId, data: { isFinal } });
       toast.success(
         isFinal
           ? t("settings:columnEditor.toastFinalOn")
@@ -95,7 +95,7 @@ export default function ColumnEditor({ projectId }: ColumnEditorProps) {
 
   const handleUpdateIcon = async (id: string, icon: string) => {
     try {
-      await updateColumn({ id, projectId, data: { icon } });
+      await updateColumn({ id, zoneId, data: { icon } });
       setIconPickerColumnId(null);
       setIconSearch("");
       toast.success(t("settings:columnEditor.toastIconUpdated"));
@@ -110,7 +110,7 @@ export default function ColumnEditor({ projectId }: ColumnEditorProps) {
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteColumn({ id, projectId });
+      await deleteColumn({ id, zoneId });
       toast.success(t("settings:columnEditor.toastDeleted"));
     } catch (error) {
       toast.error(
@@ -134,7 +134,7 @@ export default function ColumnEditor({ projectId }: ColumnEditorProps) {
     reordered.splice(index, 0, removed);
 
     const updates = reordered.map((col, i) => ({ id: col.id, position: i }));
-    reorderColumns({ projectId, columns: updates });
+    reorderColumns({ zoneId, columns: updates });
     setDraggedIndex(index);
   };
 

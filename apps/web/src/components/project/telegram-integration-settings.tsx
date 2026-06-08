@@ -80,11 +80,7 @@ function isValidTelegramThreadId(value: string): boolean {
   return /^\d+$/.test(value) && Number(value) > 0;
 }
 
-export function TelegramIntegrationSettings({
-  projectId,
-}: {
-  projectId: string;
-}) {
+export function TelegramIntegrationSettings({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
   const schema = React.useMemo(
     () =>
@@ -107,7 +103,7 @@ export function TelegramIntegrationSettings({
     data: integration,
     isLoading,
     error,
-  } = useGetTelegramIntegration(projectId);
+  } = useGetTelegramIntegration(zoneId);
   const { mutateAsync: createIntegration, isPending: isCreating } =
     useCreateTelegramIntegration();
   const { mutateAsync: updateIntegration, isPending: isUpdating } =
@@ -148,7 +144,7 @@ export function TelegramIntegrationSettings({
   });
   const { reset } = form;
   const lastResetKeyRef = React.useRef<string | null>(null);
-  const resetKey = `${projectId}:${integration?.id ?? "none"}`;
+  const resetKey = `${zoneId}:${integration?.id ?? "none"}`;
 
   React.useEffect(() => {
     if (form.formState.isDirty && lastResetKeyRef.current === resetKey) {
@@ -218,7 +214,7 @@ export function TelegramIntegrationSettings({
         }
 
         await createIntegration({
-          projectId,
+          zoneId,
           data: {
             botToken: trimmedBotToken,
             chatId: trimmedChatId,
@@ -238,7 +234,7 @@ export function TelegramIntegrationSettings({
         }
 
         await updateIntegration({
-          projectId,
+          zoneId,
           json: {
             botToken: trimmedBotToken || undefined,
             chatId: trimmedChatId,
@@ -268,7 +264,7 @@ export function TelegramIntegrationSettings({
   const handleToggleActive = async (checked: boolean) => {
     try {
       await updateIntegration({
-        projectId,
+        zoneId,
         json: { isActive: checked },
       });
       toast.success(
@@ -287,7 +283,7 @@ export function TelegramIntegrationSettings({
 
   const handleDelete = async () => {
     try {
-      await deleteIntegration(projectId);
+      await deleteIntegration(zoneId);
       form.reset({
         botToken: "",
         chatId: "",

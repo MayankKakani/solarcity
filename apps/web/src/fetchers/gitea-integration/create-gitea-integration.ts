@@ -1,4 +1,4 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 export type CreateGiteaIntegrationRequest = {
   baseUrl: string;
@@ -8,13 +8,11 @@ export type CreateGiteaIntegrationRequest = {
 };
 
 async function createGiteaIntegration(
-  projectId: string,
+  zoneId: string,
   data: CreateGiteaIntegrationRequest,
 ) {
-  const response = await client["gitea-integration"].project[
-    ":projectId"
-  ].$post({
-    param: { projectId },
+  const response = await client["gitea-integration"].project[":zoneId"].$post({
+    param: { zoneId },
     json: data,
   });
 

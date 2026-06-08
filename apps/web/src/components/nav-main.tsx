@@ -1,6 +1,8 @@
+/** biome-ignore-all lint/complexity/noUselessFragments: <ignore> */
 import { useNavigate } from "@tanstack/react-router";
 import { ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
 import {
   Collapsible,
   CollapsiblePanel,
@@ -16,24 +18,37 @@ import {
 } from "@/components/ui/sidebar";
 import { usePendingInvitations } from "@/hooks/queries/invitation/use-pending-invitations";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
+import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 
 export function NavMain() {
   const { t } = useTranslation();
   const { data: workspace } = useActiveWorkspace();
   const navigate = useNavigate();
   const { data: invitations = [] } = usePendingInvitations();
+  const { isAdmin } = useWorkspacePermission();
 
   if (!workspace) return null;
 
-  const pendingCount = invitations.length;
+  const _pendingCount = invitations.length;
 
-  const navItems = [
+  const adminNavItems = [
     {
       title: t("navigation:sidebar.projects"),
       url: `/dashboard/workspace/${workspace.id}`,
       isActive:
         window.location.pathname === `/dashboard/workspace/${workspace.id}`,
       badge: null,
+      icon: null,
+    },
+    {
+      title: t("navigation:sidebar.sites"),
+      url: `/dashboard/workspace/${workspace.id}/sites`,
+      isActive: window.location.pathname.startsWith(
+        `/dashboard/workspace/${workspace.id}/sites`,
+      ),
+      badge: null,
+      // icon: Building2,
+      icon: null,
     },
     {
       title: t("navigation:sidebar.members"),
@@ -42,52 +57,97 @@ export function NavMain() {
         window.location.pathname ===
         `/dashboard/workspace/${workspace.id}/members`,
       badge: null,
+      icon: null,
     },
     {
-      title: t("navigation:sidebar.invitations"),
-      url: "/dashboard/invitations",
-      isActive: window.location.pathname === "/dashboard/invitations",
-      badge: pendingCount > 0 ? pendingCount : null,
+      title: t("navigation:sidebar.amc"),
+      url: `/dashboard/workspace/${workspace.id}/amc-dashboard`,
+      isActive: window.location.pathname.startsWith(
+        `/dashboard/workspace/${workspace.id}/amc-dashboard`,
+      ),
+      badge: null,
+      // icon: Building2,
+      icon: null,
+    },
+    // {
+    //   title: t("navigation:sidebar.invitations"),
+    //   url: "/dashboard/invitations",
+    //   isActive: window.location.pathname === "/dashboard/invitations",
+    //   badge: pendingCount > 0 ? pendingCount : null,
+    //   icon: null,
+    // },
+  ];
+
+  const allUserNavItems = [
+    {
+      title: t("navigation:sidebar.sites"),
+      url: `/dashboard/workspace/${workspace.id}/sites`,
+      isActive: window.location.pathname.startsWith(
+        `/dashboard/workspace/${workspace.id}/sites`,
+      ),
+      badge: null,
+      // icon: Building2,
+      icon: null,
+    },
+    {
+      title: t("navigation:sidebar.amc"),
+      url: `/dashboard/workspace/${workspace.id}/amc-dashboard`,
+      isActive: window.location.pathname.startsWith(
+        `/dashboard/workspace/${workspace.id}/amc-dashboard`,
+      ),
+      badge: null,
+      // icon: Building2,
+      icon: null,
     },
   ];
 
+  const navItems = isAdmin ? adminNavItems : allUserNavItems;
+
   return (
-    <Collapsible defaultOpen className="group/collapsible">
-      <SidebarGroup className="gap-1 p-2">
-        <CollapsibleTrigger
-          className="data-panel-open:[&_svg]:rotate-90"
-          render={
-            <SidebarGroupLabel className="h-7 cursor-pointer justify-between px-0 text-sidebar-accent-foreground" />
-          }
-        >
-          <span>{t("navigation:sidebar.overview")}</span>
-          <ChevronRight className="h-3.5 w-3.5 text-sidebar-foreground/60 transition-transform duration-200" />
-        </CollapsibleTrigger>
-        <CollapsiblePanel>
-          <SidebarGroupContent>
-            <SidebarMenu className="gap-0.5">
-              {navItems.map((item) => (
-                <SidebarMenuItem key={item.url}>
-                  <SidebarMenuButton
-                    tooltip={item.title}
-                    isActive={item.isActive}
-                    size="default"
-                    className="h-8 ps-3.5 text-sm hover:bg-transparent hover:text-sidebar-accent-foreground active:bg-transparent"
-                    onClick={() => navigate({ to: item.url })}
-                  >
-                    <span>{item.title}</span>
-                    {item.badge !== null && (
-                      <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-sm border border-sidebar-border/60 px-1 text-[11px] font-medium text-sidebar-foreground/80">
-                        {item.badge}
-                      </span>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </CollapsiblePanel>
-      </SidebarGroup>
-    </Collapsible>
+    <>
+      <Collapsible defaultOpen className="group/collapsible">
+        <SidebarGroup className="gap-1 p-2">
+          <CollapsibleTrigger
+            className="data-panel-open:[&_svg]:rotate-90"
+            render={
+              <SidebarGroupLabel className="h-7 cursor-pointer justify-between px-0 text-sidebar-accent-foreground" />
+            }
+          >
+            <span>{t("navigation:sidebar.operations")}</span>
+            <ChevronRight className="h-3.5 w-3.5 text-sidebar-foreground/60 transition-transform duration-200" />
+          </CollapsibleTrigger>
+          <CollapsiblePanel>
+            <SidebarGroupContent>
+              <SidebarMenu className="gap-0.5">
+                {navItems.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <SidebarMenuItem key={item.url}>
+                      <SidebarMenuButton
+                        tooltip={item.title}
+                        isActive={item.isActive}
+                        size="default"
+                        className="h-8 ps-3.5 text-sm hover:bg-transparent hover:text-sidebar-accent-foreground active:bg-transparent"
+                        onClick={() => navigate({ to: item.url })}
+                      >
+                        {Icon && (
+                          <Icon className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
+                        )}
+                        <span>{item.title}</span>
+                        {item.badge !== null && (
+                          <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-sm border border-sidebar-border/60 px-1 text-[11px] font-medium text-sidebar-foreground/80">
+                            {item.badge}
+                          </span>
+                        )}
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  );
+                })}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </CollapsiblePanel>
+        </SidebarGroup>
+      </Collapsible>
+    </>
   );
 }

@@ -1,19 +1,19 @@
-import { windowId } from "@kaneo/libs";
+import { windowId } from "@solarplan/libs";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef } from "react";
 import { getApiUrl } from "@/fetchers/get-api-url";
 import { authClient } from "@/lib/auth-client";
 
-export function getWsUrl(projectId: string) {
+export function getWsUrl(zoneId: string) {
   const base = getApiUrl("ws");
   const wsBase = base.replace(/^http/, "ws");
-  return `${wsBase}/${encodeURIComponent(projectId)}?windowId=${encodeURIComponent(windowId)}`;
+  return `${wsBase}/${encodeURIComponent(zoneId)}?windowId=${encodeURIComponent(windowId)}`;
 }
 
 const MAX_RETRIES = 5;
 const BASE_DELAY = 1000; // 1 second
 
-export function useProjectWebSocket(projectId: string) {
+export function useProjectWebSocket(zoneId: string) {
   const queryClient = useQueryClient();
   const { data: session } = authClient.useSession();
   const wsRef = useRef<WebSocket | null>(null);
@@ -21,12 +21,12 @@ export function useProjectWebSocket(projectId: string) {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    if (!projectId || !session?.user?.id) return;
+    if (!zoneId || !session?.user?.id) return;
 
     retriesRef.current = 0;
 
     function connect() {
-      const url = getWsUrl(projectId);
+      const url = getWsUrl(zoneId);
       const ws = new WebSocket(url);
       wsRef.current = ws;
 
@@ -47,7 +47,7 @@ export function useProjectWebSocket(projectId: string) {
             message.type === "COMMENT_UPDATED"
           ) {
             queryClient.invalidateQueries({
-              queryKey: ["tasks", message.projectId],
+              queryKey: ["tasks", message.zoneId],
             });
 
             if (message.type === "TASK_RELATION_UPDATED") {
@@ -117,5 +117,5 @@ export function useProjectWebSocket(projectId: string) {
       }
       wsRef.current?.close();
     };
-  }, [projectId, session?.user?.id, queryClient]);
+  }, [zoneId, session?.user?.id, queryClient]);
 }

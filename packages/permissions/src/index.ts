@@ -48,7 +48,39 @@ export const owner = ac.newRole({
   workspace: ["read", "update", "delete", "manage_settings"],
 });
 
-export const builtInRoles = { viewer, member, admin, owner } as const;
+export const executive = ac.newRole({
+  ...ownerAc.statements,
+  project: ["read"],
+  task: ["create", "read", "update", "delete", "assign"],
+  label: ["create", "read", "update", "delete"],
+  workspace: ["read"],
+});
+
+export const supervisor = ac.newRole({
+  ...ownerAc.statements,
+  project: ["read"],
+  task: ["read", "update", "assign"],
+  label: ["create", "read", "update", "delete"],
+  workspace: ["read"],
+});
+
+export const engineer = ac.newRole({
+  ...ownerAc.statements,
+  project: ["read"],
+  task: ["read", "update"],
+  label: ["read", "update"],
+  workspace: ["read"],
+});
+
+export const builtInRoles = {
+  viewer,
+  member,
+  admin,
+  owner,
+  executive,
+  supervisor,
+  engineer,
+} as const;
 
 export type BuiltInRoleName = keyof typeof builtInRoles;
 
@@ -57,7 +89,14 @@ export type BuiltInRoleName = keyof typeof builtInRoles;
 // are reserved and the rows are auto-created on workspace creation /
 // backfilled at boot. `owner` is intentionally NOT in this list because it
 // stays a true static role on the better-auth side.
-export const DEFAULT_ROLE_NAMES = ["viewer", "member", "admin"] as const;
+export const DEFAULT_ROLE_NAMES = [
+  "viewer",
+  "member",
+  "admin",
+  "executive",
+  "supervisor",
+  "engineer",
+] as const;
 export type DefaultRoleName = (typeof DEFAULT_ROLE_NAMES)[number];
 
 function toMutablePayload(
@@ -81,4 +120,7 @@ export const defaultRolePayloads: Record<
   viewer: toMutablePayload(viewer.statements),
   member: toMutablePayload(member.statements),
   admin: toMutablePayload(admin.statements),
+  executive: toMutablePayload(executive.statements),
+  supervisor: toMutablePayload(supervisor.statements),
+  engineer: toMutablePayload(engineer.statements),
 };

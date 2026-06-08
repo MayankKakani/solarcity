@@ -18,7 +18,7 @@ import { useProjectWebSocket } from "@/hooks/use-project-websocket";
 
 type TaskLayoutProps = {
   taskId: string;
-  projectId: string;
+  zoneId: string;
   workspaceId: string;
   headerActions?: ReactNode;
   children: ReactNode;
@@ -27,7 +27,7 @@ type TaskLayoutProps = {
 
 export default function TaskLayout({
   taskId,
-  projectId,
+  zoneId,
   workspaceId,
   headerActions,
   children,
@@ -35,10 +35,10 @@ export default function TaskLayout({
 }: TaskLayoutProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project } = useGetProject({ id: zoneId, workspaceId });
   const { data: task } = useGetTask(taskId);
 
-  useProjectWebSocket(projectId);
+  useProjectWebSocket(zoneId);
 
   const taskLabel =
     project?.slug && task?.number != null
@@ -47,8 +47,8 @@ export default function TaskLayout({
 
   const handleTaskSwitch = (nextTaskId: string) => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
-      params: { workspaceId, projectId, taskId: nextTaskId },
+      to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
+      params: { workspaceId, zoneId, taskId: nextTaskId },
     });
   };
 
@@ -84,8 +84,8 @@ export default function TaskLayout({
                   type="button"
                   onClick={() =>
                     navigate({
-                      to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-                      params: { workspaceId, projectId },
+                      to: "/dashboard/workspace/$workspaceId/zone/$zoneId/board",
+                      params: { workspaceId, zoneId },
                     })
                   }
                   className="max-w-40 truncate text-left text-xs text-foreground hover:underline"
@@ -94,7 +94,7 @@ export default function TaskLayout({
                 </button>
                 <span className="text-foreground/70 text-xs">/</span>
                 <TaskCrumbSelect
-                  projectId={projectId}
+                  zoneId={zoneId}
                   taskId={taskId}
                   taskLabel={taskLabel}
                   onSelectTask={handleTaskSwitch}

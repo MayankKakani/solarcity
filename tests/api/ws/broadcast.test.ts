@@ -42,7 +42,7 @@ describe("broadcastToProject", () => {
 
     broadcastToProject("proj-1", {
       type: "TASK_CREATED",
-      projectId: "proj-1",
+      zoneId: "proj-1",
       taskId: "t1",
     });
 
@@ -78,7 +78,7 @@ describe("broadcastToProject", () => {
 
     broadcastToProject(
       "proj-1",
-      { type: "TASK_UPDATED", projectId: "proj-1" },
+      { type: "TASK_UPDATED", zoneId: "proj-1" },
       "init-excluded",
     );
 
@@ -106,12 +106,12 @@ describe("broadcastToProject", () => {
     // Send two messages with the same type+taskId — should be deduplicated
     broadcastToProject("proj-1", {
       type: "TASK_UPDATED",
-      projectId: "proj-1",
+      zoneId: "proj-1",
       taskId: "t1",
     });
     broadcastToProject("proj-1", {
       type: "TASK_UPDATED",
-      projectId: "proj-1",
+      zoneId: "proj-1",
       taskId: "t1",
     });
 
@@ -138,7 +138,7 @@ describe("broadcastToProject", () => {
 
     broadcastToProject("proj-1", {
       type: "TASK_CREATED",
-      projectId: "proj-1",
+      zoneId: "proj-1",
     });
 
     // Wait past the batch timeout
@@ -157,7 +157,7 @@ describe("broadcastToProject", () => {
 
     broadcastToProject("proj-1", {
       type: "TASK_CREATED",
-      projectId: "proj-1",
+      zoneId: "proj-1",
     });
 
     expect(warnSpy).toHaveBeenCalledWith(

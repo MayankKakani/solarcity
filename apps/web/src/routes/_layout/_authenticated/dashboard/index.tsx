@@ -38,6 +38,19 @@ export const Route = createFileRoute("/_layout/_authenticated/dashboard/")({
         params: { workspaceId: firstWorkspace.id },
       });
     }
-    throw redirect({ to: "/onboarding" });
   },
+  component: NoOrganisationMessage,
 });
+
+function NoOrganisationMessage() {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-2 text-center w-full">
+      <p className="text-base font-medium text-neutral-800 dark:text-neutral-200">
+        You are not assigned to any Organisation
+      </p>
+      <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        Please reach out to your admin.
+      </p>
+    </div>
+  );
+}

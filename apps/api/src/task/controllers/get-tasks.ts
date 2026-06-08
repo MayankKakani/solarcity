@@ -15,9 +15,10 @@ import {
   columnTable,
   externalLinkTable,
   labelTable,
-  projectTable,
+  taskAssignmentTable,
   taskTable,
   userTable,
+  zoneTable,
 } from "../../database/schema";
 
 type GetTasksOptions = {
@@ -27,6 +28,7 @@ type GetTasksOptions = {
   limit?: number;
   page?: number;
   priority?: string;
+  site?: string;
   sortBy?:
     | "createdAt"
     | "priority"
@@ -68,9 +70,9 @@ function buildOrderBy(
   }
 }
 
-async function getTasks(projectId: string, options: GetTasksOptions = {}) {
-  const project = await db.query.projectTable.findFirst({
-    where: eq(projectTable.id, projectId),
+async function getTasks(zoneId: string, options: GetTasksOptions = {}) {
+  const project = await db.query.zoneTable.findFirst({
+    where: eq(zoneTable.id, zoneId),
   });
 
   if (!project) {
@@ -79,7 +81,7 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
     });
   }
 
-  const conditions = [eq(taskTable.projectId, projectId)];
+  const conditions = [eq(taskTable.zoneId, zoneId)];
 
   if (options.status) {
     conditions.push(eq(taskTable.status, options.status));
@@ -90,7 +92,11 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
   }
 
   if (options.assigneeId) {
-    conditions.push(eq(taskTable.userId, options.assigneeId));
+    const assignedTaskIds = db
+      .select({ taskId: taskAssignmentTable.taskId })
+      .from(taskAssignmentTable)
+      .where(eq(taskAssignmentTable.userId, options.assigneeId));
+    conditions.push(inArray(taskTable.id, assignedTaskIds));
   }
 
   if (options.dueBefore) {
@@ -99,6 +105,10 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
 
   if (options.dueAfter) {
     conditions.push(gte(taskTable.dueDate, new Date(options.dueAfter)));
+  }
+
+  if (options.site) {
+    conditions.push(eq(taskTable.siteId, options.site));
   }
 
   const whereClause = and(...conditions);
@@ -131,18 +141,15 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
     dueDate: taskTable.dueDate,
     position: taskTable.position,
     createdAt: taskTable.createdAt,
-    userId: taskTable.userId,
-    assigneeName: userTable.name,
-    assigneeId: userTable.id,
-    assigneeImage: userTable.image,
-    projectId: taskTable.projectId,
+    siteId: taskTable.siteId,
+    siteContactId: taskTable.siteContactId,
+    zoneId: taskTable.zoneId,
   };
 
   const query = db
     .select(taskSelection)
     .from(taskTable)
-    .leftJoin(userTable, eq(taskTable.userId, userTable.id))
-    .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+    .leftJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
     .where(whereClause)
     .orderBy(orderByClause);
 
@@ -171,6 +178,20 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
           .select()
           .from(externalLinkTable)
           .where(inArray(externalLinkTable.taskId, taskIds))
+      : [];
+
+  const assigneesData =
+    taskIds.length > 0
+      ? await db
+          .select({
+            taskId: taskAssignmentTable.taskId,
+            id: userTable.id,
+            name: userTable.name,
+            role: taskAssignmentTable.role,
+          })
+          .from(taskAssignmentTable)
+          .innerJoin(userTable, eq(taskAssignmentTable.userId, userTable.id))
+          .where(inArray(taskAssignmentTable.taskId, taskIds))
       : [];
 
   const taskLabelsMap = new Map<
@@ -215,10 +236,25 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
     });
   }
 
+  const taskAssigneesMap = new Map<
+    string,
+    Array<{ id: string; name: string; role: string }>
+  >();
+  for (const assignee of assigneesData) {
+    if (!taskAssigneesMap.has(assignee.taskId)) {
+      taskAssigneesMap.set(assignee.taskId, []);
+    }
+    taskAssigneesMap.get(assignee.taskId)?.push({
+      id: assignee.id,
+      name: assignee.name,
+      role: assignee.role,
+    });
+  }
+
   const projectColumns = await db
     .select()
     .from(columnTable)
-    .where(eq(columnTable.projectId, projectId))
+    .where(eq(columnTable.zoneId, zoneId))
     .orderBy(asc(columnTable.position));
 
   const columns = projectColumns.map((column) => ({
@@ -231,6 +267,7 @@ async function getTasks(projectId: string, options: GetTasksOptions = {}) {
       .filter((task) => task.status === column.slug)
       .map((task) => ({
         ...task,
+        assignees: taskAssigneesMap.get(task.id) || [],
         labels: taskLabelsMap.get(task.id) || [],
         externalLinks: taskExternalLinksMap.get(task.id) || [],
       })),

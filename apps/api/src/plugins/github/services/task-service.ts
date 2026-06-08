@@ -15,12 +15,9 @@ export type UpdateTaskStatusResult =
 
 const NON_COLUMN_STATUSES = new Set(["planned", "archived"]);
 
-export async function findTaskByNumber(projectId: string, taskNumber: number) {
+export async function findTaskByNumber(zoneId: string, taskNumber: number) {
   return db.query.taskTable.findFirst({
-    where: and(
-      eq(taskTable.projectId, projectId),
-      eq(taskTable.number, taskNumber),
-    ),
+    where: and(eq(taskTable.zoneId, zoneId), eq(taskTable.number, taskNumber)),
   });
 }
 
@@ -46,7 +43,7 @@ export async function updateTaskStatus(
 
   const column = await db.query.columnTable.findFirst({
     where: and(
-      eq(columnTable.projectId, task.projectId),
+      eq(columnTable.zoneId, task.zoneId),
       eq(columnTable.slug, newStatus),
     ),
   });
@@ -55,7 +52,7 @@ export async function updateTaskStatus(
     columnId = column.id;
   } else if (!NON_COLUMN_STATUSES.has(newStatus)) {
     console.warn(
-      `[GitHub] Skipping status update for task ${taskId}: column "${newStatus}" not found in project ${task.projectId}`,
+      `[GitHub] Skipping status update for task ${taskId}: column "${newStatus}" not found in project ${task.zoneId}`,
     );
     return { applied: false };
   }
@@ -77,7 +74,7 @@ export async function updateTaskStatus(
 }
 
 export async function isTaskInFinalState(task: {
-  projectId: string;
+  zoneId: string;
   status: string;
   columnId: string | null;
 }): Promise<boolean> {
@@ -85,7 +82,7 @@ export async function isTaskInFinalState(task: {
     const columnById = await db.query.columnTable.findFirst({
       where: and(
         eq(columnTable.id, task.columnId),
-        eq(columnTable.projectId, task.projectId),
+        eq(columnTable.zoneId, task.zoneId),
       ),
     });
 
@@ -96,7 +93,7 @@ export async function isTaskInFinalState(task: {
 
   const columnByStatus = await db.query.columnTable.findFirst({
     where: and(
-      eq(columnTable.projectId, task.projectId),
+      eq(columnTable.zoneId, task.zoneId),
       eq(columnTable.slug, task.status),
     ),
   });

@@ -58,7 +58,7 @@ describe("registerTools", () => {
     registerTools(server as never, { client: client as never });
 
     const result = await tools.get("list_tasks")?.handler({
-      projectId: "project 1",
+      zoneId: "project 1",
       status: "open",
       page: 2,
       sortOrder: "desc",
@@ -89,7 +89,7 @@ describe("registerTools", () => {
           description: "Write docs",
           status: "open",
           priority: "medium",
-          projectId: "project-1",
+          zoneId: "project-1",
           position: 4,
         })
         .mockResolvedValueOnce({ id: "task-1", status: "done" }),
@@ -116,7 +116,7 @@ describe("registerTools", () => {
         description: "Write docs",
         status: "done",
         priority: "medium",
-        projectId: "project-1",
+        zoneId: "project-1",
         position: 4,
       }),
     );
@@ -208,7 +208,7 @@ describe("registerTools", () => {
     expect(schema).toBeDefined();
     expect(() =>
       schema?.parse({
-        projectId: "project-1",
+        zoneId: "project-1",
         dueBefore: "2026-04-04",
       }),
     ).toThrow();

@@ -19,18 +19,18 @@ import type Task from "@/types/task";
 
 type SubtaskStatusPopoverProps = {
   tasks: Task[];
-  projectId: string;
+  zoneId: string;
   children: React.ReactNode;
 };
 
 export default function SubtaskStatusPopover({
   tasks,
-  projectId,
+  zoneId,
   children,
 }: SubtaskStatusPopoverProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const { data: columns = [] } = useGetColumns(projectId);
+  const { data: columns = [] } = useGetColumns(zoneId);
   const statusOptions = columns.map((col) => ({
     value: col.slug,
     label: col.name,

@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm";
 import db from "../../database";
 import {
-  projectTable,
   taskTable,
   userTable,
   workspaceTable,
+  zoneTable,
 } from "../../database/schema";
 import type {
   PluginContext,
@@ -63,7 +63,7 @@ function redactWebhookUrl(value: string): string {
 
 async function getDiscordEventData(
   taskId: string,
-  projectId: string,
+  zoneId: string,
   userId: string | null,
 ): Promise<DiscordEventData | null> {
   const taskPromise = db
@@ -72,14 +72,14 @@ async function getDiscordEventData(
       number: taskTable.number,
       status: taskTable.status,
       priority: taskTable.priority,
-      projectName: projectTable.name,
-      projectId: projectTable.id,
+      projectName: zoneTable.name,
+      zoneId: zoneTable.id,
       workspaceId: workspaceTable.id,
     })
     .from(taskTable)
-    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
-    .where(and(eq(taskTable.id, taskId), eq(projectTable.id, projectId)))
+    .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
+    .innerJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
+    .where(and(eq(taskTable.id, taskId), eq(zoneTable.id, zoneId)))
     .limit(1);
 
   const userPromise = userId
@@ -96,8 +96,8 @@ async function getDiscordEventData(
     return null;
   }
 
-  const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-  const taskUrl = `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.projectId}/task/${taskId}`;
+  const clientUrl = process.env.SOLARPLAN_CLIENT_URL || "http://localhost:5173";
+  const taskUrl = `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.zoneId}/task/${taskId}`;
 
   return {
     taskTitle: taskRow.title,
@@ -156,7 +156,7 @@ async function sendDiscordMessage(
           footer: {
             text: data.actorName
               ? `Triggered by ${data.actorName}`
-              : "Triggered by Kaneo",
+              : "Triggered by Solarplan",
           },
         },
       ],
@@ -180,7 +180,7 @@ async function runDiscordHandler(
   context: PluginContext,
   event: {
     taskId: string;
-    projectId: string;
+    zoneId: string;
     userId: string | null;
   },
   featureKey: DiscordEventKey,
@@ -191,7 +191,7 @@ async function runDiscordHandler(
 
   const data = await getDiscordEventData(
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
   );
   if (!data) return;

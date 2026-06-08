@@ -46,7 +46,7 @@ export async function migrateGitHubIntegration() {
     for (const old of oldIntegrations) {
       const existingIntegration = await db.query.integrationTable.findFirst({
         where: and(
-          eq(integrationTable.projectId, old.projectId),
+          eq(integrationTable.zoneId, old.zoneId),
           eq(integrationTable.type, "github"),
         ),
       });
@@ -56,7 +56,7 @@ export async function migrateGitHubIntegration() {
       }
 
       await db.insert(integrationTable).values({
-        projectId: old.projectId,
+        zoneId: old.zoneId,
         type: "github",
         config: JSON.stringify({
           repositoryOwner: old.repositoryOwner,
@@ -112,7 +112,7 @@ async function migrateTaskLinks() {
 
     const integration = await db.query.integrationTable.findFirst({
       where: and(
-        eq(integrationTable.projectId, task.projectId),
+        eq(integrationTable.zoneId, task.zoneId),
         eq(integrationTable.type, "github"),
       ),
     });
@@ -142,7 +142,7 @@ async function migrateTaskLinks() {
         title: null,
         metadata: JSON.stringify({
           migrated: true,
-          createdFrom: linkType === "Created from" ? "github" : "kaneo",
+          createdFrom: linkType === "Created from" ? "github" : "solarplan",
         }),
       });
       linksCreated++;

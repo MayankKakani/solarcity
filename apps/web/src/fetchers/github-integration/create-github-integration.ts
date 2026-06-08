@@ -1,18 +1,16 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 import type { InferRequestType } from "hono";
 
 export type CreateGithubIntegrationRequest = InferRequestType<
-  (typeof client)["github-integration"]["project"][":projectId"]["$post"]
+  (typeof client)["github-integration"]["project"][":zoneId"]["$post"]
 >["json"];
 
 async function createGithubIntegration(
-  projectId: string,
+  zoneId: string,
   data: CreateGithubIntegrationRequest,
 ) {
-  const response = await client["github-integration"].project[
-    ":projectId"
-  ].$post({
-    param: { projectId },
+  const response = await client["github-integration"].project[":zoneId"].$post({
+    param: { zoneId },
     json: data,
   });
 

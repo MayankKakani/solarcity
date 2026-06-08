@@ -1,15 +1,13 @@
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { projectTable } from "../../database/schema";
+import { zoneTable } from "../../database/schema";
 
 async function archiveProject(id: string, workspaceId: string) {
   const [existingProject] = await db
     .select()
-    .from(projectTable)
-    .where(
-      and(eq(projectTable.id, id), eq(projectTable.workspaceId, workspaceId)),
-    );
+    .from(zoneTable)
+    .where(and(eq(zoneTable.id, id), eq(zoneTable.workspaceId, workspaceId)));
 
   if (!existingProject) {
     throw new HTTPException(404, {
@@ -19,9 +17,9 @@ async function archiveProject(id: string, workspaceId: string) {
   }
 
   const [archivedProject] = await db
-    .update(projectTable)
+    .update(zoneTable)
     .set({ archivedAt: new Date() })
-    .where(eq(projectTable.id, id))
+    .where(eq(zoneTable.id, id))
     .returning();
 
   if (!archivedProject) {

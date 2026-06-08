@@ -6,7 +6,7 @@ import { publishEvent } from "../../events";
 
 async function createComment(taskId: string, userId: string, content: string) {
   const [task] = await db
-    .select({ projectId: taskTable.projectId })
+    .select({ zoneId: taskTable.zoneId })
     .from(taskTable)
     .where(eq(taskTable.id, taskId))
     .limit(1);
@@ -31,7 +31,7 @@ async function createComment(taskId: string, userId: string, content: string) {
   await publishEvent("comment.created", {
     ...comment,
     taskId: comment.taskId,
-    projectId: task.projectId,
+    zoneId: task.zoneId,
     userId,
   });
 

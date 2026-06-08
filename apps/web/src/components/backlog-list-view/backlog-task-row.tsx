@@ -226,7 +226,7 @@ export default function BacklogTaskRow({ task }: BacklogTaskRowProps) {
           <TaskCardContextMenuContent
             task={task}
             taskCardContext={{
-              projectId: project.id,
+              zoneId: project.id,
               worskpaceId: workspace.id,
             }}
             onDeleteClick={() => setIsDeleteTaskModalOpen(true)}

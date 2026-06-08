@@ -1,4 +1,4 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 type SearchParams = {
   q: string;
@@ -10,7 +10,7 @@ type SearchParams = {
     | "comments"
     | "activities";
   workspaceId?: string;
-  projectId?: string;
+  zoneId?: string;
   limit?: number;
 };
 

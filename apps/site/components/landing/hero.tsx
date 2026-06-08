@@ -19,7 +19,7 @@ export function Hero() {
           </FadeIn>
           <FadeIn delay={80}>
             <p className="mt-5 text-balance text-lg text-muted-foreground leading-relaxed md:text-xl">
-              Kaneo gives you clean planning, focused execution, and full
+              Solarplan gives you clean planning, focused execution, and full
               ownership of your workflow from backlog to release.
             </p>
           </FadeIn>
@@ -30,7 +30,7 @@ export function Hero() {
                 size="lg"
                 className="gap-2"
                 onClick={() => {
-                  window.location.href = "https://cloud.kaneo.app";
+                  window.location.href = "https://cloud.solarplan.app";
                 }}
               >
                 Cloud
@@ -50,7 +50,8 @@ export function Hero() {
                 size="lg"
                 className="gap-2"
                 onClick={() => {
-                  window.location.href = "https://github.com/usekaneo/kaneo";
+                  window.location.href =
+                    "https://github.com/usekaneo/solarplan";
                 }}
               >
                 <Github className="h-4 w-4" />
@@ -62,10 +63,10 @@ export function Hero() {
                 className="gap-2 border-[#da552f]/40 bg-[#da552f]/8 text-foreground hover:bg-[#da552f]/14"
                 render={
                   <a
-                    href="https://www.producthunt.com/products/kaneo"
+                    href="https://www.producthunt.com/products/solarplan"
                     target="_blank"
                     rel="noreferrer"
-                    aria-label="View Kaneo on Product Hunt"
+                    aria-label="View Solarplan on Product Hunt"
                   >
                     <span className="flex size-5 items-center justify-center rounded-full bg-[#da552f] font-semibold text-[13px] text-white leading-none">
                       P
@@ -78,7 +79,7 @@ export function Hero() {
           </FadeIn>
         </div>
 
-        {/* ── App preview — interactive mock of the real Kaneo UI ── */}
+        {/* ── App preview — interactive mock of the real Solarplan UI ── */}
         <FadeIn delay={240} distance={32}>
           <AppPreview />
         </FadeIn>

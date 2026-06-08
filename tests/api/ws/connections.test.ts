@@ -26,20 +26,20 @@ function makeFakeWs() {
 // We access projectConnections indirectly through the exported functions.
 // After each test we clean up by removing all connections we added.
 const tracked: Array<{
-  projectId: string;
+  zoneId: string;
   conn: ReturnType<typeof addConnection>;
 }> = [];
 
 afterEach(() => {
-  for (const { projectId, conn } of tracked) {
-    removeConnection(projectId, conn);
+  for (const { zoneId, conn } of tracked) {
+    removeConnection(zoneId, conn);
   }
   tracked.length = 0;
 });
 
-function trackAdd(projectId: string, userId: string, initiatorId: string) {
-  const conn = addConnection(projectId, makeFakeWs(), userId, initiatorId);
-  tracked.push({ projectId, conn });
+function trackAdd(zoneId: string, userId: string, initiatorId: string) {
+  const conn = addConnection(zoneId, makeFakeWs(), userId, initiatorId);
+  tracked.push({ zoneId, conn });
   return conn;
 }
 
@@ -47,7 +47,7 @@ describe("addConnection / removeConnection", () => {
   it("returns a ProjectConnection object with the provided values", () => {
     const ws = makeFakeWs();
     const conn = addConnection("proj-1", ws, "user-1", "init-1");
-    tracked.push({ projectId: "proj-1", conn });
+    tracked.push({ zoneId: "proj-1", conn });
 
     expect(conn).toEqual({
       ws,

@@ -1,10 +1,8 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function getGithubIntegration(projectId: string) {
-  const response = await client["github-integration"].project[
-    ":projectId"
-  ].$get({
-    param: { projectId },
+async function getGithubIntegration(zoneId: string) {
+  const response = await client["github-integration"].project[":zoneId"].$get({
+    param: { zoneId },
   });
 
   if (!response.ok) {

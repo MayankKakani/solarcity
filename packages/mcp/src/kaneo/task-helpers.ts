@@ -11,7 +11,7 @@ export type TaskUpdatePatch = {
   description?: string | null;
   status?: string;
   priority?: TaskPriority;
-  projectId?: string;
+  zoneId?: string;
   position?: number;
   startDate?: string | null;
   dueDate?: string | null;
@@ -68,11 +68,11 @@ export function buildFullTaskUpdateBody(
     throw new Error("Cannot update task: invalid or missing priority.");
   }
 
-  const projectId =
-    patch.projectId ??
-    (typeof existing.projectId === "string" ? existing.projectId : undefined);
-  if (!projectId) {
-    throw new Error("Cannot update task: missing projectId.");
+  const zoneId =
+    patch.zoneId ??
+    (typeof existing.zoneId === "string" ? existing.zoneId : undefined);
+  if (!zoneId) {
+    throw new Error("Cannot update task: missing zoneId.");
   }
 
   // When patch.userId is explicitly null, we set userId to "" so the API clears assignee; the API
@@ -99,7 +99,7 @@ export function buildFullTaskUpdateBody(
     description,
     status,
     priority: priorityRaw,
-    projectId,
+    zoneId,
     position,
   };
 

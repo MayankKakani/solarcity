@@ -12,15 +12,15 @@ export function useCreateGithubIntegration() {
 
   return useMutation({
     mutationFn: ({
-      projectId,
+      zoneId,
       data,
     }: {
-      projectId: string;
+      zoneId: string;
       data: CreateGithubIntegrationRequest;
-    }) => createGithubIntegration(projectId, data),
-    onSuccess: (_, { projectId }) => {
+    }) => createGithubIntegration(zoneId, data),
+    onSuccess: (_, { zoneId }) => {
       queryClient.invalidateQueries({
-        queryKey: ["github-integration", projectId],
+        queryKey: ["github-integration", zoneId],
       });
     },
   });
@@ -30,10 +30,10 @@ export function useDeleteGithubIntegration() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (projectId: string) => deleteGithubIntegration(projectId),
-    onSuccess: (_, projectId) => {
+    mutationFn: (zoneId: string) => deleteGithubIntegration(zoneId),
+    onSuccess: (_, zoneId) => {
       queryClient.invalidateQueries({
-        queryKey: ["github-integration", projectId],
+        queryKey: ["github-integration", zoneId],
       });
     },
   });

@@ -14,10 +14,10 @@ function maskToken(token: string): string {
   return `${token.slice(0, 4)}••••••${token.slice(-4)}`;
 }
 
-async function getGiteaIntegration(projectId: string) {
+async function getGiteaIntegration(zoneId: string) {
   const integration = await db.query.integrationTable.findFirst({
     where: and(
-      eq(integrationTable.projectId, projectId),
+      eq(integrationTable.zoneId, zoneId),
       eq(integrationTable.type, "gitea"),
     ),
   });
@@ -29,12 +29,12 @@ async function getGiteaIntegration(projectId: string) {
   const config = JSON.parse(integration.config) as GiteaConfig;
 
   const apiBase = normalizeApiServerUrl(
-    process.env.KANEO_API_URL || "http://localhost:1337",
+    process.env.SOLARPLAN_API_URL || "http://localhost:1337",
   );
 
   return {
     id: integration.id,
-    projectId: integration.projectId,
+    zoneId: integration.zoneId,
     baseUrl: config.baseUrl,
     repositoryOwner: config.repositoryOwner,
     repositoryName: config.repositoryName,

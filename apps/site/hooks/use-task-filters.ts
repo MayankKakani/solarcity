@@ -48,9 +48,9 @@ function normalizeFilters(raw: unknown): BoardFilters {
 
 export function useTaskFilters(
   project: ProjectWithTasks | null | undefined,
-  projectId?: string,
+  zoneId?: string,
 ) {
-  const storageKey = projectId ? `kaneo:board-filters:${projectId}` : null;
+  const storageKey = zoneId ? `solarplan:board-filters:${zoneId}` : null;
   const [filters, setFilters] = useState<BoardFilters>(DEFAULT_FILTERS);
 
   useEffect(() => {

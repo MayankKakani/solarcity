@@ -48,7 +48,7 @@ async function getTasksNeedingReminder(
       title: taskTable.title,
       userId: taskTable.userId,
       dueDate: taskTable.dueDate,
-      projectId: taskTable.projectId,
+      zoneId: taskTable.zoneId,
     })
     .from(taskTable)
     .leftJoin(columnTable, eq(taskTable.columnId, columnTable.id))
@@ -79,7 +79,7 @@ async function processReminder(
     title: string;
     userId: string | null;
     dueDate: Date | null;
-    projectId: string;
+    zoneId: string;
   },
   reminderType: ReminderType,
   notificationType: "due_date_reminder" | "task_overdue",

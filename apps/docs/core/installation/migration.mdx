@@ -1,17 +1,17 @@
 ---
 title: Migration guide
-description: How to upgrade from the two-container setup (api + web) to the combined kaneo container introduced in v2.6.0.
+description: How to upgrade from the two-container setup (api + web) to the combined solarplan container introduced in v2.6.0.
 ---
 
 ## What changed in v2.6.0
 
-This release replaces the separate `api` and `web` containers with a single `kaneo` container. nginx runs on port 5173 and proxies `/api/` requests to the internal Node API. Everything else — the database, volumes, environment variables — works the same.
+This release replaces the separate `api` and `web` containers with a single `solarplan` container. nginx runs on port 5173 and proxies `/api/` requests to the internal Node API. Everything else — the database, volumes, environment variables — works the same.
 
 Three areas require changes when upgrading:
 
-1. Docker Compose — replace the `api` and `web` services with `kaneo`
-2. Environment variables — `KANEO_API_URL` and `DATABASE_URL` are now optional
-3. Helm chart — all `api.*` and `web.*` values moved under `kaneo.*` (chart version 0.3.0)
+1. Docker Compose — replace the `api` and `web` services with `solarplan`
+2. Environment variables — `SOLARPLAN_API_URL` and `DATABASE_URL` are now optional
+3. Helm chart — all `api.*` and `web.*` values moved under `solarplan.*` (chart version 0.3.0)
 
 ---
 
@@ -69,13 +69,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER:-kaneo}\" -d \"$${POSTGRES_DB:-kaneo}\""]
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER:-solarplan}\" -d \"$${POSTGRES_DB:-solarplan}\""]
       interval: 10s
       timeout: 5s
       retries: 5
 
-  kaneo:
-    image: ghcr.io/usekaneo/kaneo:latest
+  solarplan:
+    image: ghcr.io/usekaneo/solarplan:latest
     ports:
       - "5173:5173"
     env_file:
@@ -89,32 +89,32 @@ volumes:
   postgres_data:
 ```
 
-Remove the `api` and `web` service blocks and add the `kaneo` service. The `postgres` service is unchanged except for the added healthcheck — `kaneo` waits for it before starting.
+Remove the `api` and `web` service blocks and add the `solarplan` service. The `postgres` service is unchanged except for the added healthcheck — `solarplan` waits for it before starting.
 
 ---
 
 ## Environment variables
 
-### KANEO_API_URL is now optional
+### SOLARPLAN_API_URL is now optional
 
-Previously both `KANEO_CLIENT_URL` and `KANEO_API_URL` were required. Now `KANEO_API_URL` is derived automatically from `KANEO_CLIENT_URL`:
+Previously both `SOLARPLAN_CLIENT_URL` and `SOLARPLAN_API_URL` were required. Now `SOLARPLAN_API_URL` is derived automatically from `SOLARPLAN_CLIENT_URL`:
 
 ```
-KANEO_API_URL = KANEO_CLIENT_URL + "/api"
+SOLARPLAN_API_URL = SOLARPLAN_CLIENT_URL + "/api"
 ```
 
-Remove `KANEO_API_URL` from your `.env` unless you need to override it (for example, when a reverse proxy changes the API path).
+Remove `SOLARPLAN_API_URL` from your `.env` unless you need to override it (for example, when a reverse proxy changes the API path).
 
 **Before:**
 ```env
-KANEO_CLIENT_URL=https://kaneo.example.com
-KANEO_API_URL=https://kaneo.example.com/api
+SOLARPLAN_CLIENT_URL=https://solarplan.example.com
+SOLARPLAN_API_URL=https://solarplan.example.com/api
 ```
 
 **After:**
 ```env
-KANEO_CLIENT_URL=https://kaneo.example.com
-# KANEO_API_URL is set automatically to https://kaneo.example.com/api
+SOLARPLAN_CLIENT_URL=https://solarplan.example.com
+# SOLARPLAN_API_URL is set automatically to https://solarplan.example.com/api
 ```
 
 ### DATABASE_URL is now optional
@@ -130,16 +130,16 @@ Keep it if you use an external database, a non-default hostname, or a host-nativ
 
 **Before:**
 ```env
-POSTGRES_DB=kaneo
-POSTGRES_USER=kaneo
+POSTGRES_DB=solarplan
+POSTGRES_USER=solarplan
 POSTGRES_PASSWORD=changeme
-DATABASE_URL=postgresql://kaneo:changeme@postgres:5432/kaneo
+DATABASE_URL=postgresql://solarplan:changeme@postgres:5432/solarplan
 ```
 
 **After:**
 ```env
-POSTGRES_DB=kaneo
-POSTGRES_USER=kaneo
+POSTGRES_DB=solarplan
+POSTGRES_USER=solarplan
 POSTGRES_PASSWORD=changeme
 # DATABASE_URL is derived automatically
 ```
@@ -162,27 +162,27 @@ AUTH_SECRET=your_generated_secret_here
 
 ## Helm chart (0.2.0 → 0.3.0)
 
-Chart version 0.3.0 is a breaking change. All `api.*` and `web.*` value keys have moved under `kaneo.*`.
+Chart version 0.3.0 is a breaking change. All `api.*` and `web.*` value keys have moved under `solarplan.*`.
 
 ### Changed value keys
 
 | Old key | New key |
 |---|---|
-| `api.image.repository` | `kaneo.image.repository` |
-| `api.image.tag` | `kaneo.image.tag` |
-| `api.image.pullPolicy` | `kaneo.image.pullPolicy` |
-| `api.service.type` | `kaneo.service.type` |
-| `api.service.port` | `kaneo.service.port` |
-| `api.resources` | `kaneo.resources` |
-| `api.env.clientUrl` | `kaneo.env.clientUrl` |
-| `api.env.authSecret` | `kaneo.env.authSecret` |
-| `api.env.existingSecret` | `kaneo.env.existingSecret` |
-| `api.env.disableRegistration` | `kaneo.env.disableRegistration` |
-| `api.env.disablePasswordRegistration` | `kaneo.env.disablePasswordRegistration` |
-| `api.env.database` | `kaneo.env.database` |
-| `api.livenessProbe` | `kaneo.livenessProbe` |
-| `api.readinessProbe` | `kaneo.readinessProbe` |
-| `web.*` | removed — web is bundled in the kaneo image |
+| `api.image.repository` | `solarplan.image.repository` |
+| `api.image.tag` | `solarplan.image.tag` |
+| `api.image.pullPolicy` | `solarplan.image.pullPolicy` |
+| `api.service.type` | `solarplan.service.type` |
+| `api.service.port` | `solarplan.service.port` |
+| `api.resources` | `solarplan.resources` |
+| `api.env.clientUrl` | `solarplan.env.clientUrl` |
+| `api.env.authSecret` | `solarplan.env.authSecret` |
+| `api.env.existingSecret` | `solarplan.env.existingSecret` |
+| `api.env.disableRegistration` | `solarplan.env.disableRegistration` |
+| `api.env.disablePasswordRegistration` | `solarplan.env.disablePasswordRegistration` |
+| `api.env.database` | `solarplan.env.database` |
+| `api.livenessProbe` | `solarplan.livenessProbe` |
+| `api.readinessProbe` | `solarplan.readinessProbe` |
+| `web.*` | removed — web is bundled in the solarplan image |
 
 ### Example values migration
 
@@ -196,7 +196,7 @@ api:
     type: ClusterIP
     port: 1337
   env:
-    clientUrl: "https://kaneo.example.com"
+    clientUrl: "https://solarplan.example.com"
     authSecret: "your-secret-here"
 
 web:
@@ -210,25 +210,25 @@ web:
 
 **After (`values.yaml`):**
 ```yaml
-kaneo:
+solarplan:
   image:
-    repository: ghcr.io/usekaneo/kaneo
+    repository: ghcr.io/usekaneo/solarplan
     tag: "2.6.0"
   service:
     type: ClusterIP
     port: 5173
   env:
-    clientUrl: "https://kaneo.example.com"
+    clientUrl: "https://solarplan.example.com"
     authSecret: "your-secret-here"
 ```
 
 ### Upgrade command
 
 ```bash
-helm upgrade kaneo kaneo/kaneo \
+helm upgrade solarplan solarplan/solarplan \
   --version 0.3.0 \
   --values your-values.yaml \
-  --namespace kaneo
+  --namespace solarplan
 ```
 
 If you store values in a file, update the keys before running the upgrade. Helm will reject unknown keys and the deployment will fail if `api.*` or `web.*` keys remain.
@@ -240,11 +240,11 @@ If you store values in a file, update the keys before running the upgrade. Helm 
 After upgrading, a minimal `.env` for Docker Compose requires three values:
 
 ```env
-KANEO_CLIENT_URL=http://localhost:5173
+SOLARPLAN_CLIENT_URL=http://localhost:5173
 POSTGRES_PASSWORD=changeme
 AUTH_SECRET=replace_with_output_of_openssl_rand_hex_32
 ```
 
 Generate a stable secret with `openssl rand -hex 32` and keep it persistent, or active sessions will be invalidated after a container restart.
 
-`POSTGRES_DB` and `POSTGRES_USER` default to `kaneo` if not set. `KANEO_API_URL` and `DATABASE_URL` are derived automatically.
+`POSTGRES_DB` and `POSTGRES_USER` default to `solarplan` if not set. `SOLARPLAN_API_URL` and `DATABASE_URL` are derived automatically.

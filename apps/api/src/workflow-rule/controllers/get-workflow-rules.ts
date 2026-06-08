@@ -2,11 +2,11 @@ import { eq } from "drizzle-orm";
 import db from "../../database";
 import { columnTable, workflowRuleTable } from "../../database/schema";
 
-async function getWorkflowRules(projectId: string) {
+async function getWorkflowRules(zoneId: string) {
   const rules = await db
     .select({
       id: workflowRuleTable.id,
-      projectId: workflowRuleTable.projectId,
+      zoneId: workflowRuleTable.zoneId,
       integrationType: workflowRuleTable.integrationType,
       eventType: workflowRuleTable.eventType,
       columnId: workflowRuleTable.columnId,
@@ -17,7 +17,7 @@ async function getWorkflowRules(projectId: string) {
     })
     .from(workflowRuleTable)
     .leftJoin(columnTable, eq(workflowRuleTable.columnId, columnTable.id))
-    .where(eq(workflowRuleTable.projectId, projectId));
+    .where(eq(workflowRuleTable.zoneId, zoneId));
 
   return rules;
 }

@@ -10,7 +10,7 @@ export type NotificationPreferenceWorkspaceRule = {
   gotifyEnabled: boolean;
   webhookEnabled: boolean;
   projectMode: "all" | "selected";
-  selectedProjectIds: string[];
+  selectedzoneIds: string[];
   createdAt: string;
   updatedAt: string;
 };

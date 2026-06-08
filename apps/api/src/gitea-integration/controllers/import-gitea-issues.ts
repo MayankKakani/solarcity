@@ -5,8 +5,8 @@ import {
   activityTable,
   integrationTable,
   labelTable,
-  projectTable,
   taskTable,
+  zoneTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import type { GiteaConfig } from "../../plugins/gitea/config";
@@ -41,16 +41,14 @@ function toPriorityLabels(labels: GiteaLabel[]): LabelLike[] {
   return labels.map((label) => ({ name: label.name }));
 }
 
-export async function importGiteaIssues(
-  projectId: string,
-): Promise<ImportResult> {
+export async function importGiteaIssues(zoneId: string): Promise<ImportResult> {
   const errors: string[] = [];
   let imported = 0;
   let updated = 0;
   let skipped = 0;
 
-  const project = await db.query.projectTable.findFirst({
-    where: eq(projectTable.id, projectId),
+  const project = await db.query.zoneTable.findFirst({
+    where: eq(zoneTable.id, zoneId),
   });
 
   if (!project) {
@@ -59,7 +57,7 @@ export async function importGiteaIssues(
 
   const integration = await db.query.integrationTable.findFirst({
     where: and(
-      eq(integrationTable.projectId, projectId),
+      eq(integrationTable.zoneId, zoneId),
       eq(integrationTable.type, "gitea"),
     ),
   });
@@ -121,7 +119,7 @@ export async function importGiteaIssues(
       const result = await importSingleIssue(
         issue,
         integration.id,
-        projectId,
+        zoneId,
         project.workspaceId,
         config,
         client,
@@ -170,7 +168,7 @@ export async function importGiteaIssues(
           head: { ref: pr.head.ref },
         },
         integration.id,
-        projectId,
+        zoneId,
         project.slug,
         config,
       );
@@ -192,7 +190,7 @@ export async function importGiteaIssues(
 async function importSingleIssue(
   issue: GiteaIssue,
   integrationId: string,
-  projectId: string,
+  zoneId: string,
   workspaceId: string,
   config: GiteaConfig,
   client: ReturnType<typeof createGiteaClient>,
@@ -237,8 +235,8 @@ async function importSingleIssue(
   const createdTask = await db.transaction(async (tx) => {
     const [lockedProject] = await tx
       .select()
-      .from(projectTable)
-      .where(eq(projectTable.id, projectId))
+      .from(zoneTable)
+      .where(eq(zoneTable.id, zoneId))
       .for("update");
 
     if (!lockedProject) {
@@ -248,12 +246,12 @@ async function importSingleIssue(
     const [result] = await tx
       .select({ maxNumber: max(taskTable.number) })
       .from(taskTable)
-      .where(eq(taskTable.projectId, projectId));
+      .where(eq(taskTable.zoneId, zoneId));
 
     const nextNumber = (result?.maxNumber ?? 0) + 1;
 
     const taskValues: typeof taskTable.$inferInsert = {
-      projectId,
+      zoneId,
       userId: null,
       title: issue.title,
       description: formatTaskDescriptionFromIssue(issue.body),
@@ -456,7 +454,7 @@ async function linkPullRequestToTask(
     user?: { login?: string; username?: string; avatar_url?: string } | null;
   },
   integrationId: string,
-  projectId: string,
+  zoneId: string,
   projectSlug: string,
   config: GiteaConfig,
 ): Promise<void> {
@@ -472,7 +470,7 @@ async function linkPullRequestToTask(
     return;
   }
 
-  const task = await findTaskByNumber(projectId, taskNumber);
+  const task = await findTaskByNumber(zoneId, taskNumber);
 
   if (!task) {
     return;

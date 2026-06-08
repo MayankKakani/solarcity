@@ -12,8 +12,8 @@ describe("InMemoryBroadcastAdapter", () => {
     });
 
     const message: BroadcastMessage = {
-      projectId: "project-1",
-      message: { type: "TASK_CREATED", projectId: "project-1", taskId: "t1" },
+      zoneId: "project-1",
+      message: { type: "TASK_CREATED", zoneId: "project-1", taskId: "t1" },
     };
 
     await adapter.publish(message);
@@ -27,8 +27,8 @@ describe("InMemoryBroadcastAdapter", () => {
 
     await expect(
       adapter.publish({
-        projectId: "project-1",
-        message: { type: "TASK_CREATED", projectId: "project-1" },
+        zoneId: "project-1",
+        message: { type: "TASK_CREATED", zoneId: "project-1" },
       }),
     ).resolves.toBeUndefined();
   });
@@ -42,8 +42,8 @@ describe("InMemoryBroadcastAdapter", () => {
     });
 
     await adapter.publish({
-      projectId: "p1",
-      message: { type: "TASK_UPDATED", projectId: "p1" },
+      zoneId: "p1",
+      message: { type: "TASK_UPDATED", zoneId: "p1" },
       excludeInitiatorId: "user-abc",
     });
 
@@ -61,8 +61,8 @@ describe("InMemoryBroadcastAdapter", () => {
     await adapter.shutdown();
 
     await adapter.publish({
-      projectId: "p1",
-      message: { type: "TASK_DELETED", projectId: "p1" },
+      zoneId: "p1",
+      message: { type: "TASK_DELETED", zoneId: "p1" },
     });
 
     expect(received).toHaveLength(0);
@@ -77,8 +77,8 @@ describe("InMemoryBroadcastAdapter", () => {
     await adapter.subscribe((msg) => second.push(msg));
 
     await adapter.publish({
-      projectId: "p1",
-      message: { type: "TASK_UPDATED", projectId: "p1" },
+      zoneId: "p1",
+      message: { type: "TASK_UPDATED", zoneId: "p1" },
     });
 
     expect(first).toHaveLength(0);

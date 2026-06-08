@@ -4,16 +4,14 @@ import db from "../../database";
 import { columnTable } from "../../database/schema";
 
 async function reorderColumns(
-  projectId: string,
+  zoneId: string,
   columns: Array<{ id: string; position: number }>,
 ) {
   for (const col of columns) {
     const [updated] = await db
       .update(columnTable)
       .set({ position: col.position })
-      .where(
-        and(eq(columnTable.id, col.id), eq(columnTable.projectId, projectId)),
-      )
+      .where(and(eq(columnTable.id, col.id), eq(columnTable.zoneId, zoneId)))
       .returning({ id: columnTable.id });
 
     if (!updated) {
@@ -24,7 +22,7 @@ async function reorderColumns(
   }
 
   const updated = await db.query.columnTable.findMany({
-    where: eq(columnTable.projectId, projectId),
+    where: eq(columnTable.zoneId, zoneId),
     orderBy: (columns, { asc }) => [asc(columns.position)],
   });
 

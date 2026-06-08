@@ -59,7 +59,7 @@ export async function createProjectFixture({
   slug?: string;
 }) {
   const [project] = await db
-    .insert(schema.projectTable)
+    .insert(schema.zoneTable)
     .values({
       workspaceId,
       name,
@@ -74,7 +74,7 @@ export async function createProjectFixture({
     const [inserted] = await db
       .insert(schema.columnTable)
       .values({
-        projectId: project.id,
+        zoneId: project.id,
         name: col.name,
         slug: col.slug,
         position: col.position,

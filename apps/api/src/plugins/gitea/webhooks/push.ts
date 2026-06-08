@@ -104,7 +104,7 @@ export async function handleGiteaPush(payload: PushPayload) {
       continue;
     }
 
-    const task = await findTaskByNumber(integration.projectId, taskNumber);
+    const task = await findTaskByNumber(integration.zoneId, taskNumber);
 
     if (!task) {
       continue;
@@ -133,7 +133,7 @@ export async function handleGiteaPush(payload: PushPayload) {
     });
 
     const targetStatus = await resolveTargetStatus(
-      integration.projectId,
+      integration.zoneId,
       "branch_push",
       config.statusTransitions?.onBranchPush || "in-progress",
     );
@@ -148,7 +148,7 @@ export async function handleGiteaPush(payload: PushPayload) {
       ) {
         await publishEvent("task.status_changed", {
           taskId: statusResult.after.id,
-          projectId: statusResult.after.projectId,
+          zoneId: statusResult.after.zoneId,
           userId: null,
           oldStatus: statusResult.before.status,
           newStatus: statusResult.after.status,

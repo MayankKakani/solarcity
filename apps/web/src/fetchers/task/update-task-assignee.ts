@@ -1,17 +1,14 @@
-import { client } from "@kaneo/libs";
-import type Task from "@/types/task";
+import { client } from "@solarplan/libs";
 
-type UpdateTaskAssigneePayload = Pick<Task, "userId">;
+type Assignee = {
+  userId: string;
+  role: "supervisor" | "engineer";
+};
 
-async function updateTaskAssignee(
-  taskId: string,
-  task: UpdateTaskAssigneePayload,
-) {
+async function updateTaskAssignee(taskId: string, assignees: Assignee[]) {
   const response = await client.task.assignee[":id"].$put({
     param: { id: taskId },
-    json: {
-      userId: task.userId || "",
-    },
+    json: { assignees },
   });
 
   if (!response.ok) {
@@ -19,9 +16,7 @@ async function updateTaskAssignee(
     throw new Error(error);
   }
 
-  const data = await response.json();
-
-  return data;
+  return response.json();
 }
 
 export default updateTaskAssignee;

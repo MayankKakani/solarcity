@@ -1,11 +1,9 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function getGiteaIntegration(projectId: string) {
-  const response = await client["gitea-integration"].project[":projectId"].$get(
-    {
-      param: { projectId },
-    },
-  );
+async function getGiteaIntegration(zoneId: string) {
+  const response = await client["gitea-integration"].project[":zoneId"].$get({
+    param: { zoneId },
+  });
 
   if (!response.ok) {
     const error = await response.text();

@@ -1,11 +1,11 @@
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { projectTable, taskTable, userTable } from "../../database/schema";
+import { taskTable, userTable, zoneTable } from "../../database/schema";
 
-async function exportTasks(projectId: string) {
-  const project = await db.query.projectTable.findFirst({
-    where: eq(projectTable.id, projectId),
+async function exportTasks(zoneId: string) {
+  const project = await db.query.zoneTable.findFirst({
+    where: eq(zoneTable.id, zoneId),
   });
 
   if (!project) {
@@ -32,7 +32,7 @@ async function exportTasks(projectId: string) {
     })
     .from(taskTable)
     .leftJoin(userTable, eq(taskTable.userId, userTable.id))
-    .where(eq(taskTable.projectId, projectId))
+    .where(eq(taskTable.zoneId, zoneId))
     .orderBy(taskTable.position);
 
   return {

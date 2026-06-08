@@ -13,13 +13,13 @@ function toSlug(name: string): string {
 }
 
 async function createColumn({
-  projectId,
+  zoneId,
   name,
   icon,
   color,
   isFinal,
 }: {
-  projectId: string;
+  zoneId: string;
   name: string;
   icon?: string;
   color?: string;
@@ -43,7 +43,7 @@ async function createColumn({
     .select({ id: columnTable.id })
     .from(columnTable)
     .where(
-      sql`${columnTable.projectId} = ${projectId} AND ${columnTable.slug} = ${slug}`,
+      sql`${columnTable.zoneId} = ${zoneId} AND ${columnTable.slug} = ${slug}`,
     );
 
   if (existing.length > 0) {
@@ -57,14 +57,14 @@ async function createColumn({
       maxPosition: sql<number>`COALESCE(MAX(${columnTable.position}), -1)`,
     })
     .from(columnTable)
-    .where(eq(columnTable.projectId, projectId));
+    .where(eq(columnTable.zoneId, zoneId));
 
   const position = (maxPos?.maxPosition ?? -1) + 1;
 
   const [created] = await db
     .insert(columnTable)
     .values({
-      projectId,
+      zoneId,
       name,
       slug,
       position,

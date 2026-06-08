@@ -2,6 +2,12 @@ import { relations } from "drizzle-orm";
 import {
   accountTable,
   activityTable,
+  amcAutoTaskTable,
+  amcBundleServiceTable,
+  amcBundleTable,
+  amcRenewalReminderSentTable,
+  amcServiceTable,
+  amcTable,
   apikeyTable,
   assetTable,
   columnTable,
@@ -12,8 +18,11 @@ import {
   invitationTable,
   labelTable,
   notificationTable,
-  projectTable,
+  serviceMasterTable,
   sessionTable,
+  siteContactTable,
+  siteTable,
+  taskAssignmentTable,
   taskRelationTable,
   taskReminderSentTable,
   taskTable,
@@ -21,14 +30,16 @@ import {
   teamTable,
   timeEntryTable,
   userNotificationPreferenceTable,
-  userNotificationWorkspaceProjectTable,
   userNotificationWorkspaceRuleTable,
+  userNotificationWorkspacezoneTable,
   userTable,
   verificationTable,
   workflowRuleTable,
   workspaceRoleTable,
   workspaceTable,
   workspaceUserTable,
+  zoneAssignmentTable,
+  zoneTable,
 } from "./schema";
 
 export const userTableRelations = relations(userTable, ({ many, one }) => ({
@@ -47,6 +58,19 @@ export const userTableRelations = relations(userTable, ({ many, one }) => ({
   notificationWorkspaceRules: many(userNotificationWorkspaceRuleTable),
   sentInvitations: many(invitationTable),
   apikeys: many(apikeyTable),
+  taskAssignments: many(taskAssignmentTable, {
+    relationName: "taskAssignmentUser",
+  }),
+  taskAssignmentsCreated: many(taskAssignmentTable, {
+    relationName: "taskAssignmentAssignedBy",
+  }),
+  zoneAssignments: many(zoneAssignmentTable, {
+    relationName: "zoneAssignmentUser",
+  }),
+  zoneAssignmentsCreated: many(zoneAssignmentTable, {
+    relationName: "zoneAssignmentCreator",
+  }),
+  raisedRequests: many(taskTable, { relationName: "raisedByExecutive" }),
 }));
 
 export const sessionTableRelations = relations(sessionTable, ({ one }) => ({
@@ -73,10 +97,13 @@ export const workspaceTableRelations = relations(
   ({ many }) => ({
     teams: many(teamTable),
     members: many(workspaceUserTable),
-    projects: many(projectTable),
+    zones: many(zoneTable),
     assets: many(assetTable),
     invitations: many(invitationTable),
     notificationWorkspaceRules: many(userNotificationWorkspaceRuleTable),
+    sites: many(siteTable),
+    serviceMasters: many(serviceMasterTable),
+    amcBundles: many(amcBundleTable),
   }),
 );
 
@@ -94,27 +121,25 @@ export const workspaceUserTableRelations = relations(
   }),
 );
 
-export const projectTableRelations = relations(
-  projectTable,
-  ({ one, many }) => ({
-    workspace: one(workspaceTable, {
-      fields: [projectTable.workspaceId],
-      references: [workspaceTable.id],
-    }),
-    tasks: many(taskTable),
-    assets: many(assetTable),
-    columns: many(columnTable),
-    workflowRules: many(workflowRuleTable),
-    githubIntegration: many(githubIntegrationTable),
-    integrations: many(integrationTable),
-    notificationWorkspaceProjects: many(userNotificationWorkspaceProjectTable),
+export const zoneTableRelations = relations(zoneTable, ({ one, many }) => ({
+  workspace: one(workspaceTable, {
+    fields: [zoneTable.workspaceId],
+    references: [workspaceTable.id],
   }),
-);
+  tasks: many(taskTable),
+  assets: many(assetTable),
+  columns: many(columnTable),
+  workflowRules: many(workflowRuleTable),
+  githubIntegration: many(githubIntegrationTable),
+  integrations: many(integrationTable),
+  notificationWorkspacezones: many(userNotificationWorkspacezoneTable),
+  assignments: many(zoneAssignmentTable),
+}));
 
 export const columnTableRelations = relations(columnTable, ({ one, many }) => ({
-  project: one(projectTable, {
-    fields: [columnTable.projectId],
-    references: [projectTable.id],
+  zone: one(zoneTable, {
+    fields: [columnTable.zoneId],
+    references: [zoneTable.id],
   }),
   tasks: many(taskTable),
   workflowRules: many(workflowRuleTable),
@@ -123,9 +148,9 @@ export const columnTableRelations = relations(columnTable, ({ one, many }) => ({
 export const workflowRuleTableRelations = relations(
   workflowRuleTable,
   ({ one }) => ({
-    project: one(projectTable, {
-      fields: [workflowRuleTable.projectId],
-      references: [projectTable.id],
+    zone: one(zoneTable, {
+      fields: [workflowRuleTable.zoneId],
+      references: [zoneTable.id],
     }),
     column: one(columnTable, {
       fields: [workflowRuleTable.columnId],
@@ -135,17 +160,35 @@ export const workflowRuleTableRelations = relations(
 );
 
 export const taskTableRelations = relations(taskTable, ({ one, many }) => ({
-  project: one(projectTable, {
-    fields: [taskTable.projectId],
-    references: [projectTable.id],
+  zone: one(zoneTable, {
+    fields: [taskTable.zoneId],
+    references: [zoneTable.id],
   }),
-  assignee: one(userTable, {
-    fields: [taskTable.userId],
-    references: [userTable.id],
-  }),
+  assignments: many(taskAssignmentTable),
   column: one(columnTable, {
     fields: [taskTable.columnId],
     references: [columnTable.id],
+  }),
+  site: one(siteTable, {
+    fields: [taskTable.siteId],
+    references: [siteTable.id],
+  }),
+  siteContact: one(siteContactTable, {
+    fields: [taskTable.siteContactId],
+    references: [siteContactTable.id],
+  }),
+  raisedByExecutive: one(userTable, {
+    fields: [taskTable.raisedByExecutiveId],
+    references: [userTable.id],
+    relationName: "raisedByExecutive",
+  }),
+  serviceMaster: one(serviceMasterTable, {
+    fields: [taskTable.serviceMasterId],
+    references: [serviceMasterTable.id],
+  }),
+  amcService: one(amcServiceTable, {
+    fields: [taskTable.amcServiceId],
+    references: [amcServiceTable.id],
   }),
   timeEntries: many(timeEntryTable),
   activities: many(activityTable),
@@ -156,6 +199,7 @@ export const taskTableRelations = relations(taskTable, ({ one, many }) => ({
   sourceRelations: many(taskRelationTable, { relationName: "sourceTask" }),
   targetRelations: many(taskRelationTable, { relationName: "targetTask" }),
   remindersSent: many(taskReminderSentTable),
+  amcAutoTask: one(amcAutoTaskTable),
 }));
 
 export const timeEntryTableRelations = relations(timeEntryTable, ({ one }) => ({
@@ -185,9 +229,9 @@ export const assetTableRelations = relations(assetTable, ({ one }) => ({
     fields: [assetTable.workspaceId],
     references: [workspaceTable.id],
   }),
-  project: one(projectTable, {
-    fields: [assetTable.projectId],
-    references: [projectTable.id],
+  zone: one(zoneTable, {
+    fields: [assetTable.zoneId],
+    references: [zoneTable.id],
   }),
   task: one(taskTable, {
     fields: [assetTable.taskId],
@@ -207,6 +251,14 @@ export const labelTableRelations = relations(labelTable, ({ one }) => ({
   task: one(taskTable, {
     fields: [labelTable.taskId],
     references: [taskTable.id],
+  }),
+  site: one(siteTable, {
+    fields: [labelTable.siteId],
+    references: [siteTable.id],
+  }),
+  contact: one(siteContactTable, {
+    fields: [labelTable.contactId],
+    references: [siteContactTable.id],
   }),
 }));
 
@@ -241,29 +293,29 @@ export const userNotificationWorkspaceRuleTableRelations = relations(
       fields: [userNotificationWorkspaceRuleTable.workspaceId],
       references: [workspaceTable.id],
     }),
-    selectedProjects: many(userNotificationWorkspaceProjectTable),
+    selectedzones: many(userNotificationWorkspacezoneTable),
   }),
 );
 
-export const userNotificationWorkspaceProjectTableRelations = relations(
-  userNotificationWorkspaceProjectTable,
+export const userNotificationWorkspacezoneTableRelations = relations(
+  userNotificationWorkspacezoneTable,
   ({ one }) => ({
     workspaceRule: one(userNotificationWorkspaceRuleTable, {
       fields: [
-        userNotificationWorkspaceProjectTable.workspaceId,
-        userNotificationWorkspaceProjectTable.workspaceRuleId,
+        userNotificationWorkspacezoneTable.workspaceId,
+        userNotificationWorkspacezoneTable.workspaceRuleId,
       ],
       references: [
         userNotificationWorkspaceRuleTable.workspaceId,
         userNotificationWorkspaceRuleTable.id,
       ],
     }),
-    project: one(projectTable, {
+    zone: one(zoneTable, {
       fields: [
-        userNotificationWorkspaceProjectTable.workspaceId,
-        userNotificationWorkspaceProjectTable.projectId,
+        userNotificationWorkspacezoneTable.workspaceId,
+        userNotificationWorkspacezoneTable.zoneId,
       ],
-      references: [projectTable.workspaceId, projectTable.id],
+      references: [zoneTable.workspaceId, zoneTable.id],
     }),
   }),
 );
@@ -271,9 +323,9 @@ export const userNotificationWorkspaceProjectTableRelations = relations(
 export const githubIntegrationTableRelations = relations(
   githubIntegrationTable,
   ({ one }) => ({
-    project: one(projectTable, {
-      fields: [githubIntegrationTable.projectId],
-      references: [projectTable.id],
+    zone: one(zoneTable, {
+      fields: [githubIntegrationTable.zoneId],
+      references: [zoneTable.id],
     }),
   }),
 );
@@ -334,9 +386,9 @@ export const apikeyTableRelations = relations(apikeyTable, ({ one }) => ({
 export const integrationTableRelations = relations(
   integrationTable,
   ({ one, many }) => ({
-    project: one(projectTable, {
-      fields: [integrationTable.projectId],
-      references: [projectTable.id],
+    zone: one(zoneTable, {
+      fields: [integrationTable.zoneId],
+      references: [zoneTable.id],
     }),
     externalLinks: many(externalLinkTable),
   }),
@@ -392,3 +444,167 @@ export const commentTableRelations = relations(commentTable, ({ one }) => ({
     references: [userTable.id],
   }),
 }));
+
+export const zoneAssignmentTableRelations = relations(
+  zoneAssignmentTable,
+  ({ one }) => ({
+    zone: one(zoneTable, {
+      fields: [zoneAssignmentTable.zoneId],
+      references: [zoneTable.id],
+    }),
+    user: one(userTable, {
+      fields: [zoneAssignmentTable.userId],
+      references: [userTable.id],
+      relationName: "zoneAssignmentUser",
+    }),
+    creator: one(userTable, {
+      fields: [zoneAssignmentTable.createdBy],
+      references: [userTable.id],
+      relationName: "zoneAssignmentCreator",
+    }),
+  }),
+);
+
+// ============================================================================
+// task_assignment relations
+// ============================================================================
+
+export const taskAssignmentTableRelations = relations(
+  taskAssignmentTable,
+  ({ one }) => ({
+    task: one(taskTable, {
+      fields: [taskAssignmentTable.taskId],
+      references: [taskTable.id],
+    }),
+    user: one(userTable, {
+      fields: [taskAssignmentTable.userId],
+      references: [userTable.id],
+      relationName: "taskAssignmentUser",
+    }),
+    assignedByUser: one(userTable, {
+      fields: [taskAssignmentTable.assignedBy],
+      references: [userTable.id],
+      relationName: "taskAssignmentAssignedBy",
+    }),
+  }),
+);
+
+// ============================================================================
+// site, site_contact, issue_type relations
+// ============================================================================
+
+export const siteTableRelations = relations(siteTable, ({ one, many }) => ({
+  workspace: one(workspaceTable, {
+    fields: [siteTable.workspaceId],
+    references: [workspaceTable.id],
+  }),
+  contacts: many(siteContactTable),
+  tasks: many(taskTable),
+  amcs: many(amcTable),
+}));
+
+export const siteContactTableRelations = relations(
+  siteContactTable,
+  ({ one, many }) => ({
+    site: one(siteTable, {
+      fields: [siteContactTable.siteId],
+      references: [siteTable.id],
+    }),
+    tasks: many(taskTable),
+  }),
+);
+
+// ============================================================================
+// AMC relations
+// ============================================================================
+
+export const serviceMasterTableRelations = relations(
+  serviceMasterTable,
+  ({ one, many }) => ({
+    workspace: one(workspaceTable, {
+      fields: [serviceMasterTable.workspaceId],
+      references: [workspaceTable.id],
+    }),
+    bundleServices: many(amcBundleServiceTable),
+    amcServices: many(amcServiceTable),
+  }),
+);
+
+export const amcBundleTableRelations = relations(
+  amcBundleTable,
+  ({ one, many }) => ({
+    workspace: one(workspaceTable, {
+      fields: [amcBundleTable.workspaceId],
+      references: [workspaceTable.id],
+    }),
+    services: many(amcBundleServiceTable),
+    amcs: many(amcTable),
+  }),
+);
+
+export const amcBundleServiceTableRelations = relations(
+  amcBundleServiceTable,
+  ({ one }) => ({
+    bundle: one(amcBundleTable, {
+      fields: [amcBundleServiceTable.bundleId],
+      references: [amcBundleTable.id],
+    }),
+    serviceMaster: one(serviceMasterTable, {
+      fields: [amcBundleServiceTable.serviceMasterId],
+      references: [serviceMasterTable.id],
+    }),
+  }),
+);
+
+export const amcTableRelations = relations(amcTable, ({ one, many }) => ({
+  site: one(siteTable, {
+    fields: [amcTable.siteId],
+    references: [siteTable.id],
+  }),
+  bundle: one(amcBundleTable, {
+    fields: [amcTable.bundleId],
+    references: [amcBundleTable.id],
+  }),
+  services: many(amcServiceTable),
+  renewalRemindersSent: many(amcRenewalReminderSentTable),
+}));
+
+export const amcServiceTableRelations = relations(
+  amcServiceTable,
+  ({ one, many }) => ({
+    amc: one(amcTable, {
+      fields: [amcServiceTable.amcId],
+      references: [amcTable.id],
+    }),
+    serviceMaster: one(serviceMasterTable, {
+      fields: [amcServiceTable.serviceMasterId],
+      references: [serviceMasterTable.id],
+    }),
+    tasks: many(taskTable),
+    autoTasks: many(amcAutoTaskTable),
+  }),
+);
+
+export const amcRenewalReminderSentTableRelations = relations(
+  amcRenewalReminderSentTable,
+  ({ one }) => ({
+    amc: one(amcTable, {
+      fields: [amcRenewalReminderSentTable.amcId],
+      references: [amcTable.id],
+    }),
+  }),
+);
+
+export const amcAutoTaskTableRelations = relations(
+  amcAutoTaskTable,
+  ({ one }) => ({
+    amcService: one(amcServiceTable, {
+      fields: [amcAutoTaskTable.amcServiceId],
+      references: [amcServiceTable.id],
+    }),
+    task: one(taskTable, {
+      fields: [amcAutoTaskTable.taskId],
+      references: [taskTable.id],
+    }),
+  }),
+);

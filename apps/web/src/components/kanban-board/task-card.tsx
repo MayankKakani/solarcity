@@ -389,7 +389,7 @@ function TaskCard({ task }: TaskCardProps) {
           <TaskCardContextMenuContent
             task={task}
             taskCardContext={{
-              projectId: project.id,
+              zoneId: project.id,
               worskpaceId: workspace.id,
             }}
             onDeleteClick={() => setIsDeleteTaskModalOpen(true)}

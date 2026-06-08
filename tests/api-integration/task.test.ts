@@ -50,7 +50,7 @@ describe("API integration: task creation", () => {
     });
 
     await db.insert(schema.taskTable).values({
-      projectId: project.id,
+      zoneId: project.id,
       userId: member.user.id,
       title: "Existing task",
       description: "Already there",
@@ -81,7 +81,7 @@ describe("API integration: task creation", () => {
     expect(response.status).toBe(200);
     const payload = (await response.json()) as {
       id: string;
-      projectId: string;
+      zoneId: string;
       title: string;
       description: string;
       priority: string;
@@ -93,7 +93,7 @@ describe("API integration: task creation", () => {
     };
 
     expect(payload).toMatchObject({
-      projectId: project.id,
+      zoneId: project.id,
       title: "Ship integration flow",
       description: "Cover the first create-task path",
       priority: "high",
@@ -110,7 +110,7 @@ describe("API integration: task creation", () => {
 
     expect(persistedTask).toMatchObject({
       id: payload.id,
-      projectId: project.id,
+      zoneId: project.id,
       columnId: columns.todo.id,
       userId: member.user.id,
       title: "Ship integration flow",
@@ -161,7 +161,7 @@ describe("API integration: task creation", () => {
 
     const persistedTask = await db.query.taskTable.findFirst({
       where: and(
-        eq(schema.taskTable.projectId, project.id),
+        eq(schema.taskTable.zoneId, project.id),
         eq(schema.taskTable.title, "Forbidden task"),
       ),
     });

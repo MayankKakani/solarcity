@@ -110,7 +110,7 @@ export const genericWebhookConfigSchema = v.object({
         v.object({
           eventName: v.string(),
           taskId: v.string(),
-          projectId: v.string(),
+          zoneId: v.string(),
           webhookUrl: v.string(),
         }),
       ),

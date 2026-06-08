@@ -89,7 +89,7 @@ export function ColumnHeader({ column }: ColumnHeaderProps) {
       <CreateTaskModal
         open={isTaskModalOpen}
         onClose={() => setIsTaskModalOpen(false)}
-        projectId={project?.id}
+        zoneId={project?.id}
         status={column.id}
       />
 

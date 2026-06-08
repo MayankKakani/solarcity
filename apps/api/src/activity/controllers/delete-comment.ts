@@ -34,7 +34,7 @@ async function deleteComment(userId: string, id: string) {
   }
 
   const [task] = await db
-    .select({ projectId: taskTable.projectId })
+    .select({ zoneId: taskTable.zoneId })
     .from(taskTable)
     .where(eq(taskTable.id, deletedComment.taskId))
     .limit(1);
@@ -42,7 +42,7 @@ async function deleteComment(userId: string, id: string) {
   if (task) {
     await publishEvent("comment.deleted", {
       ...deletedComment,
-      projectId: task.projectId,
+      zoneId: task.zoneId,
       userId,
     });
   }

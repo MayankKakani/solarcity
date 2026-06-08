@@ -12,7 +12,7 @@ import SubtaskStatusPopover from "./subtask-status-popover";
 type SubtaskRowProps = {
   task: Task;
   tasks: Task[];
-  projectId: string;
+  zoneId: string;
   workspaceId: string;
   isSelected: boolean;
   isFocused: boolean;
@@ -28,7 +28,7 @@ type SubtaskRowProps = {
 export default function SubtaskRow({
   task,
   tasks,
-  projectId,
+  zoneId,
   workspaceId,
   isSelected,
   isFocused,
@@ -58,7 +58,7 @@ export default function SubtaskRow({
               onCheckedChange={onToggleSelection}
             />
 
-            <SubtaskStatusPopover tasks={tasks} projectId={projectId}>
+            <SubtaskStatusPopover tasks={tasks} zoneId={zoneId}>
               <button
                 type="button"
                 className="shrink-0 flex items-center justify-center rounded p-0.5 transition-colors outline-none [&_svg]:text-muted-foreground hover:[&_svg]:text-foreground"
@@ -112,7 +112,7 @@ export default function SubtaskRow({
         <TaskCardContextMenuContent
           task={task}
           taskCardContext={{
-            projectId,
+            zoneId,
             worskpaceId: workspaceId,
           }}
           onDeleteClick={onDeleteClick}

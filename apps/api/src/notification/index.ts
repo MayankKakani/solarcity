@@ -160,7 +160,7 @@ subscribeToEvent<{
   taskId: string;
   userId: string;
   title: string;
-  projectId: string;
+  zoneId: string;
 }>("task.created", async (data) => {
   if (data.userId) {
     await createNotification({

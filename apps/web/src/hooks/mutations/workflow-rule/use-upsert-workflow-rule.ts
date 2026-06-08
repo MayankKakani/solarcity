@@ -6,15 +6,15 @@ export function useUpsertWorkflowRule() {
 
   return useMutation({
     mutationFn: ({
-      projectId,
+      zoneId,
       data,
     }: {
-      projectId: string;
+      zoneId: string;
       data: { integrationType: string; eventType: string; columnId: string };
-    }) => upsertWorkflowRule(projectId, data),
+    }) => upsertWorkflowRule(zoneId, data),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: ["workflow-rules", variables.projectId],
+        queryKey: ["workflow-rules", variables.zoneId],
       });
     },
   });

@@ -46,11 +46,7 @@ type GithubIntegrationFormValues = {
   repositoryName: string;
 };
 
-export function GitHubIntegrationSettings({
-  projectId,
-}: {
-  projectId: string;
-}) {
+export function GitHubIntegrationSettings({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
   const githubIntegrationSchema = React.useMemo(
     () =>
@@ -73,7 +69,7 @@ export function GitHubIntegrationSettings({
     [t],
   );
 
-  const { data: integration, isLoading } = useGetGithubIntegration(projectId);
+  const { data: integration, isLoading } = useGetGithubIntegration(zoneId);
   const { mutateAsync: createIntegration, isPending: isCreating } =
     useCreateGithubIntegration();
   const { mutateAsync: deleteIntegration, isPending: isDeleting } =
@@ -194,7 +190,7 @@ export function GitHubIntegrationSettings({
       }
 
       await createIntegration({
-        projectId,
+        zoneId,
         data,
       });
       toast.success(t("settings:githubIntegration.toast.updated"));
@@ -209,7 +205,7 @@ export function GitHubIntegrationSettings({
 
   const handleDelete = async () => {
     try {
-      await deleteIntegration(projectId);
+      await deleteIntegration(zoneId);
       form.reset({ repositoryOwner: "", repositoryName: "" });
       setVerificationResult(null);
       toast.success(t("settings:githubIntegration.toast.removed"));
@@ -224,7 +220,7 @@ export function GitHubIntegrationSettings({
 
   const handleImportIssues = async () => {
     try {
-      await importIssues({ projectId });
+      await importIssues({ zoneId });
       toast.success(t("settings:githubIntegration.toast.issuesImported"));
     } catch (error) {
       toast.error(
@@ -340,7 +336,7 @@ export function GitHubIntegrationSettings({
                 onCheckedChange={async (checked) => {
                   try {
                     await updateGithubSettings({
-                      projectId,
+                      zoneId,
                       json: { commentTaskLinkOnGitHubIssue: checked },
                     });
                     toast.success(

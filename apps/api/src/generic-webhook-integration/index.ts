@@ -34,7 +34,7 @@ function maskValue(value: string | undefined): string | null {
 
 function toResponse(integration: {
   id: string;
-  projectId: string;
+  zoneId: string;
   config: string;
   isActive: boolean | null;
   createdAt: Date;
@@ -46,7 +46,7 @@ function toResponse(integration: {
 
   return {
     id: integration.id,
-    projectId: integration.projectId,
+    zoneId: integration.zoneId,
     webhookConfigured: Boolean(config.webhookUrl),
     maskedWebhookUrl: maskValue(config.webhookUrl),
     secretConfigured: Boolean(config.secret),
@@ -61,10 +61,10 @@ function toResponse(integration: {
   };
 }
 
-async function getGenericWebhookIntegration(projectId: string) {
+async function getGenericWebhookIntegration(zoneId: string) {
   const integration = await db.query.integrationTable.findFirst({
     where: and(
-      eq(integrationTable.projectId, projectId),
+      eq(integrationTable.zoneId, zoneId),
       eq(integrationTable.type, "generic-webhook"),
     ),
   });
@@ -91,7 +91,7 @@ const nullableGenericWebhookIntegrationSchema = v.nullable(
 
 genericWebhookIntegration
   .get(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "getGenericWebhookIntegration",
       tags: ["Generic Webhook"],
@@ -107,15 +107,15 @@ genericWebhookIntegration
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
-    workspaceAccess.fromProject("projectId"),
+    validator("param", v.object({ zoneId: v.string() })),
+    workspaceAccess.fromProject("zoneId"),
     async (c) => {
-      const { projectId } = c.req.valid("param");
-      return c.json(await getGenericWebhookIntegration(projectId));
+      const { zoneId } = c.req.valid("param");
+      return c.json(await getGenericWebhookIntegration(zoneId));
     },
   )
   .post(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "createGenericWebhookIntegration",
       tags: ["Generic Webhook"],
@@ -131,7 +131,7 @@ genericWebhookIntegration
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator(
       "json",
       v.object({
@@ -140,10 +140,10 @@ genericWebhookIntegration
         events: v.optional(genericWebhookEventsSchema),
       }),
     ),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const body = c.req.valid("json");
 
       const config = normalizeGenericWebhookConfig({
@@ -161,7 +161,7 @@ genericWebhookIntegration
 
       const existing = await db.query.integrationTable.findFirst({
         where: and(
-          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.zoneId, zoneId),
           eq(integrationTable.type, "generic-webhook"),
         ),
       });
@@ -177,18 +177,18 @@ genericWebhookIntegration
           .where(eq(integrationTable.id, existing.id));
       } else {
         await db.insert(integrationTable).values({
-          projectId,
+          zoneId,
           type: "generic-webhook",
           config: JSON.stringify(config),
           isActive: true,
         });
       }
 
-      return c.json(await getGenericWebhookIntegration(projectId));
+      return c.json(await getGenericWebhookIntegration(zoneId));
     },
   )
   .patch(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "updateGenericWebhookIntegration",
       tags: ["Generic Webhook"],
@@ -204,7 +204,7 @@ genericWebhookIntegration
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator(
       "json",
       v.object({
@@ -214,15 +214,15 @@ genericWebhookIntegration
         events: v.optional(genericWebhookEventsSchema),
       }),
     ),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const body = c.req.valid("json");
 
       const existing = await db.query.integrationTable.findFirst({
         where: and(
-          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.zoneId, zoneId),
           eq(integrationTable.type, "generic-webhook"),
         ),
       });
@@ -267,11 +267,11 @@ genericWebhookIntegration
         })
         .where(eq(integrationTable.id, existing.id));
 
-      return c.json(await getGenericWebhookIntegration(projectId));
+      return c.json(await getGenericWebhookIntegration(zoneId));
     },
   )
   .delete(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "deleteGenericWebhookIntegration",
       tags: ["Generic Webhook"],
@@ -287,15 +287,15 @@ genericWebhookIntegration
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
-    workspaceAccess.fromProject("projectId"),
+    validator("param", v.object({ zoneId: v.string() })),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
 
       const existing = await db.query.integrationTable.findFirst({
         where: and(
-          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.zoneId, zoneId),
           eq(integrationTable.type, "generic-webhook"),
         ),
       });

@@ -12,11 +12,11 @@ import {
 
 describe("openapi spec helpers", () => {
   it("normalizes API server urls", () => {
-    expect(normalizeApiServerUrl("https://api.kaneo.app")).toBe(
-      "https://api.kaneo.app/api",
+    expect(normalizeApiServerUrl("https://api.solarplan.app")).toBe(
+      "https://api.solarplan.app/api",
     );
-    expect(normalizeApiServerUrl("https://api.kaneo.app/api/")).toBe(
-      "https://api.kaneo.app/api",
+    expect(normalizeApiServerUrl("https://api.solarplan.app/api/")).toBe(
+      "https://api.solarplan.app/api",
     );
   });
 

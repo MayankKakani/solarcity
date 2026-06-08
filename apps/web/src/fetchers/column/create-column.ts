@@ -1,11 +1,11 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 async function createColumn(
-  projectId: string,
+  zoneId: string,
   data: { name: string; icon?: string; color?: string; isFinal?: boolean },
 ) {
-  const response = await client.column[":projectId"].$post({
-    param: { projectId },
+  const response = await client.column[":zoneId"].$post({
+    param: { zoneId },
     json: data,
   });
 

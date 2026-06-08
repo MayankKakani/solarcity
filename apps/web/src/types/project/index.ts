@@ -1,4 +1,4 @@
-import type { client } from "@kaneo/libs";
+import type { client } from "@solarplan/libs";
 import type { InferResponseType } from "hono/client";
 import type Task from "@/types/task";
 
@@ -8,7 +8,7 @@ export type Project = Extract<
 >;
 
 type TasksApiResponse = InferResponseType<
-  (typeof client)["task"]["tasks"][":projectId"]["$get"],
+  (typeof client)["task"]["tasks"][":zoneId"]["$get"],
   200
 >;
 

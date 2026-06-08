@@ -37,11 +37,11 @@ export function initializeEventSubscriptions(): void {
     priority: string;
     status: string;
     number: number;
-    projectId: string;
+    zoneId: string;
   }>("task.created", async (data) => {
     await broadcastTaskCreated({
       taskId: data.taskId,
-      projectId: data.projectId,
+      zoneId: data.zoneId,
       userId: data.userId,
       title: data.title,
       description: data.description,
@@ -57,11 +57,11 @@ export function initializeEventSubscriptions(): void {
     oldStatus: string;
     newStatus: string;
     title: string;
-    projectId: string;
+    zoneId: string;
   }>("task.status_changed", async (data) => {
     await broadcastTaskStatusChanged({
       taskId: data.taskId,
-      projectId: data.projectId,
+      zoneId: data.zoneId,
       userId: data.userId,
       oldStatus: data.oldStatus,
       newStatus: data.newStatus,
@@ -75,11 +75,11 @@ export function initializeEventSubscriptions(): void {
     oldPriority: string;
     newPriority: string;
     title: string;
-    projectId: string;
+    zoneId: string;
   }>("task.priority_changed", async (data) => {
     await broadcastTaskPriorityChanged({
       taskId: data.taskId,
-      projectId: data.projectId,
+      zoneId: data.zoneId,
       userId: data.userId,
       oldPriority: data.oldPriority,
       newPriority: data.newPriority,
@@ -92,11 +92,11 @@ export function initializeEventSubscriptions(): void {
     userId: string | null;
     oldTitle: string;
     newTitle: string;
-    projectId: string;
+    zoneId: string;
   }>("task.title_changed", async (data) => {
     await broadcastTaskTitleChanged({
       taskId: data.taskId,
-      projectId: data.projectId,
+      zoneId: data.zoneId,
       userId: data.userId,
       oldTitle: data.oldTitle,
       newTitle: data.newTitle,
@@ -108,11 +108,11 @@ export function initializeEventSubscriptions(): void {
     userId: string | null;
     oldDescription: string | null;
     newDescription: string | null;
-    projectId: string;
+    zoneId: string;
   }>("task.description_changed", async (data) => {
     await broadcastTaskDescriptionChanged({
       taskId: data.taskId,
-      projectId: data.projectId,
+      zoneId: data.zoneId,
       userId: data.userId,
       oldDescription: data.oldDescription,
       newDescription: data.newDescription,
@@ -123,11 +123,11 @@ export function initializeEventSubscriptions(): void {
     taskId: string;
     userId: string;
     comment: string;
-    projectId: string;
+    zoneId: string;
   }>("task.comment_created", async (data) => {
     await broadcastTaskCommentCreated({
       taskId: data.taskId,
-      projectId: data.projectId,
+      zoneId: data.zoneId,
       userId: data.userId,
       comment: data.comment,
     });
@@ -145,26 +145,23 @@ export function listPlugins(): IntegrationPlugin[] {
   return Array.from(plugins.values());
 }
 
-async function getActiveIntegrations(projectId: string) {
+async function getActiveIntegrations(zoneId: string) {
   return db.query.integrationTable.findMany({
     where: and(
-      eq(integrationTable.projectId, projectId),
+      eq(integrationTable.zoneId, zoneId),
       eq(integrationTable.isActive, true),
     ),
-    with: {
-      project: true,
-    },
   });
 }
 
 function createContext(integration: {
   id: string;
-  projectId: string;
+  zoneId: string;
   config: string;
 }): PluginContext {
   return {
     integrationId: integration.id,
-    projectId: integration.projectId,
+    zoneId: integration.zoneId,
     config: JSON.parse(integration.config) as Record<string, unknown>,
   };
 }
@@ -172,7 +169,7 @@ function createContext(integration: {
 export async function broadcastTaskCreated(
   event: TaskCreatedEvent,
 ): Promise<void> {
-  const integrations = await getActiveIntegrations(event.projectId);
+  const integrations = await getActiveIntegrations(event.zoneId);
 
   for (const integration of integrations) {
     const plugin = getPlugin(integration.type);
@@ -191,7 +188,7 @@ export async function broadcastTaskCreated(
 export async function broadcastTaskStatusChanged(
   event: TaskStatusChangedEvent,
 ): Promise<void> {
-  const integrations = await getActiveIntegrations(event.projectId);
+  const integrations = await getActiveIntegrations(event.zoneId);
 
   for (const integration of integrations) {
     const plugin = getPlugin(integration.type);
@@ -213,7 +210,7 @@ export async function broadcastTaskStatusChanged(
 export async function broadcastTaskPriorityChanged(
   event: TaskPriorityChangedEvent,
 ): Promise<void> {
-  const integrations = await getActiveIntegrations(event.projectId);
+  const integrations = await getActiveIntegrations(event.zoneId);
 
   for (const integration of integrations) {
     const plugin = getPlugin(integration.type);
@@ -235,7 +232,7 @@ export async function broadcastTaskPriorityChanged(
 export async function broadcastTaskTitleChanged(
   event: TaskTitleChangedEvent,
 ): Promise<void> {
-  const integrations = await getActiveIntegrations(event.projectId);
+  const integrations = await getActiveIntegrations(event.zoneId);
 
   for (const integration of integrations) {
     const plugin = getPlugin(integration.type);
@@ -257,7 +254,7 @@ export async function broadcastTaskTitleChanged(
 export async function broadcastTaskDescriptionChanged(
   event: TaskDescriptionChangedEvent,
 ): Promise<void> {
-  const integrations = await getActiveIntegrations(event.projectId);
+  const integrations = await getActiveIntegrations(event.zoneId);
 
   for (const integration of integrations) {
     const plugin = getPlugin(integration.type);
@@ -279,7 +276,7 @@ export async function broadcastTaskDescriptionChanged(
 export async function broadcastTaskCommentCreated(
   event: TaskCommentCreatedEvent,
 ): Promise<void> {
-  const integrations = await getActiveIntegrations(event.projectId);
+  const integrations = await getActiveIntegrations(event.zoneId);
 
   for (const integration of integrations) {
     const plugin = getPlugin(integration.type);

@@ -35,7 +35,7 @@ function SettingsLayout() {
     if (pathname.includes("/dashboard/settings/workspace")) {
       return "workspace";
     }
-    if (pathname.includes("/dashboard/settings/projects")) {
+    if (pathname.includes("/dashboard/settings/zones")) {
       return "project";
     }
     return "account";
@@ -91,9 +91,7 @@ function SettingsLayout() {
                   disabled={projects?.length === 0}
                   value="project"
                   className="[&[data-state=active]]:border [&[data-state=active]]:border-border [&[data-state=active]]:rounded-md [&[data-state=active]]:bg-card"
-                  onClick={() =>
-                    navigate({ to: "/dashboard/settings/projects" })
-                  }
+                  onClick={() => navigate({ to: "/dashboard/settings/zones" })}
                 >
                   {t("navigation:sidebar.projects")}
                 </TabsTrigger>

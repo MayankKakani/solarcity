@@ -32,7 +32,7 @@ import type Task from "@/types/task";
 
 type TaskCardContext = {
   worskpaceId: string;
-  projectId: string;
+  zoneId: string;
 };
 
 type TaskCardContextMenuContentProps = {
@@ -48,7 +48,7 @@ export default function TaskCardContextMenuContent({
 }: TaskCardContextMenuContentProps) {
   const { t } = useTranslation();
   const { project } = useProjectStore();
-  const { data: columnsData = [] } = useGetColumns(taskCardContext.projectId);
+  const { data: columnsData = [] } = useGetColumns(taskCardContext.zoneId);
   const columns =
     project?.columns && project.columns.length > 0
       ? project.columns.map((col) => ({
@@ -87,7 +87,7 @@ export default function TaskCardContextMenuContent({
   }, [workspaceUsers]);
 
   const handleCopyTaskLink = () => {
-    const path = `/dashboard/workspace/${taskCardContext.worskpaceId}/project/${taskCardContext.projectId}/task/${task.id}`;
+    const path = `/dashboard/workspace/${taskCardContext.worskpaceId}/project/${taskCardContext.zoneId}/task/${task.id}`;
     const taskLink = generateLink(path);
 
     navigator.clipboard.writeText(taskLink);
@@ -103,9 +103,39 @@ export default function TaskCardContextMenuContent({
         case "status":
           await updateTaskStatus({ ...task, status: value as string });
           break;
-        case "userId":
-          await updateTaskAssignee({ ...task, userId: value as string });
+        case "userId": {
+          const current = task.assignees ?? [];
+          const userId = value as string;
+          if (!userId) {
+            await updateTaskAssignee({
+              taskId: task.id,
+              zoneId: task.zoneId,
+              assignees: [],
+            });
+          } else {
+            const isAssigned = current.some((a) => a.id === userId);
+            const nextAssignees = isAssigned
+              ? current
+                  .filter((a) => a.id !== userId)
+                  .map((a) => ({
+                    userId: a.id,
+                    role: a.role as "supervisor" | "engineer",
+                  }))
+              : [
+                  ...current.map((a) => ({
+                    userId: a.id,
+                    role: a.role as "supervisor" | "engineer",
+                  })),
+                  { userId, role: "engineer" as const },
+                ];
+            await updateTaskAssignee({
+              taskId: task.id,
+              zoneId: task.zoneId,
+              assignees: nextAssignees,
+            });
+          }
           break;
+        }
         case "title":
           await updateTaskTitle({ ...task, title: value as string });
           break;
@@ -257,7 +287,7 @@ export default function TaskCardContextMenuContent({
           </ContextMenuSubTrigger>
           <ContextMenuSubContent className="w-48">
             <ContextMenuCheckboxItem
-              checked={!task.userId}
+              checked={(task.assignees ?? []).length === 0}
               onCheckedChange={() => handleChange("userId", "")}
               closeOnClick
             >
@@ -274,7 +304,9 @@ export default function TaskCardContextMenuContent({
             {usersOptions.map((user) => (
               <ContextMenuCheckboxItem
                 key={user.value}
-                checked={task.userId === user.value}
+                checked={(task.assignees ?? []).some(
+                  (a) => a.id === user.value,
+                )}
                 onCheckedChange={() => handleChange("userId", user.value ?? "")}
                 closeOnClick
               >

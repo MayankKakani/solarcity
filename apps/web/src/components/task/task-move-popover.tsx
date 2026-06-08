@@ -38,25 +38,25 @@ export default function TaskMovePopover({
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const [selectedProjectId, setSelectedProjectId] = useState("");
+  const [selectedzoneId, setSelectedzoneId] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const { data: projects = [] } = useGetProjects({ workspaceId });
   const { mutateAsync: moveTask, isPending: isMovePending } = useMoveTask();
-  const destinationProjectId = selectedProjectId || "";
+  const destinationzoneId = selectedzoneId || "";
   const {
     data: destinationProject,
     isLoading: isProjectLoading,
     isError: isProjectError,
-  } = useGetTasks(destinationProjectId);
+  } = useGetTasks(destinationzoneId);
 
   const destinationProjects = useMemo(
-    () => projects.filter((project) => project.id !== task.projectId),
-    [projects, task.projectId],
+    () => projects.filter((project) => project.id !== task.zoneId),
+    [projects, task.zoneId],
   );
 
   const selectedProject = useMemo(
-    () => destinationProjects.find((p) => p.id === selectedProjectId),
-    [destinationProjects, selectedProjectId],
+    () => destinationProjects.find((p) => p.id === selectedzoneId),
+    [destinationProjects, selectedzoneId],
   );
 
   const destinationColumns = destinationProject?.columns ?? [];
@@ -76,13 +76,13 @@ export default function TaskMovePopover({
 
   useEffect(() => {
     if (!open) {
-      setSelectedProjectId("");
+      setSelectedzoneId("");
       setSelectedStatus("");
     }
   }, [open]);
 
   useEffect(() => {
-    if (!selectedProjectId) {
+    if (!selectedzoneId) {
       setSelectedStatus("");
       return;
     }
@@ -93,25 +93,25 @@ export default function TaskMovePopover({
     }
 
     setSelectedStatus(fallbackStatus);
-  }, [canKeepCurrentStatus, fallbackStatus, selectedProjectId, task.status]);
+  }, [canKeepCurrentStatus, fallbackStatus, selectedzoneId, task.status]);
 
   const handleMove = async () => {
-    if (!selectedProjectId || !effectiveStatus) return;
+    if (!selectedzoneId || !effectiveStatus) return;
 
     try {
       const result = await moveTask({
         taskId: task.id,
-        destinationProjectId: selectedProjectId,
+        destinationzoneId: selectedzoneId,
         destinationStatus: effectiveStatus,
       });
 
       setOpen(false);
       startTransition(() => {
         navigate({
-          to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+          to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
           params: {
             workspaceId,
-            projectId: result.task.projectId,
+            zoneId: result.task.zoneId,
             taskId: task.id,
           },
         });
@@ -150,10 +150,8 @@ export default function TaskMovePopover({
               {t("tasks:move.projectLabel")}
             </Label>
             <Select
-              value={selectedProjectId}
-              onValueChange={(value) =>
-                setSelectedProjectId(String(value ?? ""))
-              }
+              value={selectedzoneId}
+              onValueChange={(value) => setSelectedzoneId(String(value ?? ""))}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder={t("tasks:move.projectPlaceholder")}>
@@ -170,7 +168,7 @@ export default function TaskMovePopover({
             </Select>
           </div>
 
-          {selectedProjectId && isProjectLoading && (
+          {selectedzoneId && isProjectLoading && (
             <div className="flex items-center justify-center py-2">
               <span className="text-xs text-muted-foreground">
                 {t("tasks:move.statusLabel")}…
@@ -178,11 +176,11 @@ export default function TaskMovePopover({
             </div>
           )}
 
-          {selectedProjectId && isProjectError && (
+          {selectedzoneId && isProjectError && (
             <p className="text-xs text-destructive">{t("tasks:move.error")}</p>
           )}
 
-          {selectedProjectId &&
+          {selectedzoneId &&
             !isProjectLoading &&
             !isProjectError &&
             destinationColumns.length > 0 && (
@@ -221,7 +219,7 @@ export default function TaskMovePopover({
             size="sm"
             onClick={() => void handleMove()}
             disabled={
-              !selectedProjectId ||
+              !selectedzoneId ||
               !effectiveStatus ||
               isMovePending ||
               isPending ||

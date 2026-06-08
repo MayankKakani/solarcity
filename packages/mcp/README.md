@@ -1,74 +1,74 @@
-# Kaneo MCP server
+# Solarplan MCP server
 
-`@kaneo/mcp` is a local stdio MCP server for Kaneo.
+`@solarplan/mcp` is a local stdio MCP server for Solarplan.
 
-It runs over stdio, signs in with Kaneo's device flow, and then calls the Kaneo API with a bearer token. The package lives in `packages/mcp` in this monorepo and exposes the `kaneo-mcp` CLI.
+It runs over stdio, signs in with Solarplan's device flow, and then calls the Solarplan API with a bearer token. The package lives in `packages/mcp` in this monorepo and exposes the `solarplan-mcp` CLI.
 
-> **Tip:** Every Kaneo instance also ships a built-in HTTP MCP endpoint at `/api/mcp`. If your MCP client supports Streamable HTTP transport (e.g. Claude Code), you can connect directly without this package. See the [MCP docs](https://docs.kaneo.app/core/integrations/mcp) for details.
+> **Tip:** Every Solarplan instance also ships a built-in HTTP MCP endpoint at `/api/mcp`. If your MCP client supports Streamable HTTP transport (e.g. Claude Code), you can connect directly without this package. See the [MCP docs](https://docs.solarplan.app/core/integrations/mcp) for details.
 
 ## Prerequisites
 
 - Node.js 20+
-- A running Kaneo API (for example `http://localhost:1337`) and web app (for device approval UI).
+- A running Solarplan API (for example `http://localhost:1337`) and web app (for device approval UI).
 
-Kaneo allows `kaneo-cli` and `kaneo-mcp` by default, so you usually do not need extra server configuration.
+Solarplan allows `solarplan-cli` and `solarplan-mcp` by default, so you usually do not need extra server configuration.
 
-If you want to run this server with a different client ID, allow it on the Kaneo server:
+If you want to run this server with a different client ID, allow it on the Solarplan server:
 
 ```bash
-DEVICE_AUTH_CLIENT_IDS=kaneo-cli,kaneo-mcp,your-client-id
+DEVICE_AUTH_CLIENT_IDS=solarplan-cli,solarplan-mcp,your-client-id
 ```
 
 ## Environment
 
 | Variable | Description |
 |----------|-------------|
-| `KANEO_API_URL` | Kaneo API origin (default `http://localhost:1337`). Do not include `/api`. |
-| `KANEO_MCP_CLIENT_ID` | Device-flow client id (default `kaneo-mcp`). Must match `DEVICE_AUTH_CLIENT_IDS` on the server. |
+| `SOLARPLAN_API_URL` | Solarplan API origin (default `http://localhost:1337`). Do not include `/api`. |
+| `KANEO_MCP_CLIENT_ID` | Device-flow client id (default `solarplan-mcp`). Must match `DEVICE_AUTH_CLIENT_IDS` on the server. |
 
 ## Install
 
 **Recommended (no global install):** run the interactive installer with npx:
 
 ```bash
-npx @kaneo/mcp
+npx @solarplan/mcp
 ```
 
 npm downloads the package, then an **interactive menu** (arrow keys + Enter) asks **where** to register the server (Cursor user-wide, Cursor project, Claude Desktop, or a custom JSON path). It then merges a `mcpServers` entry that points at this package’s `dist/index.js` with your current Node binary.
 
-In a normal terminal, `npx @kaneo/mcp` and `kaneo-mcp` with no subcommand both start the installer. When the process is **not** attached to a TTY (for example when Cursor launches the MCP server with a pipe), the same entry runs the stdio MCP server instead.
+In a normal terminal, `npx @solarplan/mcp` and `solarplan-mcp` with no subcommand both start the installer. When the process is **not** attached to a TTY (for example when Cursor launches the MCP server with a pipe), the same entry runs the stdio MCP server instead.
 
 To run the server manually from a shell (for example to debug stdio), use:
 
 ```bash
-npx @kaneo/mcp serve
+npx @solarplan/mcp serve
 ```
 
 If you prefer a global install:
 
 ```bash
-npm install -g @kaneo/mcp
-kaneo-mcp
+npm install -g @solarplan/mcp
+solarplan-mcp
 ```
 
-(`kaneo-mcp install` is the same installer with an explicit subcommand.)
+(`solarplan-mcp install` is the same installer with an explicit subcommand.)
 
 Non-interactive example (Cursor user config, skip overwrite prompts):
 
 ```bash
-kaneo-mcp install --target cursor-user -y
+solarplan-mcp install --target cursor-user -y
 ```
 
 Point at a self-hosted API when generating the config:
 
 ```bash
-kaneo-mcp install --target cursor-user -y --api-url https://kaneo.example.com
+solarplan-mcp install --target cursor-user -y --api-url https://solarplan.example.com
 ```
 
 See all options:
 
 ```bash
-kaneo-mcp install --help
+solarplan-mcp install --help
 ```
 
 If you are currently inside the local `packages/mcp` package directory, npm may resolve the local workspace package instead of the published one and fail to expose the bin. In that case, either run `npx` from outside `packages/mcp`, or use a local build:
@@ -85,9 +85,9 @@ From the repo root:
 
 ```bash
 pnpm install
-pnpm --filter @kaneo/mcp run build
-pnpm --filter @kaneo/mcp run start
-pnpm --filter @kaneo/mcp run test
+pnpm --filter @solarplan/mcp run build
+pnpm --filter @solarplan/mcp run start
+pnpm --filter @solarplan/mcp run test
 ```
 
 Or run it from the package directory:
@@ -96,17 +96,17 @@ Or run it from the package directory:
 pnpm -C packages/mcp run build
 ```
 
-The CLI entry points to `./dist/index.js`. Use `npx @kaneo/mcp` or `kaneo-mcp` after a global install so your IDE config points at the resolved path.
+The CLI entry points to `./dist/index.js`. Use `npx @solarplan/mcp` or `solarplan-mcp` after a global install so your IDE config points at the resolved path.
 
 ## Authentication
 
-On the first tool call that needs Kaneo, the server:
+On the first tool call that needs Solarplan, the server:
 
 1. Requests a device code from `POST /api/auth/device/code`
 2. Prints the verification URL and user code to `stderr`
 3. Tries to open the browser
 4. Polls `POST /api/auth/device/token` until approved
-5. Stores the access token at `~/.config/kaneo-mcp/credentials.json` with mode `0600`
+5. Stores the access token at `~/.config/solarplan-mcp/credentials.json` with mode `0600`
 
 ## Tools
 

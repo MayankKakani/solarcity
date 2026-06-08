@@ -1,6 +1,6 @@
 import { ExternalLink } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import { KaneoBranding } from "./kaneo-branding";
+import { KaneoBranding } from "./solarplan-branding";
 
 export function ErrorView() {
   const { t } = useTranslation();

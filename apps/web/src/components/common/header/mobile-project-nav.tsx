@@ -11,18 +11,18 @@ import { cn } from "@/lib/cn";
 
 type MobileProjectNavProps = {
   workspaceId: string;
-  projectId: string;
+  zoneId: string;
   activeView: "backlog" | "board" | "gantt";
   onSelectBoard: () => void;
   onSelectBacklog: () => void;
   onSelectGantt: () => void;
-  onSelectProject: (projectId: string) => void;
+  onSelectProject: (zoneId: string) => void;
   onAddProject: () => void;
 };
 
 export default function MobileProjectNav({
   workspaceId,
-  projectId,
+  zoneId,
   activeView,
   onSelectBoard,
   onSelectBacklog,
@@ -101,7 +101,7 @@ export default function MobileProjectNav({
               {(projects ?? []).map((project) => {
                 const Icon =
                   icons[project.icon as keyof typeof icons] || icons.Layout;
-                const isCurrentProject = project.id === projectId;
+                const isCurrentProject = project.id === zoneId;
 
                 return (
                   <button

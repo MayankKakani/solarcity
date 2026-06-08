@@ -10,7 +10,7 @@ type Task = {
   assigneeImage?: string | null;
   description: string | null;
   columnId?: string | null;
-  projectId: string;
+  zoneId: string;
   workspaceId: string;
   userId: string | null;
   position: number;

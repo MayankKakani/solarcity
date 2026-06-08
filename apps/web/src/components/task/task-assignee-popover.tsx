@@ -46,17 +46,35 @@ export default function TaskAssigneePopover({
       value: member.userId,
       image: member?.user?.image ?? "",
       name: member?.user?.name ?? "",
+      role: member?.role ?? "",
     }));
   }, [workspaceUsers]);
 
-  const handleAssigneeChange = useCallback(
-    async (newUserId: string) => {
+  const currentAssignees = task.assignees ?? [];
+
+  const handleToggleAssignee = useCallback(
+    async (userId: string) => {
       try {
+        const isAssigned = currentAssignees.some((a) => a.id === userId);
+        const nextAssignees = isAssigned
+          ? currentAssignees
+              .filter((a) => a.id !== userId)
+              .map((a) => ({
+                userId: a.id,
+                role: a.role as "supervisor" | "engineer",
+              }))
+          : [
+              ...currentAssignees.map((a) => ({
+                userId: a.id,
+                role: a.role as "supervisor" | "engineer",
+              })),
+              { userId, role: "engineer" as const },
+            ];
         await updateTaskAssignee({
-          ...task,
-          userId: newUserId,
+          taskId: task.id,
+          zoneId: task.zoneId,
+          assignees: nextAssignees,
         });
-        setOpen(false);
       } catch (error) {
         toast.error(
           error instanceof Error
@@ -65,16 +83,33 @@ export default function TaskAssigneePopover({
         );
       }
     },
-    [t, task, updateTaskAssignee],
+    [t, task, currentAssignees, updateTaskAssignee],
   );
 
+  const handleUnassignAll = useCallback(async () => {
+    try {
+      await updateTaskAssignee({
+        taskId: task.id,
+        zoneId: task.zoneId,
+        assignees: [],
+      });
+      setOpen(false);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("tasks:popover.assignee.updateError"),
+      );
+    }
+  }, [t, task, updateTaskAssignee]);
+
   const shortcutOptions = useMemo(() => {
-    const unassignedOption = { onSelect: () => handleAssigneeChange("") };
+    const unassignedOption = { onSelect: () => handleUnassignAll() };
     const userOptions = (usersOptions || []).slice(0, 8).map((user) => ({
-      onSelect: () => handleAssigneeChange(user.value),
+      onSelect: () => handleToggleAssignee(user.value),
     }));
     return [unassignedOption, ...userOptions];
-  }, [usersOptions, handleAssigneeChange]);
+  }, [usersOptions, handleToggleAssignee, handleUnassignAll]);
 
   const visibleUsersOptions = useMemo(() => {
     return usersOptions?.slice(0, visibleUsersCount) ?? [];
@@ -119,7 +154,7 @@ export default function TaskAssigneePopover({
             variant="ghost"
             size="sm"
             className="w-full justify-start gap-2 h-8 px-2"
-            onClick={() => handleAssigneeChange("")}
+            onClick={handleUnassignAll}
           >
             <div
               className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center"
@@ -132,34 +167,39 @@ export default function TaskAssigneePopover({
             <span className="text-sm">
               {t("tasks:popover.assignee.unassigned")}
             </span>
-            {!task.userId ? (
+            {currentAssignees.length === 0 ? (
               <Check className="ml-auto h-4 w-4" />
             ) : (
               <ShortcutNumber number={1} />
             )}
           </Button>
-          {visibleUsersOptions.map((user, index) => (
-            <Button
-              key={user.value}
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start gap-2 h-8 px-2"
-              onClick={() => handleAssigneeChange(user.value)}
-            >
-              <Avatar className="h-6 w-6">
-                <AvatarImage src={user.image ?? ""} alt={user.name || ""} />
-                <AvatarFallback className="text-xs font-medium border border-border/30">
-                  {user.name?.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm truncate">{user.label}</span>
-              {task.userId === user.value ? (
-                <Check className="ml-auto h-4 w-4 shrink-0" />
-              ) : index < 8 ? (
-                <ShortcutNumber number={index + 2} />
-              ) : null}
-            </Button>
-          ))}
+          {visibleUsersOptions.map((user, index) => {
+            const isAssigned = currentAssignees.some(
+              (a) => a.id === user.value,
+            );
+            return (
+              <Button
+                key={user.value}
+                variant="ghost"
+                size="sm"
+                className="w-full justify-start gap-2 h-8 px-2"
+                onClick={() => handleToggleAssignee(user.value)}
+              >
+                <Avatar className="h-6 w-6">
+                  <AvatarImage src={user.image ?? ""} alt={user.name || ""} />
+                  <AvatarFallback className="text-xs font-medium border border-border/30">
+                    {user.name?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm truncate">{user.label}</span>
+                {isAssigned ? (
+                  <Check className="ml-auto h-4 w-4 shrink-0" />
+                ) : index < 8 ? (
+                  <ShortcutNumber number={index + 2} />
+                ) : null}
+              </Button>
+            );
+          })}
         </div>
       </PopoverContent>
     </Popover>

@@ -33,7 +33,7 @@ async function getTaskRelations(taskId: string) {
       status: string;
       priority: string | null;
       number: number | null;
-      projectId: string;
+      zoneId: string;
       userId: string | null;
       assigneeName: string | null;
     }
@@ -47,7 +47,7 @@ async function getTaskRelations(taskId: string) {
         status: taskTable.status,
         priority: taskTable.priority,
         number: taskTable.number,
-        projectId: taskTable.projectId,
+        zoneId: taskTable.zoneId,
         userId: taskTable.userId,
         assigneeName: userTable.name,
       })

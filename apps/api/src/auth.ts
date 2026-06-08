@@ -3,13 +3,13 @@ import {
   sendMagicLinkEmail,
   sendOtpEmail,
   sendWorkspaceInvitationEmail,
-} from "@kaneo/email";
+} from "@solarplan/email";
 import {
   ac,
   DEFAULT_ROLE_NAMES,
   defaultRolePayloads,
   owner,
-} from "@kaneo/permissions";
+} from "@solarplan/permissions";
 import bcrypt from "bcrypt";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -25,6 +25,7 @@ import {
   magicLink,
   openAPI,
   organization,
+  phoneNumber,
 } from "better-auth/plugins";
 import type { AccessControl } from "better-auth/plugins/access";
 import type { UserWithAnonymous } from "better-auth/plugins/anonymous";
@@ -44,8 +45,8 @@ const isRegistrationDisabled = process.env.DISABLE_REGISTRATION === "true";
 const isPasswordRegistrationDisabled =
   process.env.DISABLE_PASSWORD_REGISTRATION === "true";
 
-const apiUrl = process.env.KANEO_API_URL || "http://localhost:1337";
-const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
+const apiUrl = process.env.SOLARPLAN_API_URL || "http://localhost:1337";
+const clientUrl = process.env.SOLARPLAN_CLIENT_URL || "http://localhost:5173";
 const isHttps = apiUrl.startsWith("https://");
 const isCrossSubdomain = (() => {
   try {
@@ -103,12 +104,12 @@ function getLocaleKey(locale?: string | null) {
 function getAuthEmailCopy(locale?: string | null) {
   return getLocaleKey(locale) === "de"
     ? {
-        magicLinkSubject: "Anmeldelink fuer Kaneo",
-        otpSubject: "Bestaetigungscode fuer Kaneo",
+        magicLinkSubject: "Anmeldelink fuer Solarplan",
+        otpSubject: "Bestaetigungscode fuer Solarplan",
       }
     : {
-        magicLinkSubject: "Login for Kaneo",
-        otpSubject: "Authentication code for Kaneo",
+        magicLinkSubject: "Login for Solarplan",
+        otpSubject: "Authentication code for Solarplan",
       };
 }
 
@@ -122,7 +123,7 @@ function getDeviceAuthClientIds(): Set<string> {
         .filter(Boolean),
     );
   }
-  return new Set(["kaneo-cli", "kaneo-mcp"]);
+  return new Set(["solarplan-cli", "solarplan-mcp"]);
 }
 
 function getDeviceAuthVerificationUri(): string {
@@ -136,8 +137,8 @@ function getInvitationEmailSubject(
   workspaceName: string,
 ) {
   return getLocaleKey(locale) === "de"
-    ? `${inviterName} hat dich eingeladen, ${workspaceName} auf Kaneo beizutreten`
-    : `${inviterName} invited you to join ${workspaceName} on Kaneo`;
+    ? `${inviterName} hat dich eingeladen, ${workspaceName} auf Solarplan beizutreten`
+    : `${inviterName} invited you to join ${workspaceName} on Solarplan`;
 }
 
 export const auth = betterAuth({
@@ -204,7 +205,7 @@ export const auth = betterAuth({
       ? [
           anonymous({
             generateName: async () => generateDemoName(),
-            emailDomainName: "kaneo.app",
+            emailDomainName: "solarplan.app",
           }),
         ]
       : []),
@@ -255,7 +256,7 @@ export const auth = betterAuth({
       },
       teams: {
         enabled: true,
-        maximumTeams: 10,
+        maximumTeams: 20,
         allowRemovingAllTeams: false,
       },
       schema: {
@@ -296,12 +297,14 @@ export const auth = betterAuth({
           },
         },
       },
-      allowUserToCreateOrganization: true,
+      allowUserToCreateOrganization: Boolean(
+        process.env.ALLOW_USER_TO_CREATE_ORGANISATION,
+      ),
       organizationHooks: {
         afterCreateOrganization: async ({ organization, user }) => {
           // Seed the editable default roles for this workspace. Each
           // role's permissions are derived from the compiled-in defaults
-          // in `@kaneo/permissions`; admins can later replace them in the
+          // in `@solarplan/permissions`; admins can later replace them in the
           // Roles UI. We skip names that somehow already exist (this hook
           // is best-effort idempotent — the boot-time backfill is the
           // belt-and-braces path).
@@ -343,7 +346,7 @@ export const auth = betterAuth({
         },
       },
       async sendInvitationEmail(data) {
-        const inviteLink = `${process.env.KANEO_CLIENT_URL}/invitation/accept/${data.id}`;
+        const inviteLink = `${process.env.SOLARPLAN_CLIENT_URL}/invitation/accept/${data.id}`;
         const locale = await getUserLocale(data.email);
 
         const result = await sendWorkspaceInvitationEmail(
@@ -406,6 +409,20 @@ export const auth = betterAuth({
       verificationUri: getDeviceAuthVerificationUri(),
       validateClient: async (clientId) =>
         getDeviceAuthClientIds().has(clientId),
+      schema: {},
+    }),
+    phoneNumber({
+      sendOTP: async ({ phoneNumber: phone, code }) => {
+        if (process.env.NODE_ENV !== "production") {
+          console.log(`[DEV] Phone OTP for ${phone}: ${code}`);
+        }
+        // In production, send via SMS provider (e.g., Twilio)
+      },
+      signUpOnVerification: {
+        getTempEmail: (phone) =>
+          `${phone.replace(/[^0-9]/g, "")}@phone.solarcity`,
+        // getTempName: (phone) => phone,
+      },
     }),
     adminPlugin({
       defaultRole: "user",

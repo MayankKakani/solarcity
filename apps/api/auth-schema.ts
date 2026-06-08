@@ -22,6 +22,10 @@ export const user = pgTable("user", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   isAnonymous: boolean("is_anonymous").default(false),
+  phoneNumber: text("phone_number").unique(),
+  phoneNumberVerified: boolean("phone_number_verified")
+    .default(false)
+    .notNull(),
 });
 
 export const session = pgTable(

@@ -2,10 +2,10 @@ import { createHash } from "node:crypto";
 import { and, eq } from "drizzle-orm";
 import db from "../../database";
 import {
-  projectTable,
   taskTable,
   userTable,
   workspaceTable,
+  zoneTable,
 } from "../../database/schema";
 import type {
   PluginContext,
@@ -79,7 +79,7 @@ function getSafeTelegramTargetIdentifier(config: TelegramConfig): string {
 function getTaskUrl(
   clientUrl: string | undefined,
   workspaceId: string,
-  projectId: string,
+  zoneId: string,
   taskId: string,
 ): string | null {
   const normalizedClientUrl = clientUrl?.trim();
@@ -89,7 +89,7 @@ function getTaskUrl(
 
   try {
     return new URL(
-      `/dashboard/workspace/${workspaceId}/project/${projectId}/task/${taskId}`,
+      `/dashboard/workspace/${workspaceId}/project/${zoneId}/task/${taskId}`,
       normalizedClientUrl,
     ).toString();
   } catch {
@@ -99,7 +99,7 @@ function getTaskUrl(
 
 async function getTelegramEventData(
   taskId: string,
-  projectId: string,
+  zoneId: string,
   userId: string | null,
 ): Promise<TelegramEventData | null> {
   const taskPromise = db
@@ -108,14 +108,14 @@ async function getTelegramEventData(
       number: taskTable.number,
       status: taskTable.status,
       priority: taskTable.priority,
-      projectName: projectTable.name,
-      projectId: projectTable.id,
+      projectName: zoneTable.name,
+      zoneId: zoneTable.id,
       workspaceId: workspaceTable.id,
     })
     .from(taskTable)
-    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
-    .where(and(eq(taskTable.id, taskId), eq(projectTable.id, projectId)))
+    .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
+    .innerJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
+    .where(and(eq(taskTable.id, taskId), eq(zoneTable.id, zoneId)))
     .limit(1);
 
   const userPromise = userId
@@ -137,9 +137,9 @@ async function getTelegramEventData(
     taskNumber: taskRow.number,
     projectName: taskRow.projectName,
     taskUrl: getTaskUrl(
-      process.env.KANEO_CLIENT_URL,
+      process.env.SOLARPLAN_CLIENT_URL,
       taskRow.workspaceId,
-      taskRow.projectId,
+      taskRow.zoneId,
       taskId,
     ),
     actorName: user?.name ?? null,
@@ -170,7 +170,7 @@ async function sendTelegramMessage(
     `<b>Project:</b> ${escapeHtml(data.projectName)}`,
     `<b>Status:</b> ${escapeHtml(toSentenceCase(data.status))}`,
     `<b>Priority:</b> ${escapeHtml(toSentenceCase(data.priority))}`,
-    `<b>Triggered by:</b> ${escapeHtml(data.actorName ?? "Kaneo")}`,
+    `<b>Triggered by:</b> ${escapeHtml(data.actorName ?? "Solarplan")}`,
   ];
 
   try {
@@ -200,7 +200,7 @@ async function runTelegramHandler(
   context: PluginContext,
   event: {
     taskId: string;
-    projectId: string;
+    zoneId: string;
     userId: string | null;
   },
   featureKey: TelegramEventKey,
@@ -212,7 +212,7 @@ async function runTelegramHandler(
       errors: validation.errors,
       config: context.config,
       featureKey,
-      projectId: event.projectId,
+      zoneId: event.zoneId,
       taskId: event.taskId,
     });
     return;
@@ -223,7 +223,7 @@ async function runTelegramHandler(
 
   const data = await getTelegramEventData(
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
   );
   if (!data) return;

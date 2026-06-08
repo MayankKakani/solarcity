@@ -101,12 +101,14 @@ async function findValidInvitation(
     return null;
   }
 
-  return row;
+  return { ...row, email: row.email ?? "" };
 }
 
 type InvitationDetails = {
   id: string;
   email: string;
+  phoneNumber: string | null;
+  zoneIds: string | null;
   workspaceName: string;
   inviterName: string;
   expiresAt: Date;
@@ -129,6 +131,8 @@ export async function getInvitationDetails(
     .select({
       id: invitationTable.id,
       email: invitationTable.email,
+      phoneNumber: invitationTable.phoneNumber,
+      zoneIds: invitationTable.zoneIds,
       workspaceName: workspaceTable.name,
       inviterName: userTable.name,
       expiresAt: invitationTable.expiresAt,
@@ -157,7 +161,9 @@ export async function getInvitationDetails(
 
   const baseInvitation: InvitationDetails = {
     id: row.id,
-    email: row.email,
+    email: row.email ?? "",
+    phoneNumber: row.phoneNumber,
+    zoneIds: row.zoneIds,
     workspaceName: row.workspaceName,
     inviterName: row.inviterName,
     expiresAt: row.expiresAt,

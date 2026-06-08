@@ -57,12 +57,12 @@ export async function handleIssueClosed(payload: IssueClosedPayload) {
       ? JSON.parse(externalLink.metadata)
       : {};
 
-    if (existingMetadata.createdFrom === "kaneo") {
+    if (existingMetadata.createdFrom === "solarplan") {
       continue;
     }
 
     const targetStatus = await resolveTargetStatus(
-      task.projectId,
+      task.zoneId,
       "issue_closed",
       "done",
     );
@@ -74,7 +74,7 @@ export async function handleIssueClosed(payload: IssueClosedPayload) {
     ) {
       await publishEvent("task.status_changed", {
         taskId: statusResult.after.id,
-        projectId: statusResult.after.projectId,
+        zoneId: statusResult.after.zoneId,
         userId: null,
         oldStatus: statusResult.before.status,
         newStatus: statusResult.after.status,

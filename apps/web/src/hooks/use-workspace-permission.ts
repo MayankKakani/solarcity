@@ -16,7 +16,7 @@ const CAPABILITIES = {
   manageProjects: { project: ["create", "update", "delete"] },
   createProjects: { project: ["create"] },
   deleteProjects: { project: ["delete"] },
-  manageTasks: { task: ["create", "update", "delete"] },
+  manageTasks: { task: ["create", "update"] },
   assignTasks: { task: ["assign"] },
   manageLabels: { label: ["create", "update", "delete"] },
   manageWorkspace: { workspace: ["update", "manage_settings"] },

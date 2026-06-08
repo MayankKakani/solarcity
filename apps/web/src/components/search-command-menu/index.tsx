@@ -35,7 +35,7 @@ type SearchResultItem = {
   description?: string;
   content?: string;
   type: "task" | "project" | "workspace" | "comment" | "activity";
-  projectId?: string;
+  zoneId?: string;
   workspaceId?: string;
   taskNumber?: number;
   projectSlug?: string;
@@ -89,12 +89,12 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
 
     switch (item.type) {
       case "task":
-        if (item.projectId && item.id && workspace?.id) {
+        if (item.zoneId && item.id && workspace?.id) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+            to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
             params: {
               workspaceId: workspace.id,
-              projectId: item.projectId,
+              zoneId: item.zoneId,
               taskId: item.id,
             },
           });
@@ -103,10 +103,10 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
       case "project":
         if (item.id && workspace?.id) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
+            to: "/dashboard/workspace/$workspaceId/zone/$zoneId/board",
             params: {
               workspaceId: workspace.id,
-              projectId: item.id,
+              zoneId: item.id,
             },
           });
         }
@@ -123,12 +123,12 @@ function SearchCommandMenu({ open, setOpen }: SearchCommandMenuProps) {
         break;
       case "comment":
       case "activity":
-        if (item.projectId && item.id && workspace?.id) {
+        if (item.zoneId && item.id && workspace?.id) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+            to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
             params: {
               workspaceId: workspace.id,
-              projectId: item.projectId,
+              zoneId: item.zoneId,
               taskId: item.id,
             },
           });

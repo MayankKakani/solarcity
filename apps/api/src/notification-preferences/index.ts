@@ -18,7 +18,7 @@ const workspaceRuleSchema = v.object({
   gotifyEnabled: v.boolean(),
   webhookEnabled: v.boolean(),
   projectMode: v.picklist(["all", "selected"] as const),
-  selectedProjectIds: v.optional(v.array(v.string())),
+  selectedzoneIds: v.optional(v.array(v.string())),
 });
 
 const notificationPreferences = new Hono<{

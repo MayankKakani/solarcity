@@ -1,8 +1,8 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function getTasks(projectId: string) {
-  const response = await client.task.tasks[":projectId"].$get({
-    param: { projectId },
+async function getTasks(zoneId: string) {
+  const response = await client.task.tasks[":zoneId"].$get({
+    param: { zoneId },
   });
 
   if (!response.ok) {

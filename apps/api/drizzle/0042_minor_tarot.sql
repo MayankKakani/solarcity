@@ -1,0 +1,1 @@
+ALTER TABLE "service_master" ALTER COLUMN "default_price" SET NOT NULL;

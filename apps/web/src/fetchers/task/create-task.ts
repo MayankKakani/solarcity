@@ -1,36 +1,58 @@
-import { client } from "@kaneo/libs";
-import type { InferRequestType } from "hono/client";
+import { client } from "@solarplan/libs";
 
-export type CreateTaskRequest = InferRequestType<
-  (typeof client)["task"][":projectId"]["$post"]
->["json"] &
-  InferRequestType<(typeof client)["task"][":projectId"]["$post"]>["param"];
+export type TaskAssignee = {
+  userId: string;
+  role: "supervisor" | "engineer";
+};
 
-async function createTask(
-  title: string,
-  description: string,
-  projectId: string,
-  userId: string,
-  status: string,
-  startDate: Date | undefined,
-  dueDate: Date | undefined,
-  priority: string,
-) {
-  if (!projectId) {
+export type CreateTaskRequest = {
+  title: string;
+  description: string;
+  zoneId: string;
+  status: string;
+  startDate?: string;
+  dueDate?: string;
+  priority: "low" | "medium" | "high" | "no-priority" | "urgent";
+  assignees?: TaskAssignee[];
+  siteId?: string;
+  siteContactId?: string;
+  raisedByExecutiveId?: string;
+  serviceMasterId?: string;
+};
+
+async function createTask({
+  title,
+  description,
+  zoneId,
+  status,
+  startDate,
+  dueDate,
+  priority,
+  assignees,
+  siteId,
+  siteContactId,
+  raisedByExecutiveId,
+  serviceMasterId,
+}: CreateTaskRequest) {
+  if (!zoneId) {
     throw new Error("No project selected for task creation");
   }
 
-  const response = await client.task[":projectId"].$post({
+  const response = await client.task[":zoneId"].$post({
     json: {
       title,
       description,
-      userId,
       status,
-      startDate: startDate?.toISOString() || undefined,
-      dueDate: dueDate?.toISOString() || undefined,
+      startDate: startDate || undefined,
+      dueDate: dueDate || undefined,
       priority,
-    },
-    param: { projectId },
+      assignees,
+      siteId,
+      siteContactId,
+      raisedByExecutiveId,
+      serviceMasterId,
+    } as Parameters<(typeof client)["task"][":zoneId"]["$post"]>[0]["json"],
+    param: { zoneId },
   });
 
   if (!response.ok) {

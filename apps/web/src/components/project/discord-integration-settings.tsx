@@ -79,11 +79,7 @@ function isValidDiscordWebhookUrl(value: string): boolean {
   );
 }
 
-export function DiscordIntegrationSettings({
-  projectId,
-}: {
-  projectId: string;
-}) {
+export function DiscordIntegrationSettings({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
   const schema = React.useMemo(
     () =>
@@ -100,7 +96,7 @@ export function DiscordIntegrationSettings({
     [],
   );
 
-  const { data: integration, isLoading } = useGetDiscordIntegration(projectId);
+  const { data: integration, isLoading } = useGetDiscordIntegration(zoneId);
   const { mutateAsync: createIntegration, isPending: isCreating } =
     useCreateDiscordIntegration();
   const { mutateAsync: updateIntegration, isPending: isUpdating } =
@@ -137,7 +133,7 @@ export function DiscordIntegrationSettings({
   });
   const { reset } = form;
   const lastResetKeyRef = React.useRef<string | null>(null);
-  const resetKey = `${projectId}:${integration?.id ?? "none"}`;
+  const resetKey = `${zoneId}:${integration?.id ?? "none"}`;
 
   React.useEffect(() => {
     if (form.formState.isDirty && lastResetKeyRef.current === resetKey) {
@@ -175,7 +171,7 @@ export function DiscordIntegrationSettings({
         }
 
         await createIntegration({
-          projectId,
+          zoneId,
           data: {
             webhookUrl: trimmedWebhookUrl,
             channelName: values.channelName || undefined,
@@ -191,7 +187,7 @@ export function DiscordIntegrationSettings({
         }
 
         await updateIntegration({
-          projectId,
+          zoneId,
           json: {
             webhookUrl: trimmedWebhookUrl || undefined,
             channelName: values.channelName || undefined,
@@ -217,7 +213,7 @@ export function DiscordIntegrationSettings({
   const handleToggleActive = async (checked: boolean) => {
     try {
       await updateIntegration({
-        projectId,
+        zoneId,
         json: { isActive: checked },
       });
       toast.success(
@@ -236,7 +232,7 @@ export function DiscordIntegrationSettings({
 
   const handleDelete = async () => {
     try {
-      await deleteIntegration(projectId);
+      await deleteIntegration(zoneId);
       form.reset({
         webhookUrl: "",
         channelName: "",

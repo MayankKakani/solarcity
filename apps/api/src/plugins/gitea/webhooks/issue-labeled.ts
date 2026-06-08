@@ -158,7 +158,7 @@ export async function handleGiteaIssueLabeled(payload: IssueLabeledPayload) {
         ) {
           await publishEvent("task.status_changed", {
             taskId: statusResult.after.id,
-            projectId: statusResult.after.projectId,
+            zoneId: statusResult.after.zoneId,
             userId: null,
             oldStatus: statusResult.before.status,
             newStatus: statusResult.after.status,

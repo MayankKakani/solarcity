@@ -1,18 +1,16 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 import type { InferRequestType } from "hono";
 
 export type UpdateGiteaIntegrationRequest = InferRequestType<
-  (typeof client)["gitea-integration"]["project"][":projectId"]["$patch"]
+  (typeof client)["gitea-integration"]["project"][":zoneId"]["$patch"]
 >["json"];
 
 async function updateGiteaIntegration(
-  projectId: string,
+  zoneId: string,
   json: UpdateGiteaIntegrationRequest,
 ) {
-  const response = await client["gitea-integration"].project[
-    ":projectId"
-  ].$patch({
-    param: { projectId },
+  const response = await client["gitea-integration"].project[":zoneId"].$patch({
+    param: { zoneId },
     json,
   });
 

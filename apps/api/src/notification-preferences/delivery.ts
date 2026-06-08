@@ -1,15 +1,15 @@
 import { createHmac } from "node:crypto";
-import { sendNotificationEmail } from "@kaneo/email";
+import { sendNotificationEmail } from "@solarplan/email";
 import { and, eq } from "drizzle-orm";
 import db from "../database";
 import {
   notificationTable,
-  projectTable,
   taskTable,
   userNotificationPreferenceTable,
   userNotificationWorkspaceRuleTable,
   userTable,
   workspaceTable,
+  zoneTable,
 } from "../database/schema";
 import { assertPublicWebhookDestination } from "../plugins/generic-webhook/config";
 import { decryptSecret } from "./secrets";
@@ -34,7 +34,7 @@ async function fetchWithTimeout(
 type ResolvedNotificationContext = {
   workspaceId: string;
   workspaceName: string;
-  projectId: string | null;
+  zoneId: string | null;
   projectName: string | null;
   taskId: string | null;
   taskTitle: string | null;
@@ -46,9 +46,9 @@ type DeliveryContent = {
   body: string;
 };
 
-function buildTaskUrl(workspaceId: string, projectId: string, taskId: string) {
-  const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-  return `${clientUrl}/dashboard/workspace/${workspaceId}/project/${projectId}/task/${taskId}`;
+function buildTaskUrl(workspaceId: string, zoneId: string, taskId: string) {
+  const clientUrl = process.env.SOLARPLAN_CLIENT_URL || "http://localhost:5173";
+  return `${clientUrl}/dashboard/workspace/${workspaceId}/project/${zoneId}/task/${taskId}`;
 }
 
 function getStringValue(
@@ -79,7 +79,7 @@ function buildDeliveryContent(notification: {
         title: "New task created",
         body: taskTitle
           ? `A new task was created: ${taskTitle}`
-          : "A new task was created in Kaneo.",
+          : "A new task was created in Solarplan.",
       };
     }
     case "workspace_created": {
@@ -91,7 +91,7 @@ function buildDeliveryContent(notification: {
         title: "Workspace created",
         body: workspaceName
           ? `Workspace created: ${workspaceName}`
-          : "A new workspace was created in Kaneo.",
+          : "A new workspace was created in Solarplan.",
       };
     }
     case "task_status_changed": {
@@ -103,7 +103,7 @@ function buildDeliveryContent(notification: {
         body:
           taskTitle && oldStatus && newStatus
             ? `${taskTitle} moved from ${oldStatus} to ${newStatus}.`
-            : "A task status changed in Kaneo.",
+            : "A task status changed in Solarplan.",
       };
     }
     case "task_assignee_changed": {
@@ -112,7 +112,7 @@ function buildDeliveryContent(notification: {
         title: "Task assigned to you",
         body: taskTitle
           ? `You were assigned to ${taskTitle}.`
-          : "A task was assigned to you in Kaneo.",
+          : "A task was assigned to you in Solarplan.",
       };
     }
     case "time_entry_created": {
@@ -121,7 +121,7 @@ function buildDeliveryContent(notification: {
         title: "Time entry created",
         body: taskTitle
           ? `A time entry was created for ${taskTitle}.`
-          : "A time entry was created in Kaneo.",
+          : "A time entry was created in Solarplan.",
       };
     }
     case "due_date_reminder": {
@@ -150,8 +150,9 @@ function buildDeliveryContent(notification: {
     }
     default:
       return {
-        title: notification.title ?? "New Kaneo notification",
-        body: notification.content ?? "You have a new notification in Kaneo.",
+        title: notification.title ?? "New Solarplan notification",
+        body:
+          notification.content ?? "You have a new notification in Solarplan.",
       };
   }
 }
@@ -169,17 +170,14 @@ async function resolveNotificationContext(notification: {
       .select({
         taskId: taskTable.id,
         taskTitle: taskTable.title,
-        projectId: projectTable.id,
-        projectName: projectTable.name,
+        zoneId: zoneTable.id,
+        projectName: zoneTable.name,
         workspaceId: workspaceTable.id,
         workspaceName: workspaceTable.name,
       })
       .from(taskTable)
-      .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-      .innerJoin(
-        workspaceTable,
-        eq(projectTable.workspaceId, workspaceTable.id),
-      )
+      .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
+      .innerJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
       .where(eq(taskTable.id, notification.resourceId))
       .limit(1);
 
@@ -190,11 +188,11 @@ async function resolveNotificationContext(notification: {
     return {
       workspaceId: task.workspaceId,
       workspaceName: task.workspaceName,
-      projectId: task.projectId,
+      zoneId: task.zoneId,
       projectName: task.projectName,
       taskId: task.taskId,
       taskTitle: task.taskTitle,
-      taskUrl: buildTaskUrl(task.workspaceId, task.projectId, task.taskId),
+      taskUrl: buildTaskUrl(task.workspaceId, task.zoneId, task.taskId),
     };
   }
 
@@ -215,7 +213,7 @@ async function resolveNotificationContext(notification: {
     return {
       workspaceId: workspace.workspaceId,
       workspaceName: workspace.workspaceName,
-      projectId: null,
+      zoneId: null,
       projectName: null,
       taskId: null,
       taskTitle: null,
@@ -315,7 +313,7 @@ async function sendWebhookNotification(input: {
   };
 
   if (input.secret) {
-    headers["X-Kaneo-Signature"] = createHmac("sha256", input.secret)
+    headers["X-Solarplan-Signature"] = createHmac("sha256", input.secret)
       .update(body)
       .digest("hex");
   }
@@ -402,9 +400,9 @@ export async function deliverNotification(
 
   if (
     rule.projectMode === "selected" &&
-    (!context.projectId ||
+    (!context.zoneId ||
       !rule.selectedProjects.some(
-        (project) => project.projectId === context.projectId,
+        (project) => project.zoneId === context.zoneId,
       ))
   ) {
     return;
@@ -435,9 +433,9 @@ export async function deliverNotification(
       id: context.workspaceId,
       name: context.workspaceName,
     },
-    project: context.projectId
+    project: context.zoneId
       ? {
-          id: context.projectId,
+          id: context.zoneId,
           name: context.projectName,
         }
       : null,
@@ -463,7 +461,7 @@ export async function deliverNotification(
         title: content.title,
         message: content.body,
         actionUrl: context.taskUrl,
-        actionLabel: context.taskUrl ? "Open in Kaneo" : undefined,
+        actionLabel: context.taskUrl ? "Open in Solarplan" : undefined,
         locale: user.locale ?? null,
       }),
     );

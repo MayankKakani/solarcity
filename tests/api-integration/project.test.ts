@@ -52,7 +52,7 @@ describe("API integration: project creation", () => {
 
     expect(response.status).toBe(200);
     const payload =
-      (await response.json()) as typeof schema.projectTable.$inferSelect;
+      (await response.json()) as typeof schema.zoneTable.$inferSelect;
 
     expect(payload).toMatchObject({
       workspaceId: member.workspace.id,
@@ -61,8 +61,8 @@ describe("API integration: project creation", () => {
       slug: "roadmap",
     });
 
-    const persistedProject = await db.query.projectTable.findFirst({
-      where: eq(schema.projectTable.id, payload.id),
+    const persistedProject = await db.query.zoneTable.findFirst({
+      where: eq(schema.zoneTable.id, payload.id),
     });
 
     expect(persistedProject).toMatchObject({
@@ -73,7 +73,7 @@ describe("API integration: project creation", () => {
     });
 
     const columns = await db.query.columnTable.findMany({
-      where: eq(schema.columnTable.projectId, payload.id),
+      where: eq(schema.columnTable.zoneId, payload.id),
       orderBy: (column, { asc }) => [asc(column.position)],
     });
 

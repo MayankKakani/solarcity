@@ -1,4 +1,4 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 type BulkOperationType =
   | "updateStatus"

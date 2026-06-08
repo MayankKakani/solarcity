@@ -17,11 +17,11 @@ type CreateTaskBody = {
   status: string;
 };
 
-async function seedTask(projectId: string, columnId: string | null) {
+async function seedTask(zoneId: string, columnId: string | null) {
   const [task] = await db
     .insert(schema.taskTable)
     .values({
-      projectId,
+      zoneId,
       title: "Seeded task",
       description: "Existing",
       priority: "medium",
@@ -49,10 +49,10 @@ async function createWorkspaceRoleRow(
 
 async function postCreateTask(
   app: ReturnType<typeof createApp>["app"],
-  projectId: string,
+  zoneId: string,
   body: Partial<CreateTaskBody> = {},
 ) {
-  return app.request(`/api/task/${projectId}`, {
+  return app.request(`/api/task/${zoneId}`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
@@ -99,7 +99,7 @@ describe("API integration: workspace RBAC enforcement", () => {
 
       const persisted = await db.query.taskTable.findFirst({
         where: and(
-          eq(schema.taskTable.projectId, project.id),
+          eq(schema.taskTable.zoneId, project.id),
           eq(schema.taskTable.title, "RBAC probe"),
         ),
       });
@@ -319,7 +319,7 @@ describe("API integration: workspace RBAC enforcement", () => {
           description: "edit",
           priority: "high",
           status: "to-do",
-          projectId: project.id,
+          zoneId: project.id,
           position: 1,
         }),
       });
@@ -344,7 +344,7 @@ describe("API integration: workspace RBAC enforcement", () => {
           description: "nope",
           priority: "low",
           status: "to-do",
-          projectId: project.id,
+          zoneId: project.id,
           position: 1,
         }),
       });

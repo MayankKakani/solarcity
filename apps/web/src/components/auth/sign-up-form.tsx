@@ -1,6 +1,5 @@
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { useRouter } from "@tanstack/react-router";
-import { Eye, EyeOff } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
@@ -18,65 +17,60 @@ import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/lib/toast";
 
-export type SignUpFormValues = {
-  email: string;
-  password: string;
-  name: string;
-};
-
 type SignUpFormProps = {
   invitationId?: string;
   defaultEmail?: string;
 };
 
-export function SignUpForm({ invitationId, defaultEmail }: SignUpFormProps) {
+export function SignUpForm({ invitationId }: SignUpFormProps) {
   const { t } = useTranslation();
-  const [showPassword, setShowPassword] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const { history } = useRouter();
 
   const signUpSchema = useMemo(
     () =>
       z.object({
-        email: z.email(),
-        password: z.string().min(8, {
-          message: t("auth:signUpForm.passwordTooShort"),
-        }),
-        name: z.string(),
+        name: z.string().min(2, { message: t("auth:signUpForm.nameTooShort") }),
+        phoneNumber: z
+          .string()
+          .min(7, { message: t("auth:phoneOtp.invalidPhone") })
+          .regex(/^\+?[0-9\s\-().]{7,20}$/, {
+            message: t("auth:phoneOtp.invalidPhone"),
+          }),
       }),
     [t],
   );
 
+  type SignUpFormValues = z.infer<typeof signUpSchema>;
+
   const form = useForm<SignUpFormValues>({
     resolver: standardSchemaResolver(signUpSchema),
     defaultValues: {
-      email: defaultEmail || "",
-      password: "",
       name: "",
+      phoneNumber: "",
     },
   });
 
   const onSubmit = async (data: SignUpFormValues) => {
     setIsPending(true);
     try {
-      const result = await authClient.signUp.email({
-        email: data.email,
-        name: data.name,
-        password: data.password,
+      const result = await authClient.phoneNumber.sendOtp({
+        phoneNumber: data.phoneNumber,
       });
 
       if (result.error) {
-        toast.error(result.error.message || t("auth:signUpForm.failedSignUp"));
+        toast.error(result.error.message || t("auth:phoneOtp.sendFailed"));
         return;
       }
 
-      toast.success(t("auth:signUpForm.accountCreated"));
+      toast.success(t("auth:phoneOtp.codeSent"));
 
-      if (invitationId) {
-        history.push(`/invitation/accept/${invitationId}`);
-      } else {
-        history.push("/dashboard");
-      }
+      const searchParams = new URLSearchParams({
+        phoneNumber: data.phoneNumber,
+        name: data.name,
+        ...(invitationId && { invitationId }),
+      });
+      history.push(`/auth/verify-otp?${searchParams.toString()}`);
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -115,56 +109,20 @@ export function SignUpForm({ invitationId, defaultEmail }: SignUpFormProps) {
 
           <FormField
             control={form.control}
-            name="email"
+            name="phoneNumber"
             render={({ field, fieldState }) => (
               <FormItem>
                 <FormLabel className="text-sm font-medium">
-                  {t("auth:forms.email")}
+                  {t("auth:phoneOtp.phoneNumber")}
                 </FormLabel>
                 <FormControl>
                   <Input
-                    placeholder={t("auth:forms.emailPlaceholder")}
-                    type="email"
-                    autoComplete="email"
-                    disabled={!!defaultEmail}
+                    placeholder={t("auth:phoneOtp.phonePlaceholder")}
+                    type="tel"
+                    autoComplete="tel"
+                    inputMode="tel"
                     {...field}
                   />
-                </FormControl>
-                <FormMessage>{fieldState.error?.message}</FormMessage>
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  {t("auth:forms.password")}
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      placeholder={t("auth:forms.passwordPlaceholder")}
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      {...field}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                      aria-label={
-                        showPassword
-                          ? t("auth:forms.hidePassword")
-                          : t("auth:forms.showPassword")
-                      }
-                      aria-pressed={showPassword}
-                    >
-                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                    </button>
-                  </div>
                 </FormControl>
                 <FormMessage>{fieldState.error?.message}</FormMessage>
               </FormItem>

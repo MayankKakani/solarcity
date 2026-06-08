@@ -1,9 +1,16 @@
 import { config } from "dotenv-mono";
+import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
 import {
   accountTableRelations,
   activityTableRelations,
+  amcAutoTaskTableRelations,
+  amcBundleServiceTableRelations,
+  amcBundleTableRelations,
+  amcRenewalReminderSentTableRelations,
+  amcServiceTableRelations,
+  amcTableRelations,
   apikeyTableRelations,
   assetTableRelations,
   columnTableRelations,
@@ -14,27 +21,37 @@ import {
   invitationTableRelations,
   labelTableRelations,
   notificationTableRelations,
-  projectTableRelations,
+  serviceMasterTableRelations,
   sessionTableRelations,
+  siteContactTableRelations,
+  siteTableRelations,
   taskRelationTableRelations,
   taskTableRelations,
   teamMemberTableRelations,
   teamTableRelations,
   timeEntryTableRelations,
   userNotificationPreferenceTableRelations,
-  userNotificationWorkspaceProjectTableRelations,
   userNotificationWorkspaceRuleTableRelations,
+  userNotificationWorkspacezoneTableRelations,
   userTableRelations,
   verificationTableRelations,
   workflowRuleTableRelations,
   workspaceRoleTableRelations,
   workspaceTableRelations,
   workspaceUserTableRelations,
+  zoneAssignmentTableRelations,
+  zoneTableRelations,
 } from "./relations";
 import { resolveDatabaseConnectionString } from "./resolve-database-url";
 import {
   accountTable,
   activityTable,
+  amcAutoTaskTable,
+  amcBundleServiceTable,
+  amcBundleTable,
+  amcRenewalReminderSentTable,
+  amcServiceTable,
+  amcTable,
   apikeyTable,
   assetTable,
   columnTable,
@@ -46,22 +63,26 @@ import {
   invitationTable,
   labelTable,
   notificationTable,
-  projectTable,
+  serviceMasterTable,
   sessionTable,
+  siteContactTable,
+  siteTable,
   taskRelationTable,
   taskTable,
   teamMemberTable,
   teamTable,
   timeEntryTable,
   userNotificationPreferenceTable,
-  userNotificationWorkspaceProjectTable,
   userNotificationWorkspaceRuleTable,
+  userNotificationWorkspacezoneTable,
   userTable,
   verificationTable,
   workflowRuleTable,
   workspaceRoleTable,
   workspaceTable,
   workspaceUserTable,
+  zoneAssignmentTable,
+  zoneTable,
 } from "./schema";
 
 config();
@@ -70,6 +91,12 @@ export const schema = {
   accountTable,
   assetTable,
   activityTable,
+  amcAutoTaskTable,
+  amcBundleServiceTable,
+  amcBundleTable,
+  amcRenewalReminderSentTable,
+  amcServiceTable,
+  amcTable,
   apikeyTable,
   columnTable,
   commentTable,
@@ -80,7 +107,8 @@ export const schema = {
   invitationTable,
   labelTable,
   notificationTable,
-  projectTable,
+  serviceMasterTable,
+  zoneTable,
   sessionTable,
   taskRelationTable,
   taskTable,
@@ -89,16 +117,25 @@ export const schema = {
   timeEntryTable,
   userTable,
   userNotificationPreferenceTable,
-  userNotificationWorkspaceProjectTable,
+  userNotificationWorkspacezoneTable,
   userNotificationWorkspaceRuleTable,
   verificationTable,
   workflowRuleTable,
   workspaceRoleTable,
   workspaceTable,
   workspaceUserTable,
+  zoneAssignmentTable,
+  siteTable,
+  siteContactTable,
   accountTableRelations,
   assetTableRelations,
   activityTableRelations,
+  amcAutoTaskTableRelations,
+  amcBundleServiceTableRelations,
+  amcBundleTableRelations,
+  amcRenewalReminderSentTableRelations,
+  amcServiceTableRelations,
+  amcTableRelations,
   apikeyTableRelations,
   columnTableRelations,
   commentTableRelations,
@@ -108,7 +145,8 @@ export const schema = {
   invitationTableRelations,
   labelTableRelations,
   notificationTableRelations,
-  projectTableRelations,
+  serviceMasterTableRelations,
+  zoneTableRelations,
   sessionTableRelations,
   taskRelationTableRelations,
   taskTableRelations,
@@ -117,13 +155,16 @@ export const schema = {
   timeEntryTableRelations,
   userTableRelations,
   userNotificationPreferenceTableRelations,
-  userNotificationWorkspaceProjectTableRelations,
+  userNotificationWorkspacezoneTableRelations,
   userNotificationWorkspaceRuleTableRelations,
   verificationTableRelations,
   workflowRuleTableRelations,
   workspaceRoleTableRelations,
   workspaceTableRelations,
   workspaceUserTableRelations,
+  zoneAssignmentTableRelations,
+  siteTableRelations,
+  siteContactTableRelations,
 };
 
 type DatabaseInstance = ReturnType<typeof drizzle<typeof schema>>;
@@ -162,5 +203,25 @@ const db = new Proxy({} as DatabaseInstance, {
     return value;
   },
 });
+
+/**
+ * Execute queries with RLS user context
+ * Uses a single transaction to ensure set_config() and queries
+ * run on the same connection
+ */
+export async function withUserContext<T>(
+  userId: string,
+  callback: (tx: typeof db) => Promise<T>,
+): Promise<T> {
+  return db.transaction(async (tx) => {
+    // Set user ID in this transaction
+    await tx.execute(
+      sql`SELECT set_config('app.current_user_id', ${userId}, true)`,
+    );
+
+    // Execute callback with same transaction
+    return callback(tx);
+  });
+}
 
 export default db;

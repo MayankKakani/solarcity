@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import db from "../../../database";
-import { columnTable, projectTable, taskTable } from "../../../database/schema";
+import { columnTable, taskTable, zoneTable } from "../../../database/schema";
 import { publishEvent } from "../../../events";
 import getNextTaskNumber from "../../../task/controllers/get-next-task-number";
 import {
@@ -69,7 +69,7 @@ export async function handleGiteaIssueOpened(payload: IssueOpenedPayload) {
       });
       continue;
     }
-    const projectId = integration.projectId;
+    const zoneId = integration.zoneId;
 
     const priority = extractIssuePriority(issue.labels);
     const status = extractIssueStatus(issue.labels);
@@ -84,23 +84,23 @@ export async function handleGiteaIssueOpened(payload: IssueOpenedPayload) {
       continue;
     }
 
-    const nextTaskNumber = await getNextTaskNumber(projectId);
+    const nextTaskNumber = await getNextTaskNumber(zoneId);
 
     const resolvedStatus = await resolveTargetStatus(
-      projectId,
+      zoneId,
       "issue_opened",
       status || "to-do",
     );
 
     const targetColumn = await db.query.columnTable.findFirst({
       where: and(
-        eq(columnTable.projectId, projectId),
+        eq(columnTable.zoneId, zoneId),
         eq(columnTable.slug, resolvedStatus),
       ),
     });
 
     const taskValues: typeof taskTable.$inferInsert = {
-      projectId,
+      zoneId,
       userId: null,
       title: issue.title,
       description: formatTaskDescriptionFromIssue(issue.body),
@@ -147,16 +147,17 @@ export async function handleGiteaIssueOpened(payload: IssueOpenedPayload) {
       },
     });
 
-    const project = await db.query.projectTable.findFirst({
-      where: eq(projectTable.id, projectId),
+    const project = await db.query.zoneTable.findFirst({
+      where: eq(zoneTable.id, zoneId),
     });
 
     if (!project) {
       continue;
     }
 
-    const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-    const taskUrl = `${clientUrl}/dashboard/workspace/${project.workspaceId}/project/${projectId}/task/${createdTask.id}`;
+    const clientUrl =
+      process.env.SOLARPLAN_CLIENT_URL || "http://localhost:5173";
+    const taskUrl = `${clientUrl}/dashboard/workspace/${project.workspaceId}/project/${zoneId}/task/${createdTask.id}`;
     const taskIdentifier = `${project.slug.toUpperCase()}-${createdTask.number}`;
 
     try {

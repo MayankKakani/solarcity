@@ -3195,8 +3195,8 @@
 				}
 			},
 			"indexes": {
-				"workflow_rule_projectId_idx": {
-					"name": "workflow_rule_projectId_idx",
+				"workflow_rule_zoneId_idx": {
+					"name": "workflow_rule_zoneId_idx",
 					"columns": [
 						{
 							"expression": "project_id",

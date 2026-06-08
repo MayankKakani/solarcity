@@ -1,8 +1,8 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function exportTasks(projectId: string) {
-  const response = await client.task.export[":projectId"].$get({
-    param: { projectId },
+async function exportTasks(zoneId: string) {
+  const response = await client.task.export[":zoneId"].$get({
+    param: { zoneId },
   });
 
   if (!response.ok) {

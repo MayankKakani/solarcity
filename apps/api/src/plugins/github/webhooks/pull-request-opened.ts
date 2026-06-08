@@ -60,7 +60,7 @@ export async function handlePullRequestOpened(payload: PROpenedPayload) {
       continue;
     }
 
-    const task = await findTaskByNumber(integration.projectId, taskNumber);
+    const task = await findTaskByNumber(integration.zoneId, taskNumber);
 
     if (!task) {
       continue;
@@ -93,7 +93,7 @@ export async function handlePullRequestOpened(payload: PROpenedPayload) {
     });
 
     const targetStatus = await resolveTargetStatus(
-      integration.projectId,
+      integration.zoneId,
       "pr_opened",
       config.statusTransitions?.onPROpen || "in-review",
     );
@@ -108,7 +108,7 @@ export async function handlePullRequestOpened(payload: PROpenedPayload) {
       ) {
         await publishEvent("task.status_changed", {
           taskId: statusResult.after.id,
-          projectId: statusResult.after.projectId,
+          zoneId: statusResult.after.zoneId,
           userId: null,
           oldStatus: statusResult.before.status,
           newStatus: statusResult.after.status,

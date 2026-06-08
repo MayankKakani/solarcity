@@ -28,7 +28,7 @@ function safePublishIntegrationEvent(
     | "integration.updated"
     | "integration.deleted",
   data: {
-    projectId: string;
+    zoneId: string;
     userId: string;
     integrationType: "telegram";
     integrationId: string;
@@ -54,7 +54,7 @@ const telegramIntegration = new Hono<{
 
 telegramIntegration
   .get(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "getTelegramIntegration",
       tags: ["Telegram"],
@@ -71,16 +71,16 @@ telegramIntegration
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
-    workspaceAccess.fromProject("projectId"),
+    validator("param", v.object({ zoneId: v.string() })),
+    workspaceAccess.fromProject("zoneId"),
     async (c) => {
-      const { projectId } = c.req.valid("param");
-      const integration = await getTelegramIntegration(projectId);
+      const { zoneId } = c.req.valid("param");
+      const integration = await getTelegramIntegration(zoneId);
       return c.json(integration);
     },
   )
   .post(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "createTelegramIntegration",
       tags: ["Telegram"],
@@ -94,7 +94,7 @@ telegramIntegration
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator(
       "json",
       v.object({
@@ -105,10 +105,10 @@ telegramIntegration
         events: v.optional(telegramEventsSchema),
       }),
     ),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const body = c.req.valid("json");
 
       const config = normalizeTelegramConfig({
@@ -128,7 +128,7 @@ telegramIntegration
 
       const priorIntegration = await db.query.integrationTable.findFirst({
         where: and(
-          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.zoneId, zoneId),
           eq(integrationTable.type, "telegram"),
         ),
         columns: { id: true },
@@ -137,20 +137,20 @@ telegramIntegration
       await db
         .insert(integrationTable)
         .values({
-          projectId,
+          zoneId,
           type: "telegram",
           config: JSON.stringify(config),
           isActive: true,
         })
         .onConflictDoUpdate({
-          target: [integrationTable.projectId, integrationTable.type],
+          target: [integrationTable.zoneId, integrationTable.type],
           set: {
             config: JSON.stringify(config),
             updatedAt: new Date(),
           },
         });
 
-      const integration = await getTelegramIntegration(projectId);
+      const integration = await getTelegramIntegration(zoneId);
       if (!integration) {
         throw new HTTPException(500, {
           message: "Failed to load Telegram integration after save",
@@ -161,7 +161,7 @@ telegramIntegration
       safePublishIntegrationEvent(
         priorIntegration ? "integration.updated" : "integration.created",
         {
-          projectId,
+          zoneId,
           userId: c.get("userId"),
           integrationType: "telegram",
           integrationId: integration.id,
@@ -173,7 +173,7 @@ telegramIntegration
     },
   )
   .patch(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "updateTelegramIntegration",
       tags: ["Telegram"],
@@ -187,17 +187,17 @@ telegramIntegration
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator("json", telegramIntegrationPatchBodySchema),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const body = c.req.valid("json");
 
       const existing = await db.query.integrationTable.findFirst({
         where: and(
-          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.zoneId, zoneId),
           eq(integrationTable.type, "telegram"),
         ),
       });
@@ -241,7 +241,7 @@ telegramIntegration
         })
         .where(eq(integrationTable.id, existing.id));
 
-      const integration = await getTelegramIntegration(projectId);
+      const integration = await getTelegramIntegration(zoneId);
       if (!integration) {
         throw new HTTPException(500, {
           message: "Failed to load Telegram integration after update",
@@ -250,7 +250,7 @@ telegramIntegration
 
       const apiKey = c.get("apiKey");
       safePublishIntegrationEvent("integration.updated", {
-        projectId,
+        zoneId,
         userId: c.get("userId"),
         integrationType: "telegram",
         integrationId: integration.id,
@@ -261,7 +261,7 @@ telegramIntegration
     },
   )
   .delete(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "deleteTelegramIntegration",
       tags: ["Telegram"],
@@ -277,15 +277,15 @@ telegramIntegration
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
-    workspaceAccess.fromProject("projectId"),
+    validator("param", v.object({ zoneId: v.string() })),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
 
       const existing = await db.query.integrationTable.findFirst({
         where: and(
-          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.zoneId, zoneId),
           eq(integrationTable.type, "telegram"),
         ),
       });
@@ -302,7 +302,7 @@ telegramIntegration
 
       const apiKey = c.get("apiKey");
       safePublishIntegrationEvent("integration.deleted", {
-        projectId,
+        zoneId,
         userId: c.get("userId"),
         integrationType: "telegram",
         integrationId: existing.id,

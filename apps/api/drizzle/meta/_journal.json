@@ -225,6 +225,90 @@
 			"when": 1778335540111,
 			"tag": "0031_strong_colleen_wing",
 			"breakpoints": true
+		},
+		{
+			"idx": 32,
+			"version": "7",
+			"when": 1780053747580,
+			"tag": "0032_groovy_ser_duncan",
+			"breakpoints": true
+		},
+		{
+			"idx": 33,
+			"version": "7",
+			"when": 1780277420907,
+			"tag": "0033_lazy_iron_monger",
+			"breakpoints": true
+		},
+		{
+			"idx": 34,
+			"version": "7",
+			"when": 1780284111693,
+			"tag": "0034_jittery_blonde_phantom",
+			"breakpoints": true
+		},
+		{
+			"idx": 35,
+			"version": "7",
+			"when": 1780426753633,
+			"tag": "0035_exotic_zuras",
+			"breakpoints": true
+		},
+		{
+			"idx": 36,
+			"version": "7",
+			"when": 1780430208749,
+			"tag": "0036_strong_the_liberteens",
+			"breakpoints": true
+		},
+		{
+			"idx": 37,
+			"version": "7",
+			"when": 1780436370238,
+			"tag": "0037_short_storm",
+			"breakpoints": true
+		},
+		{
+			"idx": 38,
+			"version": "7",
+			"when": 1780505797308,
+			"tag": "0038_rare_ricochet",
+			"breakpoints": true
+		},
+		{
+			"idx": 39,
+			"version": "7",
+			"when": 1780505822762,
+			"tag": "0039_empty_shaman",
+			"breakpoints": true
+		},
+		{
+			"idx": 40,
+			"version": "7",
+			"when": 1780600000000,
+			"tag": "0040_remove_issue_type",
+			"breakpoints": true
+		},
+		{
+			"idx": 41,
+			"version": "7",
+			"when": 1780558888558,
+			"tag": "0041_orange_thena",
+			"breakpoints": true
+		},
+		{
+			"idx": 42,
+			"version": "7",
+			"when": 1780572685577,
+			"tag": "0042_minor_tarot",
+			"breakpoints": true
+		},
+		{
+			"idx": 43,
+			"version": "7",
+			"when": 1780599897865,
+			"tag": "0043_icy_vin_gonzales",
+			"breakpoints": true
 		}
 	]
 }

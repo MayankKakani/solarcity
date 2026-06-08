@@ -6,9 +6,9 @@ import PageTitle from "@/components/page-title";
 import { CopyUrlButton } from "@/components/public-project/copy-url-button";
 import { ErrorView } from "@/components/public-project/error-view";
 import { PublicKanbanView } from "@/components/public-project/kanban-view";
-import { KaneoBranding } from "@/components/public-project/kaneo-branding";
 import { PublicListView } from "@/components/public-project/list-view";
 import { LoadingSkeleton } from "@/components/public-project/loading-skeleton";
+import { KaneoBranding } from "@/components/public-project/solarplan-branding";
 import { PublicTaskDetailModal } from "@/components/public-project/task-detail-modal";
 import { ThemeToggle } from "@/components/public-project/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,12 @@ export const Route = createFileRoute("/public-project/$projectId")({
 
 type ViewMode = "kanban" | "list";
 
-const VIEW_MODE_STORAGE_KEY = "kaneo-public-view-mode";
+const VIEW_MODE_STORAGE_KEY = "solarplan-public-view-mode";
 
 function RouteComponent() {
   const { t } = useTranslation();
-  const { projectId } = Route.useParams();
-  const { data: project, isLoading, error } = useGetPublicProject(projectId);
+  const { zoneId } = Route.useParams();
+  const { data: project, isLoading, error } = useGetPublicProject(zoneId);
 
   const [viewMode, setViewMode] = useState<ViewMode>(() => {
     if (typeof window !== "undefined") {

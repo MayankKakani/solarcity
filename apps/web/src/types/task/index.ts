@@ -15,6 +15,12 @@ type TaskExternalLink = {
   metadata: Record<string, unknown> | null;
 };
 
+type TaskAssignee = {
+  id: string;
+  name: string | null;
+  role: string;
+};
+
 type Task = {
   id: string;
   title: string;
@@ -27,12 +33,13 @@ type Task = {
   position: number | null;
   createdAt: string;
   updatedAt?: string;
-  userId: string | null;
-  assigneeId: string | null;
-  assigneeName: string | null;
-  assigneeImage?: string | null;
-  projectId: string;
+  assignees?: TaskAssignee[];
+  zoneId: string;
   columnId?: string | null;
+  siteName: string;
+  siteId: string;
+  siteLocation: string;
+  siteAddress: string;
   labels?: TaskLabel[];
   externalLinks?: TaskExternalLink[];
 };

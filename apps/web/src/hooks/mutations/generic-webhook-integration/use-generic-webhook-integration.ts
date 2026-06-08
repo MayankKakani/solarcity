@@ -12,15 +12,15 @@ export function useCreateGenericWebhookIntegration() {
 
   return useMutation({
     mutationFn: ({
-      projectId,
+      zoneId,
       data,
     }: {
-      projectId: string;
+      zoneId: string;
       data: CreateGenericWebhookIntegrationRequest;
-    }) => createGenericWebhookIntegration(projectId, data),
-    onSuccess: (_, { projectId }) => {
+    }) => createGenericWebhookIntegration(zoneId, data),
+    onSuccess: (_, { zoneId }) => {
       void queryClient.invalidateQueries({
-        queryKey: ["generic-webhook-integration", projectId],
+        queryKey: ["generic-webhook-integration", zoneId],
       });
     },
   });
@@ -31,15 +31,15 @@ export function useUpdateGenericWebhookIntegration() {
 
   return useMutation({
     mutationFn: ({
-      projectId,
+      zoneId,
       json,
     }: {
-      projectId: string;
+      zoneId: string;
       json: UpdateGenericWebhookIntegrationRequest;
-    }) => updateGenericWebhookIntegration(projectId, json),
-    onSuccess: (_, { projectId }) => {
+    }) => updateGenericWebhookIntegration(zoneId, json),
+    onSuccess: (_, { zoneId }) => {
       void queryClient.invalidateQueries({
-        queryKey: ["generic-webhook-integration", projectId],
+        queryKey: ["generic-webhook-integration", zoneId],
       });
     },
   });
@@ -49,11 +49,10 @@ export function useDeleteGenericWebhookIntegration() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (projectId: string) =>
-      deleteGenericWebhookIntegration(projectId),
-    onSuccess: (_, projectId) => {
+    mutationFn: (zoneId: string) => deleteGenericWebhookIntegration(zoneId),
+    onSuccess: (_, zoneId) => {
       void queryClient.invalidateQueries({
-        queryKey: ["generic-webhook-integration", projectId],
+        queryKey: ["generic-webhook-integration", zoneId],
       });
     },
   });

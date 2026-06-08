@@ -1,25 +1,25 @@
-{{- $corsOrigins := .Values.kaneo.env.corsOrigins -}}
+{{- $corsOrigins := .Values.solarplan.env.corsOrigins -}}
 {{- $corsOriginsValue := "" -}}
 {{- if kindIs "slice" $corsOrigins -}}
   {{- $corsOriginsValue = join "," $corsOrigins -}}
 {{- else if $corsOrigins -}}
   {{- $corsOriginsValue = $corsOrigins -}}
-{{- else if .Values.kaneo.env.clientUrl -}}
-  {{- $corsOriginsValue = .Values.kaneo.env.clientUrl -}}
+{{- else if .Values.solarplan.env.clientUrl -}}
+  {{- $corsOriginsValue = .Values.solarplan.env.clientUrl -}}
 {{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "kaneo.fullname" . }}
+  name: {{ include "solarplan.fullname" . }}
   labels:
-    {{- include "kaneo.labels" . | nindent 4 }}
+    {{- include "solarplan.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "kaneo.selectorLabels" . | nindent 6 }}
+      {{- include "solarplan.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -27,61 +27,61 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "kaneo.selectorLabels" . | nindent 8 }}
+        {{- include "solarplan.selectorLabels" . | nindent 8 }}
     spec:
-      serviceAccountName: {{ include "kaneo.serviceAccountName" . }}
+      serviceAccountName: {{ include "solarplan.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
-        - name: kaneo
+        - name: solarplan
           securityContext:
-            {{- toYaml .Values.kaneo.securityContext | nindent 12 }}
-          image: "{{ .Values.kaneo.image.repository }}:{{ .Values.kaneo.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.kaneo.image.pullPolicy }}
+            {{- toYaml .Values.solarplan.securityContext | nindent 12 }}
+          image: "{{ .Values.solarplan.image.repository }}:{{ .Values.solarplan.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.solarplan.image.pullPolicy }}
           ports:
-            - name: kaneo
-              containerPort: {{ .Values.kaneo.service.targetPort }}
+            - name: solarplan
+              containerPort: {{ .Values.solarplan.service.targetPort }}
               protocol: TCP
           env:
-            - name: KANEO_CLIENT_URL
-              value: "{{ .Values.kaneo.env.clientUrl }}"
+            - name: SOLARPLAN_CLIENT_URL
+              value: "{{ .Values.solarplan.env.clientUrl }}"
             - name: CORS_ORIGINS
               value: {{ $corsOriginsValue | quote }}
             - name: AUTH_SECRET
-              {{- if .Values.kaneo.env.existingSecret.enabled }}
+              {{- if .Values.solarplan.env.existingSecret.enabled }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.kaneo.env.existingSecret.name }}
-                  key: {{ .Values.kaneo.env.existingSecret.key }}
+                  name: {{ .Values.solarplan.env.existingSecret.name }}
+                  key: {{ .Values.solarplan.env.existingSecret.key }}
               {{- else }}
-              value: "{{ .Values.kaneo.env.authSecret }}"
+              value: "{{ .Values.solarplan.env.authSecret }}"
               {{- end }}
             - name: DATABASE_URL
-              {{- if .Values.kaneo.env.database.external.enabled }}
-              {{- if .Values.kaneo.env.database.external.existingSecret.enabled }}
+              {{- if .Values.solarplan.env.database.external.enabled }}
+              {{- if .Values.solarplan.env.database.external.existingSecret.enabled }}
               valueFrom:
                 secretKeyRef:
-                  name: {{ .Values.kaneo.env.database.external.existingSecret.name }}
-                  key: {{ .Values.kaneo.env.database.external.existingSecret.passwordKey }}
+                  name: {{ .Values.solarplan.env.database.external.existingSecret.name }}
+                  key: {{ .Values.solarplan.env.database.external.existingSecret.passwordKey }}
               {{- else }}
-              value: "postgresql://{{ .Values.kaneo.env.database.external.username }}:{{ .Values.kaneo.env.database.external.password }}@{{ .Values.kaneo.env.database.external.host }}:{{ .Values.kaneo.env.database.external.port }}/{{ .Values.kaneo.env.database.external.database }}"
+              value: "postgresql://{{ .Values.solarplan.env.database.external.username }}:{{ .Values.solarplan.env.database.external.password }}@{{ .Values.solarplan.env.database.external.host }}:{{ .Values.solarplan.env.database.external.port }}/{{ .Values.solarplan.env.database.external.database }}"
               {{- end }}
               {{- else }}
-              value: "postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ include "kaneo.fullname" . }}-postgresql:{{ .Values.postgresql.service.port }}/{{ .Values.postgresql.auth.database }}"
+              value: "postgresql://{{ .Values.postgresql.auth.username }}:{{ .Values.postgresql.auth.password }}@{{ include "solarplan.fullname" . }}-postgresql:{{ .Values.postgresql.service.port }}/{{ .Values.postgresql.auth.database }}"
               {{- end }}
             - name: DISABLE_REGISTRATION
-              value: {{ .Values.kaneo.env.disableRegistration | quote }}
+              value: {{ .Values.solarplan.env.disableRegistration | quote }}
             - name: DISABLE_PASSWORD_REGISTRATION
-              value: {{ .Values.kaneo.env.disablePasswordRegistration | quote }}
-            {{- with .Values.kaneo.extraEnv }}
+              value: {{ .Values.solarplan.env.disablePasswordRegistration | quote }}
+            {{- with .Values.solarplan.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
           livenessProbe:
-            {{- toYaml .Values.kaneo.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.solarplan.livenessProbe | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.kaneo.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.solarplan.readinessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.kaneo.resources | nindent 12 }}
+            {{- toYaml .Values.solarplan.resources | nindent 12 }}
 
       {{- with .Values.nodeSelector }}
       nodeSelector:

@@ -1,8 +1,8 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function getColumns(projectId: string) {
-  const response = await client.column[":projectId"].$get({
-    param: { projectId },
+async function getColumns(zoneId: string) {
+  const response = await client.column[":zoneId"].$get({
+    param: { zoneId },
   });
 
   if (!response.ok) {

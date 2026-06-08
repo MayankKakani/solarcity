@@ -86,7 +86,7 @@ export async function handleGiteaIssueEdited(payload: IssueEditedPayload) {
       if (lastTitleSync) {
         if (
           lastTitleSync.value === issue.title &&
-          lastTitleSync.source === "kaneo"
+          lastTitleSync.source === "solarplan"
         ) {
           shouldUpdateTitle = false;
         }
@@ -117,7 +117,7 @@ export async function handleGiteaIssueEdited(payload: IssueEditedPayload) {
       if (lastDescSync) {
         if (
           lastDescSync.value === formattedDescription &&
-          lastDescSync.source === "kaneo"
+          lastDescSync.source === "solarplan"
         ) {
           shouldUpdateDescription = false;
         }

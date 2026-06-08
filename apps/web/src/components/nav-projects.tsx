@@ -62,10 +62,9 @@ export function NavProjects() {
   const canCreate = canCreateProjects();
   const canDeleteProject = canDeleteProjects();
   const navigate = useNavigate();
-  const { workspaceId: currentWorkspaceId, projectId: currentProjectId } =
-    useParams({
-      strict: false,
-    });
+  const { workspaceId: currentWorkspaceId, zoneId: currentzoneId } = useParams({
+    strict: false,
+  });
 
   const [isCreateProjectModalOpen, setIsCreateProjectModalOpen] =
     useState(false);
@@ -75,18 +74,16 @@ export function NavProjects() {
     null,
   );
 
-  const isCurrentProject = (projectId: string) => {
-    return (
-      currentProjectId === projectId && currentWorkspaceId === workspace?.id
-    );
+  const isCurrentProject = (zoneId: string) => {
+    return currentzoneId === zoneId && currentWorkspaceId === workspace?.id;
   };
 
   const handleProjectClick = (project: ProjectWithTasks) => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
+      to: "/dashboard/workspace/$workspaceId/zone/$zoneId/board",
       params: {
         workspaceId: workspace?.id || "",
-        projectId: project.id,
+        zoneId: project.id,
       },
     });
   };
@@ -169,8 +166,8 @@ export function NavProjects() {
                             className="h-7 items-start cursor-pointer text-sm"
                             onClick={() => {
                               navigate({
-                                to: "/dashboard/settings/projects/$projectId/general",
-                                params: { projectId: project.id },
+                                to: "/dashboard/settings/zones/$zoneId/general",
+                                params: { zoneId: project.id },
                               });
                             }}
                           >

@@ -1,16 +1,8 @@
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { labelTable, projectTable, taskTable } from "../../database/schema";
+import { labelTable, taskTable, zoneTable } from "../../database/schema";
 import { publishEvent } from "../../events";
-import {
-  removeLabelFromGitea,
-  syncLabelToGitea,
-} from "../../plugins/gitea/utils/sync-label-to-gitea";
-import {
-  removeLabelFromGitHub,
-  syncLabelToGitHub,
-} from "../../plugins/github/utils/sync-label-to-github";
 
 async function assignLabelToTask(id: string, taskId: string, userId: string) {
   const label = await db.query.labelTable.findFirst({
@@ -26,11 +18,11 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
   const [task] = await db
     .select({
       id: taskTable.id,
-      projectId: taskTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      zoneId: taskTable.zoneId,
+      workspaceId: zoneTable.workspaceId,
     })
     .from(taskTable)
-    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+    .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
     .where(eq(taskTable.id, taskId))
     .limit(1);
 
@@ -58,30 +50,30 @@ async function assignLabelToTask(id: string, taskId: string, userId: string) {
     });
   }
 
-  if (label.taskId && label.taskId !== taskId) {
-    removeLabelFromGitHub(label.taskId, label.name).catch((error) => {
-      console.error("Failed to remove label from GitHub:", error);
-    });
-    removeLabelFromGitea(label.taskId, label.name).catch((error) => {
-      console.error("Failed to remove label from Gitea:", error);
-    });
-  }
+  // if (label.taskId && label.taskId !== taskId) {
+  //   removeLabelFromGitHub(label.taskId, label.name).catch((error) => {
+  //     console.error("Failed to remove label from GitHub:", error);
+  //   });
+  //   removeLabelFromGitea(label.taskId, label.name).catch((error) => {
+  //     console.error("Failed to remove label from Gitea:", error);
+  //   });
+  // }
 
-  syncLabelToGitHub(taskId, updatedLabel.name, updatedLabel.color).catch(
-    (error) => {
-      console.error("Failed to sync label to GitHub:", error);
-    },
-  );
-  syncLabelToGitea(taskId, updatedLabel.name, updatedLabel.color).catch(
-    (error) => {
-      console.error("Failed to sync label to Gitea:", error);
-    },
-  );
+  // syncLabelToGitHub(taskId, updatedLabel.name, updatedLabel.color).catch(
+  //   (error) => {
+  //     console.error("Failed to sync label to GitHub:", error);
+  //   },
+  // );
+  // syncLabelToGitea(taskId, updatedLabel.name, updatedLabel.color).catch(
+  //   (error) => {
+  //     console.error("Failed to sync label to Gitea:", error);
+  //   },
+  // );
 
   await publishEvent("task.label_assigned", {
     label: updatedLabel,
     task,
-    projectId: task.projectId,
+    zoneId: task.zoneId,
     taskId: task.id,
     userId,
     type: "label_assigned",

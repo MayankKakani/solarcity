@@ -46,7 +46,7 @@ export async function initializeWebSocketAdapter() {
   try {
     await nextAdapter.subscribe((msg: BroadcastMessage) => {
       deliverToLocalConnections(
-        msg.projectId,
+        msg.zoneId,
         msg.message,
         msg.excludeInitiatorId,
       );
@@ -72,9 +72,9 @@ export async function shutdownWebSocketAdapter() {
   const currentAdapter = adapter;
   if (currentAdapter) {
     await Promise.allSettled(
-      pendingQueues.flatMap(([projectId, queue]) =>
+      pendingQueues.flatMap(([zoneId, queue]) =>
         [...queue.values()].map(({ message, excludeInitiatorId }) =>
-          currentAdapter.publish({ projectId, message, excludeInitiatorId }),
+          currentAdapter.publish({ zoneId, message, excludeInitiatorId }),
         ),
       ),
     );
@@ -85,11 +85,11 @@ export async function shutdownWebSocketAdapter() {
 }
 
 function deliverToLocalConnections(
-  projectId: string,
+  zoneId: string,
   message: ProjectBroadcastMessage,
   excludeInitiatorId?: string,
 ) {
-  const connections = projectConnections.get(projectId);
+  const connections = projectConnections.get(zoneId);
   if (!connections) return;
 
   const payload = JSON.stringify(message);
@@ -102,36 +102,36 @@ function deliverToLocalConnections(
     }
   }
   if (connections.size === 0) {
-    projectConnections.delete(projectId);
+    projectConnections.delete(zoneId);
   }
 }
 
 export function addConnection(
-  projectId: string,
+  zoneId: string,
   ws: WSContext,
   userId: string,
   initiatorId: string,
 ) {
-  if (!projectConnections.has(projectId)) {
-    projectConnections.set(projectId, new Set());
+  if (!projectConnections.has(zoneId)) {
+    projectConnections.set(zoneId, new Set());
   }
   const conn: ProjectConnection = { ws, userId, initiatorId };
-  projectConnections.get(projectId)?.add(conn);
+  projectConnections.get(zoneId)?.add(conn);
   return conn;
 }
 
-export function removeConnection(projectId: string, conn: ProjectConnection) {
-  const connections = projectConnections.get(projectId);
+export function removeConnection(zoneId: string, conn: ProjectConnection) {
+  const connections = projectConnections.get(zoneId);
   if (connections) {
     connections.delete(conn);
     if (connections.size === 0) {
-      projectConnections.delete(projectId);
+      projectConnections.delete(zoneId);
     }
   }
 }
 
 export function broadcastToProject(
-  projectId: string,
+  zoneId: string,
   message: ProjectBroadcastMessage,
   excludeInitiatorId?: string,
 ) {
@@ -140,23 +140,23 @@ export function broadcastToProject(
     return;
   }
 
-  if (!projectBroadcastQueues.has(projectId)) {
-    projectBroadcastQueues.set(projectId, new Map());
+  if (!projectBroadcastQueues.has(zoneId)) {
+    projectBroadcastQueues.set(zoneId, new Map());
   }
 
   const messageKey = `${message.type}:${message.taskId ?? ""}:${message.sourceTaskId ?? ""}:${message.targetTaskId ?? ""}`;
   projectBroadcastQueues
-    .get(projectId)
+    .get(zoneId)
     ?.set(messageKey, { message, excludeInitiatorId });
 
-  if (projectBroadcastTimeouts.has(projectId)) {
+  if (projectBroadcastTimeouts.has(zoneId)) {
     return;
   }
 
   const timeout = setTimeout(() => {
-    projectBroadcastTimeouts.delete(projectId);
-    const queue = projectBroadcastQueues.get(projectId);
-    projectBroadcastQueues.delete(projectId);
+    projectBroadcastTimeouts.delete(zoneId);
+    const queue = projectBroadcastQueues.get(zoneId);
+    projectBroadcastQueues.delete(zoneId);
 
     if (!queue || !adapter) return;
 
@@ -164,25 +164,25 @@ export function broadcastToProject(
     for (const { message: msg, excludeInitiatorId: exId } of queue.values()) {
       void adapter
         .publish({
-          projectId,
+          zoneId,
           message: msg,
           excludeInitiatorId: exId,
         })
         .catch((err) => {
           console.error(
-            `Failed to publish broadcast for project ${projectId}:`,
+            `Failed to publish broadcast for project ${zoneId}:`,
             err,
           );
         });
     }
   }, 100);
 
-  projectBroadcastTimeouts.set(projectId, timeout);
+  projectBroadcastTimeouts.set(zoneId, timeout);
 }
 
 type TaskEvent = {
   id: string | undefined;
-  projectId: string;
+  zoneId: string;
   userId: string;
   initiatorId?: string;
   taskId: string;
@@ -219,40 +219,40 @@ subscribeToEvent<{
   initiatorId?: string;
   type: string;
   content: string;
-  fromProjectId: string;
+  fromzoneId: string;
   fromProjectName: string;
-  toProjectId: string;
+  tozoneId: string;
   toProjectName: string;
   oldStatus: string;
   newStatus: string;
 }>("task.moved", async (data) => {
-  const { fromProjectId, initiatorId, toProjectId, taskId } = data;
+  const { fromzoneId, initiatorId, tozoneId, taskId } = data;
 
   broadcastToProject(
-    toProjectId,
-    { type: "TASK_MOVED", projectId: toProjectId, taskId },
+    tozoneId,
+    { type: "TASK_MOVED", zoneId: tozoneId, taskId },
     initiatorId,
   );
   broadcastToProject(
-    fromProjectId,
-    { type: "TASK_MOVED", projectId: fromProjectId, taskId },
+    fromzoneId,
+    { type: "TASK_MOVED", zoneId: fromzoneId, taskId },
     initiatorId,
   );
 });
 
 subscribeToEvent<{
-  projectId: string;
+  zoneId: string;
   userId: string;
   initiatorId?: string;
 }>("task-relation.refresh", async (data) => {
-  const { projectId, initiatorId } = data;
-  if (!projectId) return;
+  const { zoneId, initiatorId } = data;
+  if (!zoneId) return;
 
   broadcastToProject(
-    projectId,
+    zoneId,
     {
       type: "TASK_RELATION_UPDATED",
-      projectId,
+      zoneId,
       taskId: "",
       sourceTaskId: undefined,
       targetTaskId: undefined,
@@ -263,10 +263,10 @@ subscribeToEvent<{
 
 for (const eventName of taskUpdateEvents) {
   subscribeToEvent<TaskEvent>(eventName, async (data) => {
-    const { projectId, initiatorId } = data;
+    const { zoneId, initiatorId } = data;
     const taskId = data.taskId;
 
-    if (!projectId || !taskId) return;
+    if (!zoneId || !taskId) return;
     let type: string;
     switch (eventName) {
       case "task.created":
@@ -296,10 +296,10 @@ for (const eventName of taskUpdateEvents) {
     }
 
     broadcastToProject(
-      projectId,
+      zoneId,
       {
         type,
-        projectId,
+        zoneId,
         taskId: taskId,
         sourceTaskId: data.sourceTaskId,
         targetTaskId: data.targetTaskId,

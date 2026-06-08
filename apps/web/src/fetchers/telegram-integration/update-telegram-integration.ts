@@ -18,11 +18,11 @@ export type UpdateTelegramIntegrationRequest = {
 };
 
 async function updateTelegramIntegration(
-  projectId: string,
+  zoneId: string,
   json: UpdateTelegramIntegrationRequest,
 ) {
   const response = await fetch(
-    getApiUrl(`/telegram-integration/project/${projectId}`),
+    getApiUrl(`/telegram-integration/project/${zoneId}`),
     {
       method: "PATCH",
       credentials: "include",

@@ -1,8 +1,8 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function getWorkflowRules(projectId: string) {
-  const response = await client["workflow-rule"][":projectId"].$get({
-    param: { projectId },
+async function getWorkflowRules(zoneId: string) {
+  const response = await client["workflow-rule"][":zoneId"].$get({
+    param: { zoneId },
   });
 
   if (!response.ok) {

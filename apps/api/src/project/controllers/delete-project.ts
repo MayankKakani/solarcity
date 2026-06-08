@@ -1,15 +1,15 @@
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { projectTable } from "../../database/schema";
+import { zoneTable } from "../../database/schema";
 import getProject from "./get-project";
 
-async function deleteProject(id: string, workspaceId: string) {
-  const existingProject = await getProject(id, workspaceId);
+async function deleteProject(id: string, workspaceId: string, userId: string) {
+  const existingProject = await getProject(id, workspaceId, userId);
 
   const [deletedProject] = await db
-    .delete(projectTable)
-    .where(eq(projectTable.id, id))
+    .delete(zoneTable)
+    .where(eq(zoneTable.id, id))
     .returning();
 
   if (!deletedProject) {

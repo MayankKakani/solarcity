@@ -21,7 +21,7 @@ async function deleteTaskRelation(id: string, userId: string) {
   }
 
   const [task] = await db
-    .select({ projectId: taskTable.projectId })
+    .select({ zoneId: taskTable.zoneId })
     .from(taskTable)
     .where(eq(taskTable.id, rel.sourceTaskId))
     .limit(1);
@@ -43,7 +43,7 @@ async function deleteTaskRelation(id: string, userId: string) {
       taskId: rel.sourceTaskId,
       sourceTaskId: rel.sourceTaskId,
       targetTaskId: rel.targetTaskId,
-      projectId: task.projectId,
+      zoneId: task.zoneId,
       userId,
     });
   }

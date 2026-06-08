@@ -18,7 +18,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { UserAvatar } from "@/components/user-avatar";
+// import { UserAvatar } from "@/components/user-avatar";
 import { shortcuts } from "@/constants/shortcuts";
 import useActiveWorkspace from "@/hooks/queries/workspace/use-active-workspace";
 import useGetWorkspaces from "@/hooks/queries/workspace/use-get-workspaces";
@@ -183,9 +183,9 @@ export function WorkspaceSwitcher() {
           </SidebarMenuItem>
         </SidebarMenu>
 
-        <div className="h-7 w-7 shrink-0">
+        {/* <div className="h-7 w-7 shrink-0">
           <UserAvatar />
-        </div>
+        </div> */}
       </div>
 
       <CreateWorkspaceModal

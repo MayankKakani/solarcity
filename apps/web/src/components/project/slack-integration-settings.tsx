@@ -79,7 +79,7 @@ function isValidSlackWebhookUrl(value: string): boolean {
   );
 }
 
-export function SlackIntegrationSettings({ projectId }: { projectId: string }) {
+export function SlackIntegrationSettings({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
   const schema = React.useMemo(
     () =>
@@ -96,7 +96,7 @@ export function SlackIntegrationSettings({ projectId }: { projectId: string }) {
     [],
   );
 
-  const { data: integration, isLoading } = useGetSlackIntegration(projectId);
+  const { data: integration, isLoading } = useGetSlackIntegration(zoneId);
   const { mutateAsync: createIntegration, isPending: isCreating } =
     useCreateSlackIntegration();
   const { mutateAsync: updateIntegration, isPending: isUpdating } =
@@ -133,7 +133,7 @@ export function SlackIntegrationSettings({ projectId }: { projectId: string }) {
   });
   const { reset } = form;
   const lastResetKeyRef = React.useRef<string | null>(null);
-  const resetKey = `${projectId}:${integration?.id ?? "none"}`;
+  const resetKey = `${zoneId}:${integration?.id ?? "none"}`;
 
   React.useEffect(() => {
     if (form.formState.isDirty && lastResetKeyRef.current === resetKey) {
@@ -168,7 +168,7 @@ export function SlackIntegrationSettings({ projectId }: { projectId: string }) {
         }
 
         await createIntegration({
-          projectId,
+          zoneId,
           data: {
             webhookUrl: trimmedWebhookUrl,
             channelName: values.channelName || undefined,
@@ -184,7 +184,7 @@ export function SlackIntegrationSettings({ projectId }: { projectId: string }) {
         }
 
         await updateIntegration({
-          projectId,
+          zoneId,
           json: {
             webhookUrl: trimmedWebhookUrl || undefined,
             channelName: values.channelName || undefined,
@@ -210,7 +210,7 @@ export function SlackIntegrationSettings({ projectId }: { projectId: string }) {
   const handleToggleActive = async (checked: boolean) => {
     try {
       await updateIntegration({
-        projectId,
+        zoneId,
         json: { isActive: checked },
       });
       toast.success(
@@ -229,7 +229,7 @@ export function SlackIntegrationSettings({ projectId }: { projectId: string }) {
 
   const handleDelete = async () => {
     try {
-      await deleteIntegration(projectId);
+      await deleteIntegration(zoneId);
       form.reset({
         webhookUrl: "",
         channelName: "",

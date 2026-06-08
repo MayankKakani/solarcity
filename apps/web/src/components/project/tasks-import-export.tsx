@@ -80,7 +80,7 @@ export function TasksImportExport({ project }: TasksImportExportProps) {
       toast.loading(t("settings:tasksImportExport.importing"));
 
       const result = await importTasksMutation({
-        projectId: project.id,
+        zoneId: project.id,
         tasks: jsonData.tasks,
       });
 

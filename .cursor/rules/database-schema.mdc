@@ -5,7 +5,7 @@ alwaysApply: false
 ---
 # Database Schema Guidelines
 
-Kaneo uses Drizzle ORM with PostgreSQL. This document outlines schema conventions and best practices.
+Solarplan uses Drizzle ORM with PostgreSQL. This document outlines schema conventions and best practices.
 
 ## Schema Definition
 
@@ -23,7 +23,7 @@ export const taskTable = pgTable(
       .primaryKey(),
     projectId: text("project_id")
       .notNull()
-      .references(() => projectTable.id, {
+      .references(() => zoneTable.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
@@ -93,7 +93,7 @@ export const exampleTable = pgTable("example", {
   // Foreign keys with cascade
   projectId: text("project_id")
     .notNull()
-    .references(() => projectTable.id, {
+    .references(() => zoneTable.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
@@ -190,12 +190,12 @@ Define relations in `apps/api/src/database/relations.ts`:
 ```typescript
 import { relations } from "drizzle-orm";
 import { taskTable } from "./schema";
-import { projectTable } from "./schema";
+import { zoneTable } from "./schema";
 
 export const taskTableRelations = relations(taskTable, ({ one, many }) => ({
-  project: one(projectTable, {
+  project: one(zoneTable, {
     fields: [taskTable.projectId],
-    references: [projectTable.id],
+    references: [zoneTable.id],
   }),
   labels: many(labelTable),
 }));
@@ -250,7 +250,7 @@ createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
 After schema changes:
 
 ```bash
-pnpm --filter @kaneo/api db:generate
+pnpm --filter @solarplan/api db:generate
 ```
 
 This creates migration files in `apps/api/drizzle/`.
@@ -279,10 +279,10 @@ Export all schemas and relations from `apps/api/src/database/index.ts`:
 ```typescript
 export const schema = {
   taskTable,
-  projectTable,
+  zoneTable,
   // ... all tables
   taskTableRelations,
-  projectTableRelations,
+  zoneTableRelations,
   // ... all relations
 };
 

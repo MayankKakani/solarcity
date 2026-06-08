@@ -27,7 +27,7 @@ async function createComment(taskId: string, userId: string, content: string) {
     .where(eq(userTable.id, userId));
 
   const [task] = await db
-    .select({ projectId: taskTable.projectId })
+    .select({ zoneId: taskTable.zoneId })
     .from(taskTable)
     .where(eq(taskTable.id, taskId));
 
@@ -35,7 +35,7 @@ async function createComment(taskId: string, userId: string, content: string) {
     await publishEvent("task.comment_created", {
       ...activity,
       comment: `"${user?.name}" commented: ${content}`,
-      projectId: task.projectId,
+      zoneId: task.zoneId,
     });
   }
 

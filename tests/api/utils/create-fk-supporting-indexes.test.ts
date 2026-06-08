@@ -31,7 +31,7 @@ describe("0029_fk_supporting_indexes migration", () => {
       "task_columnId_idx",
       "time_entry_taskId_idx",
       "time_entry_userId_idx",
-      "user_notification_workspace_project_workspaceId_projectId_idx",
+      "user_notification_workspace_project_workspaceId_zoneId_idx",
       "unwp_workspaceId_workspaceRuleId_idx",
       "workflow_rule_columnId_idx",
     ];

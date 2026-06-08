@@ -5,7 +5,7 @@ import { HTTPException } from "hono/http-exception";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
 import db from "../database";
-import { integrationTable, projectTable } from "../database/schema";
+import { integrationTable, zoneTable } from "../database/schema";
 import {
   type GitHubConfig,
   validateGitHubConfig,
@@ -136,7 +136,7 @@ const githubIntegration = new Hono<{
     },
   )
   .get(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "getGitHubIntegration",
       tags: ["GitHub"],
@@ -150,16 +150,16 @@ const githubIntegration = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
-    workspaceAccess.fromProject("projectId"),
+    validator("param", v.object({ zoneId: v.string() })),
+    workspaceAccess.fromProject("zoneId"),
     async (c) => {
-      const { projectId } = c.req.valid("param");
-      const integration = await getGithubIntegration(projectId);
+      const { zoneId } = c.req.valid("param");
+      const integration = await getGithubIntegration(zoneId);
       return c.json(integration);
     },
   )
   .post(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "createGitHubIntegration",
       tags: ["GitHub"],
@@ -173,7 +173,7 @@ const githubIntegration = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator(
       "json",
       v.object({
@@ -181,14 +181,14 @@ const githubIntegration = new Hono<{
         repositoryName: v.pipe(v.string(), v.minLength(1)),
       }),
     ),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const { repositoryOwner, repositoryName } = c.req.valid("json");
 
       const integration = await createGithubIntegration({
-        projectId,
+        zoneId,
         repositoryOwner,
         repositoryName,
       });
@@ -197,7 +197,7 @@ const githubIntegration = new Hono<{
     },
   )
   .patch(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "updateGitHubIntegration",
       tags: ["GitHub"],
@@ -219,7 +219,7 @@ const githubIntegration = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator(
       "json",
       v.object({
@@ -227,15 +227,15 @@ const githubIntegration = new Hono<{
         commentTaskLinkOnGitHubIssue: v.optional(v.boolean()),
       }),
     ),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const body = c.req.valid("json");
 
       const row = await db.query.integrationTable.findFirst({
         where: and(
-          eq(integrationTable.projectId, projectId),
+          eq(integrationTable.zoneId, zoneId),
           eq(integrationTable.type, "github"),
         ),
       });
@@ -277,17 +277,17 @@ const githubIntegration = new Hono<{
         })
         .where(
           and(
-            eq(integrationTable.projectId, projectId),
+            eq(integrationTable.zoneId, zoneId),
             eq(integrationTable.type, "github"),
           ),
         );
 
-      const updated = await getGithubIntegration(projectId);
+      const updated = await getGithubIntegration(zoneId);
       return c.json(updated, 200);
     },
   )
   .delete(
-    "/project/:projectId",
+    "/project/:zoneId",
     describeRoute({
       operationId: "deleteGitHubIntegration",
       tags: ["GitHub"],
@@ -301,12 +301,12 @@ const githubIntegration = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
-    workspaceAccess.fromProject("projectId"),
+    validator("param", v.object({ zoneId: v.string() })),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ workspace: ["manage_settings"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
-      const result = await deleteGithubIntegration(projectId);
+      const { zoneId } = c.req.valid("param");
+      const result = await deleteGithubIntegration(zoneId);
       return c.json(result);
     },
   )
@@ -328,7 +328,7 @@ const githubIntegration = new Hono<{
     validator(
       "json",
       v.object({
-        projectId: v.string(),
+        zoneId: v.string(),
       }),
     ),
     async (c, next) => {
@@ -337,12 +337,12 @@ const githubIntegration = new Hono<{
         throw new HTTPException(401, { message: "Unauthorized" });
       }
 
-      const { projectId } = c.req.valid("json");
+      const { zoneId } = c.req.valid("json");
 
       const [project] = await db
-        .select({ workspaceId: projectTable.workspaceId })
-        .from(projectTable)
-        .where(eq(projectTable.id, projectId))
+        .select({ workspaceId: zoneTable.workspaceId })
+        .from(zoneTable)
+        .where(eq(zoneTable.id, zoneId))
         .limit(1);
 
       if (!project) {
@@ -359,8 +359,8 @@ const githubIntegration = new Hono<{
     },
     requireWorkspacePermission({ task: ["create"] }),
     async (c) => {
-      const { projectId } = c.req.valid("json");
-      const result = await importIssues(projectId);
+      const { zoneId } = c.req.valid("json");
+      const result = await importIssues(zoneId);
       return c.json(result);
     },
   );

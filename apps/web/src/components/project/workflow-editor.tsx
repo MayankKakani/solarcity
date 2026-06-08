@@ -20,14 +20,13 @@ const GITHUB_EVENT_TYPES = [
 ] as const;
 
 type WorkflowEditorProps = {
-  projectId: string;
+  zoneId: string;
 };
 
-export default function WorkflowEditor({ projectId }: WorkflowEditorProps) {
+export default function WorkflowEditor({ zoneId }: WorkflowEditorProps) {
   const { t } = useTranslation();
-  const { data: columns, isLoading: columnsLoading } = useGetColumns(projectId);
-  const { data: rules, isLoading: rulesLoading } =
-    useGetWorkflowRules(projectId);
+  const { data: columns, isLoading: columnsLoading } = useGetColumns(zoneId);
+  const { data: rules, isLoading: rulesLoading } = useGetWorkflowRules(zoneId);
   const { mutateAsync: upsertRule } = useUpsertWorkflowRule();
 
   if (columnsLoading || rulesLoading) {
@@ -83,7 +82,7 @@ export default function WorkflowEditor({ projectId }: WorkflowEditorProps) {
                   if (!value) return;
                   try {
                     await upsertRule({
-                      projectId,
+                      zoneId,
                       data: {
                         integrationType,
                         eventType,

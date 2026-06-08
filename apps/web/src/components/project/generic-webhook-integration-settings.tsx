@@ -73,9 +73,9 @@ function EventToggle({
 }
 
 export function GenericWebhookIntegrationSettings({
-  projectId,
+  zoneId,
 }: {
-  projectId: string;
+  zoneId: string;
 }) {
   const { t } = useTranslation();
   const schema = React.useMemo(
@@ -94,7 +94,7 @@ export function GenericWebhookIntegrationSettings({
   );
 
   const { data: integration, isLoading } =
-    useGetGenericWebhookIntegration(projectId);
+    useGetGenericWebhookIntegration(zoneId);
   const { mutateAsync: createIntegration, isPending: isCreating } =
     useCreateGenericWebhookIntegration();
   const { mutateAsync: updateIntegration, isPending: isUpdating } =
@@ -154,7 +154,7 @@ export function GenericWebhookIntegrationSettings({
 
       if (!isConnected) {
         await createIntegration({
-          projectId,
+          zoneId,
           data: {
             webhookUrl: trimmedWebhookUrl,
             secret: trimmedSecret || undefined,
@@ -163,7 +163,7 @@ export function GenericWebhookIntegrationSettings({
         });
       } else {
         await updateIntegration({
-          projectId,
+          zoneId,
           json: {
             webhookUrl: trimmedWebhookUrl,
             secret: trimmedSecret || undefined,
@@ -190,7 +190,7 @@ export function GenericWebhookIntegrationSettings({
   const handleToggleActive = async (checked: boolean) => {
     try {
       await updateIntegration({
-        projectId,
+        zoneId,
         json: { isActive: checked },
       });
       toast.success(
@@ -209,7 +209,7 @@ export function GenericWebhookIntegrationSettings({
 
   const handleDelete = async () => {
     try {
-      await deleteIntegration(projectId);
+      await deleteIntegration(zoneId);
       form.reset({
         webhookUrl: "",
         secret: "",

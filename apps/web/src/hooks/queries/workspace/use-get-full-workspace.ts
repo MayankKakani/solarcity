@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import getUserProjects from "@/fetchers/project/get-user-projects";
 import { authClient } from "@/lib/auth-client";
 
 type GetFullWorkspaceRequest = {
@@ -29,7 +30,26 @@ function useGetFullWorkspace({
         throw new Error(error.message || "Failed to get full workspace");
       }
 
-      return data;
+      if (!data) return null;
+
+      const userIds = data.members.map((m) => m.userId);
+      const projectRows = userIds.length
+        ? await getUserProjects({ userIds, workspaceId: data.id })
+        : [];
+
+      const memberProjectsMap = new Map<string, typeof projectRows>();
+      for (const row of projectRows) {
+        const existing = memberProjectsMap.get(row.userId) ?? [];
+        memberProjectsMap.set(row.userId, [...existing, row]);
+      }
+
+      return {
+        ...data,
+        members: data.members.map((member) => ({
+          ...member,
+          projects: memberProjectsMap.get(member.userId) ?? [],
+        })),
+      };
     },
   });
 }

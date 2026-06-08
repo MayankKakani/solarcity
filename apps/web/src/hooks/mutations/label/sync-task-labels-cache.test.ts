@@ -37,7 +37,7 @@ describe("updateTaskLabelsInProject", () => {
               assigneeId: null,
               assigneeName: null,
               assigneeImage: null,
-              projectId: "project-1",
+              zoneId: "project-1",
               labels: [],
               externalLinks: [],
             },
@@ -57,7 +57,7 @@ describe("updateTaskLabelsInProject", () => {
               assigneeId: null,
               assigneeName: null,
               assigneeImage: null,
-              projectId: "project-1",
+              zoneId: "project-1",
               labels: [],
               externalLinks: [],
             },
@@ -120,7 +120,7 @@ describe("updateTaskLabelsInProject", () => {
           assigneeId: null,
           assigneeName: null,
           assigneeImage: null,
-          projectId: "project-1",
+          zoneId: "project-1",
           labels: [
             {
               id: "label-bug",
@@ -148,7 +148,7 @@ describe("updateTaskLabelsInProject", () => {
           assigneeId: null,
           assigneeName: null,
           assigneeImage: null,
-          projectId: "project-1",
+          zoneId: "project-1",
           labels: [
             {
               id: "label-bug",

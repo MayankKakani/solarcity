@@ -2,10 +2,10 @@ import { and, eq } from "drizzle-orm";
 import db from "../../database";
 import {
   integrationTable,
-  projectTable,
   taskTable,
   userTable,
   workspaceTable,
+  zoneTable,
 } from "../../database/schema";
 import type {
   PluginContext,
@@ -26,7 +26,7 @@ type GenericWebhookTaskData = {
   number: number | null;
   status: string | null;
   priority: string | null;
-  projectId: string;
+  zoneId: string;
   projectName: string;
   workspaceId: string;
   taskUrl: string;
@@ -41,7 +41,7 @@ function isEnabled(
 
 async function getTaskData(
   taskId: string,
-  projectId: string,
+  zoneId: string,
 ): Promise<GenericWebhookTaskData | null> {
   const [taskRow] = await db
     .select({
@@ -50,25 +50,25 @@ async function getTaskData(
       number: taskTable.number,
       status: taskTable.status,
       priority: taskTable.priority,
-      projectId: projectTable.id,
-      projectName: projectTable.name,
+      zoneId: zoneTable.id,
+      projectName: zoneTable.name,
       workspaceId: workspaceTable.id,
     })
     .from(taskTable)
-    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
-    .where(and(eq(taskTable.id, taskId), eq(projectTable.id, projectId)))
+    .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
+    .innerJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
+    .where(and(eq(taskTable.id, taskId), eq(zoneTable.id, zoneId)))
     .limit(1);
 
   if (!taskRow) {
     return null;
   }
 
-  const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
+  const clientUrl = process.env.SOLARPLAN_CLIENT_URL || "http://localhost:5173";
 
   return {
     ...taskRow,
-    taskUrl: `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.projectId}/task/${taskId}`,
+    taskUrl: `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.zoneId}/task/${taskId}`,
   };
 }
 
@@ -96,13 +96,13 @@ async function getActor(userId: string | null): Promise<{
 }
 
 async function persistWebhookHealth(
-  projectId: string,
+  zoneId: string,
   update: (config: GenericWebhookConfig) => GenericWebhookConfig,
 ): Promise<void> {
   try {
     const integration = await db.query.integrationTable.findFirst({
       where: and(
-        eq(integrationTable.projectId, projectId),
+        eq(integrationTable.zoneId, zoneId),
         eq(integrationTable.type, "generic-webhook"),
       ),
     });
@@ -125,7 +125,7 @@ async function persistWebhookHealth(
   } catch (error) {
     console.error("persistWebhookHealth failed", {
       error,
-      projectId,
+      zoneId,
     });
   }
 }
@@ -134,18 +134,18 @@ async function sendEvent(
   config: GenericWebhookConfig,
   eventName: string,
   taskId: string,
-  projectId: string,
+  zoneId: string,
   userId: string | null,
   data: Record<string, unknown>,
 ): Promise<void> {
-  const task = await getTaskData(taskId, projectId);
+  const task = await getTaskData(taskId, zoneId);
   if (!task) return;
 
   const actor = await getActor(userId);
   const attempt = {
     eventName,
     taskId,
-    projectId,
+    zoneId,
     webhookUrl: config.webhookUrl,
   };
 
@@ -159,7 +159,7 @@ async function sendEvent(
           type: "generic-webhook",
         },
         project: {
-          id: task.projectId,
+          id: task.zoneId,
           name: task.projectName,
           workspaceId: task.workspaceId,
         },
@@ -177,7 +177,7 @@ async function sendEvent(
       config.secret,
     );
 
-    void persistWebhookHealth(projectId, (currentConfig) => ({
+    void persistWebhookHealth(zoneId, (currentConfig) => ({
       ...currentConfig,
       health: {
         ...currentConfig.health,
@@ -190,7 +190,7 @@ async function sendEvent(
     const message =
       error instanceof Error ? (error.stack ?? error.message) : String(error);
 
-    void persistWebhookHealth(projectId, (currentConfig) => ({
+    void persistWebhookHealth(zoneId, (currentConfig) => ({
       ...currentConfig,
       health: {
         ...currentConfig.health,
@@ -205,7 +205,7 @@ async function sendEvent(
       error,
       eventName,
       taskId,
-      projectId,
+      zoneId,
       webhookUrl: config.webhookUrl,
     });
   }
@@ -224,7 +224,7 @@ export async function handleTaskCreated(
     config,
     "task.created",
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
     {
       title: event.title,
@@ -249,7 +249,7 @@ export async function handleTaskStatusChanged(
     config,
     "task.status_changed",
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
     {
       title: event.title,
@@ -272,7 +272,7 @@ export async function handleTaskPriorityChanged(
     config,
     "task.priority_changed",
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
     {
       title: event.title,
@@ -295,7 +295,7 @@ export async function handleTaskTitleChanged(
     config,
     "task.title_changed",
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
     {
       oldTitle: event.oldTitle,
@@ -317,7 +317,7 @@ export async function handleTaskDescriptionChanged(
     config,
     "task.description_changed",
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
     {
       oldDescription: event.oldDescription,
@@ -339,7 +339,7 @@ export async function handleTaskCommentCreated(
     config,
     "task.comment_created",
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
     {
       comment: event.comment,

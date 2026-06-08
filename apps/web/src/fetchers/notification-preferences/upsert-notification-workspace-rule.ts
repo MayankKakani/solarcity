@@ -8,7 +8,7 @@ export type UpsertNotificationWorkspaceRuleRequest = {
   gotifyEnabled: boolean;
   webhookEnabled: boolean;
   projectMode: "all" | "selected";
-  selectedProjectIds?: string[];
+  selectedzoneIds?: string[];
 };
 
 async function upsertNotificationWorkspaceRule(

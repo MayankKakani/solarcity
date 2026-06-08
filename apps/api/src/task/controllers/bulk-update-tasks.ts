@@ -4,9 +4,9 @@ import db from "../../database";
 import {
   columnTable,
   labelTable,
-  projectTable,
   taskTable,
   workspaceUserTable,
+  zoneTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import {
@@ -37,11 +37,11 @@ async function bulkUpdateTasks({
   const tasks = await db
     .select({
       id: taskTable.id,
-      projectId: taskTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      zoneId: taskTable.zoneId,
+      workspaceId: zoneTable.workspaceId,
     })
     .from(taskTable)
-    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+    .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
     .where(inArray(taskTable.id, taskIds));
 
   if (tasks.length === 0) {
@@ -91,20 +91,20 @@ async function bulkUpdateTasks({
       if (!value) {
         throw new HTTPException(400, { message: "Status value is required" });
       }
-      const projectIds = [...new Set(tasks.map((t) => t.projectId))];
+      const zoneIds = [...new Set(tasks.map((t) => t.zoneId))];
 
-      for (const projectId of projectIds) {
-        await assertValidTaskStatus(value, projectId);
+      for (const zoneId of zoneIds) {
+        await assertValidTaskStatus(value, zoneId);
 
         const column = await db.query.columnTable.findFirst({
           where: and(
-            eq(columnTable.projectId, projectId),
+            eq(columnTable.zoneId, zoneId),
             eq(columnTable.slug, value),
           ),
         });
 
         const projectTaskIds = tasks
-          .filter((t) => t.projectId === projectId)
+          .filter((t) => t.zoneId === zoneId)
           .map((t) => t.id);
 
         const result = await db
@@ -117,7 +117,7 @@ async function bulkUpdateTasks({
         for (const taskId of projectTaskIds) {
           await publishEvent("task.status_changed", {
             taskId,
-            projectId,
+            zoneId,
             userId,
             newStatus: value,
             type: "status_changed",
@@ -125,7 +125,7 @@ async function bulkUpdateTasks({
         }
 
         await publishEvent("task-relation.refresh", {
-          projectId,
+          zoneId,
           userId,
         });
       }
@@ -148,7 +148,7 @@ async function bulkUpdateTasks({
       for (const task of tasks) {
         await publishEvent("task.priority_changed", {
           taskId: task.id,
-          projectId: task.projectId,
+          zoneId: task.zoneId,
           userId,
           newPriority: value,
           type: "priority_changed",
@@ -169,7 +169,7 @@ async function bulkUpdateTasks({
         const eventType = value ? "task.assignee_changed" : "task.unassigned";
         await publishEvent(eventType, {
           taskId: task.id,
-          projectId: task.projectId,
+          zoneId: task.zoneId,
           userId,
           newAssigneeId: value || null,
           type: value ? "assignee_changed" : "unassigned",
@@ -182,7 +182,7 @@ async function bulkUpdateTasks({
       for (const task of tasks) {
         await publishEvent("task.deleted", {
           taskId: task.id,
-          projectId: task.projectId,
+          zoneId: task.zoneId,
           userId,
         });
       }
@@ -231,7 +231,7 @@ async function bulkUpdateTasks({
           updatedCount++;
 
           await publishEvent("task.label_assigned", {
-            projectId: task.projectId,
+            zoneId: task.zoneId,
             taskId: task.id,
             userId,
             type: "label_assigned",
@@ -256,7 +256,7 @@ async function bulkUpdateTasks({
 
       for (const task of tasks) {
         await publishEvent("task.label_unassigned", {
-          projectId: task.projectId,
+          zoneId: task.zoneId,
           taskId: task.id,
           userId,
           type: "label_unassigned",
@@ -286,7 +286,7 @@ async function bulkUpdateTasks({
       for (const task of tasks) {
         await publishEvent("task.due_date_changed", {
           taskId: task.id,
-          projectId: task.projectId,
+          zoneId: task.zoneId,
           userId,
           newDueDate: parsedDate,
           type: "due_date_changed",

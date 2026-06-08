@@ -37,7 +37,7 @@ async function updateTaskTitle({
 
   await publishEvent("task.title_changed", {
     taskId: updatedTask.id,
-    projectId: updatedTask.projectId,
+    zoneId: updatedTask.zoneId,
     userId: currentUserId,
     oldTitle: existingTask.title,
     newTitle: title,

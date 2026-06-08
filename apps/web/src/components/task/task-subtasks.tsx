@@ -34,13 +34,13 @@ import SubtaskRow from "./subtask-row";
 
 type TaskSubtasksProps = {
   taskId: string;
-  projectId: string;
+  zoneId: string;
   workspaceId: string;
 };
 
 export default function TaskSubtasks({
   taskId,
-  projectId,
+  zoneId,
   workspaceId,
 }: TaskSubtasksProps) {
   const { t } = useTranslation();
@@ -111,7 +111,7 @@ export default function TaskSubtasks({
     userId: subtask.task.userId,
     assigneeId: subtask.task.userId,
     assigneeName: subtask.task.assigneeName,
-    projectId: subtask.task.projectId,
+    zoneId: subtask.task.zoneId,
   });
 
   const getTargetTasks = (currentTask: Task): Task[] => {
@@ -186,10 +186,10 @@ export default function TaskSubtasks({
           if (focusedIndex >= 0 && focusedIndex < totalCount) {
             e.preventDefault();
             navigate({
-              to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+              to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
               params: {
                 workspaceId,
-                projectId,
+                zoneId,
                 taskId: subtasks[focusedIndex].task.id,
               },
             });
@@ -219,7 +219,7 @@ export default function TaskSubtasks({
     clearSelection,
     navigate,
     workspaceId,
-    projectId,
+    zoneId,
     toggleSelection,
   ]);
 
@@ -230,7 +230,7 @@ export default function TaskSubtasks({
       const newTask = await createTask.mutateAsync({
         title: newTitle.trim(),
         description: "",
-        projectId,
+        zoneId,
         status: "to-do",
         priority: "no-priority",
       });
@@ -252,7 +252,7 @@ export default function TaskSubtasks({
     if (!deleteTaskId) return;
     try {
       await deleteTask(deleteTaskId);
-      queryClient.invalidateQueries({ queryKey: ["tasks", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["tasks", zoneId] });
       queryClient.invalidateQueries({ queryKey: ["task-relations", taskId] });
       setSelectedIds((prev) => {
         const next = new Set(prev);
@@ -334,7 +334,7 @@ export default function TaskSubtasks({
                     key={subtask.task.id}
                     task={taskObj}
                     tasks={getTargetTasks(taskObj)}
-                    projectId={projectId}
+                    zoneId={zoneId}
                     workspaceId={workspace?.id ?? workspaceId}
                     isSelected={isSelected}
                     isFocused={focusedIndex === index}
@@ -343,10 +343,10 @@ export default function TaskSubtasks({
                     onToggleSelection={() => toggleSelection(subtask.task.id)}
                     onNavigate={() =>
                       navigate({
-                        to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+                        to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
                         params: {
                           workspaceId,
-                          projectId,
+                          zoneId,
                           taskId: subtask.task.id,
                         },
                       })

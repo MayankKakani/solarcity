@@ -14,15 +14,15 @@ import useGetProjects from "@/hooks/queries/project/use-get-projects";
 
 type ProjectCrumbSelectProps = {
   workspaceId: string;
-  projectId: string;
+  zoneId: string;
   projectName?: string;
-  onSelectProject: (projectId: string) => void;
+  onSelectProject: (zoneId: string) => void;
   onAddProject: () => void;
 };
 
 export default function ProjectCrumbSelect({
   workspaceId,
-  projectId,
+  zoneId,
   projectName,
   onSelectProject,
   onAddProject,
@@ -59,7 +59,7 @@ export default function ProjectCrumbSelect({
               return (
                 <DropdownMenuItem
                   key={project.id}
-                  disabled={project.id === projectId}
+                  disabled={project.id === zoneId}
                   onClick={() => onSelectProject(project.id)}
                   className="h-8 gap-2 text-sm"
                 >

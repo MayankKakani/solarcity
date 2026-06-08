@@ -1,10 +1,10 @@
-# Kaneo Mintlify Docs
+# Solarplan Mintlify Docs
 
-This directory contains Kaneo documentation powered by Mintlify.
+This directory contains Solarplan documentation powered by Mintlify.
 
 ## Monorepo setup
 
-- Repository: `kaneo`
+- Repository: `solarplan`
 - Docs root for Mintlify: `/apps/docs`
 - Main config: `apps/docs/docs.json`
 - OpenAPI source file: `apps/docs/openapi.json`

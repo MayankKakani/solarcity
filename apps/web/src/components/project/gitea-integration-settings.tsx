@@ -70,7 +70,7 @@ function createVerificationSnapshot(
   };
 }
 
-export function GiteaIntegrationSettings({ projectId }: { projectId: string }) {
+export function GiteaIntegrationSettings({ zoneId }: { zoneId: string }) {
   const { t } = useTranslation();
 
   const giteaIntegrationSchema = React.useMemo(
@@ -111,7 +111,7 @@ export function GiteaIntegrationSettings({ projectId }: { projectId: string }) {
     isLoading,
     error: integrationError,
     refetch: refetchIntegration,
-  } = useGetGiteaIntegration(projectId);
+  } = useGetGiteaIntegration(zoneId);
   const { mutateAsync: createIntegration, isPending: isCreating } =
     useCreateGiteaIntegration();
   const { mutateAsync: deleteIntegration, isPending: isDeleting } =
@@ -308,7 +308,7 @@ export function GiteaIntegrationSettings({ projectId }: { projectId: string }) {
       }
 
       await createIntegration({
-        projectId,
+        zoneId,
         data: {
           baseUrl: data.baseUrl,
           ...(data.accessToken.trim()
@@ -331,7 +331,7 @@ export function GiteaIntegrationSettings({ projectId }: { projectId: string }) {
 
   const handleDelete = async () => {
     try {
-      await deleteIntegration(projectId);
+      await deleteIntegration(zoneId);
       form.reset({
         baseUrl: "",
         accessToken: "",
@@ -351,7 +351,7 @@ export function GiteaIntegrationSettings({ projectId }: { projectId: string }) {
 
   const handleImportIssues = async () => {
     try {
-      await importIssues(projectId);
+      await importIssues(zoneId);
       toast.success(t("settings:giteaIntegration.toast.issuesImported"));
     } catch (error) {
       toast.error(
@@ -527,7 +527,7 @@ export function GiteaIntegrationSettings({ projectId }: { projectId: string }) {
                 onCheckedChange={async (checked) => {
                   try {
                     await updateGiteaSettings({
-                      projectId,
+                      zoneId,
                       json: { commentTaskLinkOnGiteaIssue: checked },
                     });
                     toast.success(

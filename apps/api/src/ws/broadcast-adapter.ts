@@ -1,13 +1,13 @@
 export type ProjectBroadcastMessage = {
   type: string;
-  projectId: string;
+  zoneId: string;
   taskId?: string;
   sourceTaskId?: string;
   targetTaskId?: string;
 };
 
 export type BroadcastMessage = {
-  projectId: string;
+  zoneId: string;
   message: ProjectBroadcastMessage;
   excludeInitiatorId?: string;
 };

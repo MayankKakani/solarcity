@@ -4,21 +4,18 @@ import db from "../../database";
 import { columnTable, workflowRuleTable } from "../../database/schema";
 
 async function upsertWorkflowRule({
-  projectId,
+  zoneId,
   integrationType,
   eventType,
   columnId,
 }: {
-  projectId: string;
+  zoneId: string;
   integrationType: string;
   eventType: string;
   columnId: string;
 }) {
   const targetColumn = await db.query.columnTable.findFirst({
-    where: and(
-      eq(columnTable.id, columnId),
-      eq(columnTable.projectId, projectId),
-    ),
+    where: and(eq(columnTable.id, columnId), eq(columnTable.zoneId, zoneId)),
   });
 
   if (!targetColumn) {
@@ -29,7 +26,7 @@ async function upsertWorkflowRule({
 
   const existing = await db.query.workflowRuleTable.findFirst({
     where: and(
-      eq(workflowRuleTable.projectId, projectId),
+      eq(workflowRuleTable.zoneId, zoneId),
       eq(workflowRuleTable.integrationType, integrationType),
       eq(workflowRuleTable.eventType, eventType),
     ),
@@ -54,7 +51,7 @@ async function upsertWorkflowRule({
   const [created] = await db
     .insert(workflowRuleTable)
     .values({
-      projectId,
+      zoneId,
       integrationType,
       eventType,
       columnId,

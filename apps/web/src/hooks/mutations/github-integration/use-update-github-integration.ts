@@ -8,15 +8,15 @@ export function useUpdateGithubIntegration() {
 
   return useMutation({
     mutationFn: ({
-      projectId,
+      zoneId,
       json,
     }: {
-      projectId: string;
+      zoneId: string;
       json: UpdateGithubIntegrationRequest;
-    }) => updateGithubIntegration(projectId, json),
-    onSuccess: (_, { projectId }) => {
+    }) => updateGithubIntegration(zoneId, json),
+    onSuccess: (_, { zoneId }) => {
       void queryClient.invalidateQueries({
-        queryKey: ["github-integration", projectId],
+        queryKey: ["github-integration", zoneId],
       });
     },
   });

@@ -1,11 +1,11 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 async function upsertWorkflowRule(
-  projectId: string,
+  zoneId: string,
   data: { integrationType: string; eventType: string; columnId: string },
 ) {
-  const response = await client["workflow-rule"][":projectId"].$put({
-    param: { projectId },
+  const response = await client["workflow-rule"][":zoneId"].$put({
+    param: { zoneId },
     json: data,
   });
 

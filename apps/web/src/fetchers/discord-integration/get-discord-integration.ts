@@ -2,7 +2,7 @@ import { getApiUrl } from "@/fetchers/get-api-url";
 
 export type DiscordIntegration = {
   id: string;
-  projectId: string;
+  zoneId: string;
   channelName: string | null;
   webhookConfigured: boolean;
   maskedWebhookUrl: string;
@@ -19,9 +19,9 @@ export type DiscordIntegration = {
   updatedAt: string;
 } | null;
 
-async function getDiscordIntegration(projectId: string) {
+async function getDiscordIntegration(zoneId: string) {
   const response = await fetch(
-    getApiUrl(`/discord-integration/project/${projectId}`),
+    getApiUrl(`/discord-integration/project/${zoneId}`),
     {
       credentials: "include",
     },

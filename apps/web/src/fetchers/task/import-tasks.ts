@@ -1,4 +1,4 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 export type TaskToImport = {
   title: string;
@@ -10,9 +10,9 @@ export type TaskToImport = {
   userId?: string | null;
 };
 
-async function importTasks(projectId: string, tasks: TaskToImport[]) {
-  const response = await client.task.import[":projectId"].$post({
-    param: { projectId },
+async function importTasks(zoneId: string, tasks: TaskToImport[]) {
+  const response = await client.task.import[":zoneId"].$post({
+    param: { zoneId },
     json: { tasks },
   });
 

@@ -1,6 +1,6 @@
 {
 	"common": {
-		"appName": "Kaneo",
+		"appName": "Solarplan",
 		"actions": {
 			"cancel": "취소",
 			"close": "닫기",
@@ -75,7 +75,7 @@
 				"errorToast": "프로젝트 생성에 실패했습니다"
 			},
 			"createWorkspace": {
-				"breadcrumbKaneo": "KANEO",
+				"breadcrumbKaneo": "SOLARPLAN",
 				"title": "새 워크스페이스 만들기",
 				"description": "워크스페이스 이름을 지정하여 새 워크스페이스를 만듭니다.",
 				"namePlaceholder": "워크스페이스 이름",
@@ -242,7 +242,7 @@
 			"workspaceLabel": "워크스페이스: {{workspaceName}}",
 			"joinWorkspace": "{{workspaceName}} 참여",
 			"inviteBodySignedIn": "<inviter>{{inviterName}}</inviter>님이 워크스페이스에 초대했습니다.",
-			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter>님이 Kaneo 워크스페이스에 초대했습니다.",
+			"inviteBodySignedOut": "<inviter>{{inviterName}}</inviter>님이 Solarplan 워크스페이스에 초대했습니다.",
 			"signInToAccept": "이 초대를 수락하려면 로그인하세요.",
 			"accepting": "수락 중...",
 			"acceptInvitation": "초대 수락",
@@ -359,7 +359,7 @@
 			"webhookDescription": "계정 알림을 자체 엔드포인트로 JSON 형식으로 전송합니다.",
 			"endpointUrl": "엔드포인트 URL",
 			"signingSecret": "서명 시크릿",
-			"webhookUrlPlaceholder": "https://example.com/webhooks/kaneo",
+			"webhookUrlPlaceholder": "https://example.com/webhooks/solarplan",
 			"webhookSecretPlaceholder": "선택 사항 - 공유 시크릿",
 			"webhookSecretHintConfigured": "서명 시크릿이 이미 구성되어 있습니다 ({{masked}}). 교체하려면 새 시크릿을 입력하세요.",
 			"webhookSecretHintOptional": "선택 사항. 시크릿이 설정된 경우 Kaneo가 요청 본문에 서명합니다.",
@@ -413,7 +413,7 @@
 		},
 		"preferencesPage": {
 			"title": "환경설정",
-			"subtitle": "Kaneo 사용 환경을 맞춤 설정합니다.",
+			"subtitle": "Solarplan 사용 환경을 맞춤 설정합니다.",
 			"appearanceTitle": "모양",
 			"appearanceSubtitle": "시각적 설정 및 레이아웃 환경설정.",
 			"theme": "테마",
@@ -495,7 +495,7 @@
 			},
 			"createDialog": {
 				"title": "API 키 만들기",
-				"description": "Kaneo API에 프로그래밍 방식으로 접근하기 위한 새 API 키를 만듭니다.",
+				"description": "Solarplan API에 프로그래밍 방식으로 접근하기 위한 새 API 키를 만듭니다.",
 				"nameLabel": "이름",
 				"namePlaceholder": "내 API 키",
 				"nameDescription": "이 API 키에 대한 설명적인 이름",
@@ -685,7 +685,7 @@
 			"badgeNotConnected": "연결 안 됨",
 			"repository": "저장소",
 			"repositoryHint": "연결된 GitHub 저장소",
-			"commentTaskLinkTitle": "새 이슈에 Kaneo 링크 댓글 달기",
+			"commentTaskLinkTitle": "새 이슈에 Solarplan 링크 댓글 달기",
 			"commentTaskLinkHint": "활성화하면 Kaneo가 새 GitHub 이슈마다 작업 링크가 포함된 댓글을 게시합니다.",
 			"appStatusTitle": "GitHub 앱 상태",
 			"appStatusHint": "설치 및 권한 상태",
@@ -753,7 +753,7 @@
 			"badgeNotConnected": "연결 안 됨",
 			"repository": "저장소",
 			"repositoryHint": "연결된 Gitea 저장소",
-			"commentTaskLinkTitle": "새 이슈에 Kaneo 링크 댓글 달기",
+			"commentTaskLinkTitle": "새 이슈에 Solarplan 링크 댓글 달기",
 			"commentTaskLinkHint": "활성화하면 Kaneo가 새 이슈마다 작업 링크가 포함된 댓글을 게시합니다.",
 			"webhookTitle": "웹훅",
 			"webhookHint": "Gitea 저장소에서 이 URL과 시크릿으로 웹훅을 추가합니다. push, pull request, issues, issue comments 및 create(라벨용)를 활성화하세요.",
@@ -878,15 +878,15 @@
 				"removeError": "일반 웹훅 연동 제거에 실패했습니다"
 			},
 			"connectionTitle": "발신 웹훅 연결",
-			"connectionHint": "작업 이벤트를 자체 엔드포인트로 JSON 형식으로 전송합니다. 시크릿이 구성된 경우 서명된 X-Kaneo-Signature 헤더가 포함됩니다.",
+			"connectionHint": "작업 이벤트를 자체 엔드포인트로 JSON 형식으로 전송합니다. 시크릿이 구성된 경우 서명된 X-Solarplan-Signature 헤더가 포함됩니다.",
 			"connected": "연결됨",
 			"paused": "일시 중지됨",
 			"webhookLabel": "엔드포인트 URL",
-			"webhookPlaceholder": "https://example.com/webhooks/kaneo",
+			"webhookPlaceholder": "https://example.com/webhooks/solarplan",
 			"webhookHint": "Kaneo는 활성화된 각 이벤트에 대해 JSON 페이로드와 함께 POST 요청을 전송합니다.",
 			"secretLabel": "서명 시크릿",
 			"secretPlaceholder": "선택 사항 - 공유 시크릿",
-			"secretHint": "선택 사항. 입력하면 Kaneo가 요청 본문에 서명하고 16진수 다이제스트를 X-Kaneo-Signature 헤더로 전송합니다.",
+			"secretHint": "선택 사항. 입력하면 Kaneo가 요청 본문에 서명하고 16진수 다이제스트를 X-Solarplan-Signature 헤더로 전송합니다.",
 			"secretHintConfigured": "서명 시크릿이 이미 구성되어 있습니다 ({{secret}}). 교체하려면 새 시크릿을 입력하세요.",
 			"eventsTitle": "이벤트 알림",
 			"eventsHint": "발신 웹훅을 트리거할 프로젝트 변경 사항을 선택합니다.",
@@ -933,7 +933,7 @@
 			"threadIdHint": "선택 사항. Telegram 그룹 내 포럼 토픽에 사용하세요.",
 			"chatLabelLabel": "채팅 라벨",
 			"chatLabelPlaceholder": "Engineering Updates",
-			"chatLabelHint": "Kaneo 내부 참고용 선택 라벨입니다.",
+			"chatLabelHint": "Solarplan 내부 참고용 선택 라벨입니다.",
 			"eventsTitle": "이벤트 알림",
 			"eventsHint": "Telegram에 게시할 프로젝트 변경 사항을 선택합니다.",
 			"events": {

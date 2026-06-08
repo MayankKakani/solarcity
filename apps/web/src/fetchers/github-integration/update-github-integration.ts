@@ -1,20 +1,20 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 import type { InferRequestType } from "hono";
 
 export type UpdateGithubIntegrationRequest = InferRequestType<
-  (typeof client)["github-integration"]["project"][":projectId"]["$patch"]
+  (typeof client)["github-integration"]["project"][":zoneId"]["$patch"]
 >["json"];
 
 async function updateGithubIntegration(
-  projectId: string,
+  zoneId: string,
   json: UpdateGithubIntegrationRequest,
 ) {
-  const response = await client["github-integration"].project[
-    ":projectId"
-  ].$patch({
-    param: { projectId },
-    json,
-  });
+  const response = await client["github-integration"].project[":zoneId"].$patch(
+    {
+      param: { zoneId },
+      json,
+    },
+  );
 
   if (!response.ok) {
     const error = await response.text();

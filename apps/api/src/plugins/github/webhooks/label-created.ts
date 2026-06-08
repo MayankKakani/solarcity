@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import db from "../../../database";
-import { labelTable, projectTable } from "../../../database/schema";
+import { labelTable, zoneTable } from "../../../database/schema";
 import { findAllIntegrationsByRepo } from "../services/task-service";
 
 type LabelCreatedPayload = {
@@ -29,8 +29,8 @@ export async function handleLabelCreated(payload: LabelCreatedPayload) {
       continue;
     }
 
-    const project = await db.query.projectTable.findFirst({
-      where: eq(projectTable.id, integration.project.id),
+    const project = await db.query.zoneTable.findFirst({
+      where: eq(zoneTable.id, integration.project.id),
     });
 
     if (!project?.workspaceId) {

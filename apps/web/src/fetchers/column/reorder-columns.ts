@@ -1,11 +1,11 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 async function reorderColumns(
-  projectId: string,
+  zoneId: string,
   columns: Array<{ id: string; position: number }>,
 ) {
-  const response = await client.column.reorder[":projectId"].$put({
-    param: { projectId },
+  const response = await client.column.reorder[":zoneId"].$put({
+    param: { zoneId },
     json: { columns },
   });
 

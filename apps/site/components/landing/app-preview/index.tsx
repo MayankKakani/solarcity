@@ -348,10 +348,10 @@ function MockGanttView({
 // MockSidebar — visually identical to app-sidebar.tsx, driven by mock data
 // ─────────────────────────────────────────────────────────────────────────────
 function MockSidebar({
-  activeProjectId,
+  activezoneId,
   onProjectSelect,
 }: {
-  activeProjectId: string;
+  activezoneId: string;
   onProjectSelect: (id: string) => void;
 }) {
   return (
@@ -487,7 +487,7 @@ function MockSidebar({
                   {MOCK_PROJECTS.map((project) => (
                     <SidebarMenuItem key={project.id}>
                       <SidebarMenuButton
-                        isActive={project.id === activeProjectId}
+                        isActive={project.id === activezoneId}
                         size="default"
                         className="group/proj h-8 text-sm"
                         onClick={() => onProjectSelect(project.id)}
@@ -524,11 +524,11 @@ export function AppPreview() {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
 
-  const [activeProjectId, setActiveProjectId] = useState(MOCK_PROJECTS[0].id);
+  const [activezoneId, setActivezoneId] = useState(MOCK_PROJECTS[0].id);
   const [viewMode, setViewMode] = useState<PreviewMode>("board");
 
   const activeProject =
-    MOCK_PROJECTS.find((p) => p.id === activeProjectId) ?? MOCK_PROJECTS[0];
+    MOCK_PROJECTS.find((p) => p.id === activezoneId) ?? MOCK_PROJECTS[0];
 
   const {
     filters,
@@ -537,10 +537,10 @@ export function AppPreview() {
     updateLabelFilter,
     clearFilters,
     hasActiveFilters,
-  } = useTaskFilters(activeProject, activeProjectId);
+  } = useTaskFilters(activeProject, activezoneId);
 
   const handleProjectSelect = useCallback((id: string) => {
-    setActiveProjectId(id);
+    setActivezoneId(id);
   }, []);
 
   const setBoardToolbarMode = useCallback((mode: "board" | "list") => {
@@ -590,7 +590,7 @@ export function AppPreview() {
           className="h-full"
         >
           <MockSidebar
-            activeProjectId={activeProjectId}
+            activezoneId={activezoneId}
             onProjectSelect={handleProjectSelect}
           />
 

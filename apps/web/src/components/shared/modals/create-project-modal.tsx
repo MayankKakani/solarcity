@@ -76,10 +76,10 @@ function CreateProjectModal({ open, onClose }: CreateProjectModalProps) {
       await queryClient.invalidateQueries({ queryKey: ["projects"] });
 
       navigate({
-        to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
+        to: "/dashboard/workspace/$workspaceId/zone/$zoneId/board",
         params: {
           workspaceId: workspace?.id ?? "",
-          projectId: id,
+          zoneId: id,
         },
       });
 

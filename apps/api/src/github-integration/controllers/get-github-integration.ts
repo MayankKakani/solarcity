@@ -6,10 +6,10 @@ import {
   type GitHubConfig,
 } from "../../plugins/github/config";
 
-async function getGithubIntegration(projectId: string) {
+async function getGithubIntegration(zoneId: string) {
   const integration = await db.query.integrationTable.findFirst({
     where: and(
-      eq(integrationTable.projectId, projectId),
+      eq(integrationTable.zoneId, zoneId),
       eq(integrationTable.type, "github"),
     ),
   });
@@ -22,7 +22,7 @@ async function getGithubIntegration(projectId: string) {
 
   return {
     id: integration.id,
-    projectId: integration.projectId,
+    zoneId: integration.zoneId,
     repositoryOwner: config.repositoryOwner,
     repositoryName: config.repositoryName,
     installationId: config.installationId,

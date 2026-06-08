@@ -22,7 +22,7 @@ async function createTaskRelation({
   }
 
   const [sourceTask] = await db
-    .select({ id: taskTable.id, projectId: taskTable.projectId })
+    .select({ id: taskTable.id, zoneId: taskTable.zoneId })
     .from(taskTable)
     .where(eq(taskTable.id, sourceTaskId))
     .limit(1);
@@ -32,7 +32,7 @@ async function createTaskRelation({
   }
 
   const [targetTask] = await db
-    .select({ id: taskTable.id, projectId: taskTable.projectId })
+    .select({ id: taskTable.id, zoneId: taskTable.zoneId })
     .from(taskTable)
     .where(eq(taskTable.id, targetTaskId))
     .limit(1);
@@ -85,7 +85,7 @@ async function createTaskRelation({
   await publishEvent("task-relation.created", {
     ...relation,
     taskId: sourceTaskId,
-    projectId: sourceTask.projectId,
+    zoneId: sourceTask.zoneId,
     userId,
   });
 

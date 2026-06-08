@@ -2,11 +2,11 @@ import { and, desc, eq, ilike, inArray, or, sql } from "drizzle-orm";
 import db from "../../database";
 import {
   activityTable,
-  projectTable,
   taskTable,
   userTable,
   workspaceTable,
   workspaceUserTable,
+  zoneTable,
 } from "../../database/schema";
 
 type SearchParams = {
@@ -21,7 +21,7 @@ type SearchParams = {
     | "comments"
     | "activities";
   workspaceId?: string;
-  projectId?: string;
+  zoneId?: string;
   limit?: number;
 };
 
@@ -31,7 +31,7 @@ type SearchResult = {
   title: string;
   description?: string;
   content?: string;
-  projectId?: string;
+  zoneId?: string;
   projectName?: string;
   workspaceId?: string;
   workspaceName?: string;
@@ -105,7 +105,7 @@ async function globalSearch(params: SearchParams): Promise<{
     userEmail,
     type = "all",
     workspaceId,
-    projectId,
+    zoneId,
     limit = 20,
   } = params;
 
@@ -143,8 +143,8 @@ async function globalSearch(params: SearchParams): Promise<{
   const searchPattern = `%${query.toLowerCase()}%`;
 
   const workspaceFilter = workspaceId
-    ? eq(projectTable.workspaceId, workspaceId)
-    : inArray(projectTable.workspaceId, accessibleWorkspaceIds);
+    ? eq(zoneTable.workspaceId, workspaceId)
+    : inArray(zoneTable.workspaceId, accessibleWorkspaceIds);
 
   // Check if query matches short-id pattern (e.g. "DEP-23")
   const shortIdMatch = query.match(/^([A-Za-z][\w-]*)-(\d+)$/);
@@ -163,10 +163,10 @@ async function globalSearch(params: SearchParams): Promise<{
           id: taskTable.id,
           title: taskTable.title,
           description: taskTable.description,
-          projectId: taskTable.projectId,
-          projectName: projectTable.name,
-          projectSlug: projectTable.slug,
-          workspaceId: projectTable.workspaceId,
+          zoneId: taskTable.zoneId,
+          projectName: zoneTable.name,
+          projectSlug: zoneTable.slug,
+          workspaceId: zoneTable.workspaceId,
           workspaceName: workspaceTable.name,
           userId: taskTable.userId,
           userName: userTable.name,
@@ -176,17 +176,14 @@ async function globalSearch(params: SearchParams): Promise<{
           status: taskTable.status,
         })
         .from(taskTable)
-        .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-        .leftJoin(
-          workspaceTable,
-          eq(projectTable.workspaceId, workspaceTable.id),
-        )
+        .leftJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
+        .leftJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
         .leftJoin(userTable, eq(taskTable.userId, userTable.id))
         .where(
           and(
             workspaceFilter,
-            projectId ? eq(taskTable.projectId, projectId) : undefined,
-            ilike(projectTable.slug, slug),
+            zoneId ? eq(taskTable.zoneId, zoneId) : undefined,
+            ilike(zoneTable.slug, slug),
             eq(taskTable.number, taskNumber),
           ),
         )
@@ -199,7 +196,7 @@ async function globalSearch(params: SearchParams): Promise<{
           type: "task",
           title: task.title,
           description: task.description || undefined,
-          projectId: task.projectId,
+          zoneId: task.zoneId,
           projectName: task.projectName || undefined,
           projectSlug: task.projectSlug || undefined,
           workspaceId: task.workspaceId || undefined,
@@ -229,10 +226,10 @@ async function globalSearch(params: SearchParams): Promise<{
         id: taskTable.id,
         title: taskTable.title,
         description: taskTable.description,
-        projectId: taskTable.projectId,
-        projectName: projectTable.name,
-        projectSlug: projectTable.slug,
-        workspaceId: projectTable.workspaceId,
+        zoneId: taskTable.zoneId,
+        projectName: zoneTable.name,
+        projectSlug: zoneTable.slug,
+        workspaceId: zoneTable.workspaceId,
         workspaceName: workspaceTable.name,
         userId: taskTable.userId,
         userName: userTable.name,
@@ -243,13 +240,13 @@ async function globalSearch(params: SearchParams): Promise<{
         relevanceScore: taskRelevanceScore.as("relevanceScore"),
       })
       .from(taskTable)
-      .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-      .leftJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
+      .leftJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
+      .leftJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
       .leftJoin(userTable, eq(taskTable.userId, userTable.id))
       .where(
         and(
           workspaceFilter,
-          projectId ? eq(taskTable.projectId, projectId) : undefined,
+          zoneId ? eq(taskTable.zoneId, zoneId) : undefined,
           or(
             ilike(taskTable.title, searchPattern),
             ilike(taskTable.description, searchPattern),
@@ -268,7 +265,7 @@ async function globalSearch(params: SearchParams): Promise<{
         type: "task",
         title: task.title,
         description: task.description || undefined,
-        projectId: task.projectId,
+        zoneId: task.zoneId,
         projectName: task.projectName || undefined,
         projectSlug: task.projectSlug || undefined,
         workspaceId: task.workspaceId || undefined,
@@ -287,35 +284,35 @@ async function globalSearch(params: SearchParams): Promise<{
   if (type === "all" || type === "projects") {
     const projectRelevanceScore = sql<number>`
       CASE
-        WHEN LOWER(${projectTable.name}) LIKE ${searchPattern} THEN 3
-        WHEN LOWER(${projectTable.description}) LIKE ${searchPattern} THEN 2
+        WHEN LOWER(${zoneTable.name}) LIKE ${searchPattern} THEN 3
+        WHEN LOWER(${zoneTable.description}) LIKE ${searchPattern} THEN 2
         ELSE 1
       END
     `;
 
     const projectQuery = db
       .select({
-        id: projectTable.id,
-        name: projectTable.name,
-        description: projectTable.description,
-        slug: projectTable.slug,
-        workspaceId: projectTable.workspaceId,
+        id: zoneTable.id,
+        name: zoneTable.name,
+        description: zoneTable.description,
+        slug: zoneTable.slug,
+        workspaceId: zoneTable.workspaceId,
         workspaceName: workspaceTable.name,
-        createdAt: projectTable.createdAt,
+        createdAt: zoneTable.createdAt,
         relevanceScore: projectRelevanceScore.as("relevanceScore"),
       })
-      .from(projectTable)
-      .leftJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
+      .from(zoneTable)
+      .leftJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
       .where(
         and(
           workspaceFilter,
           or(
-            ilike(projectTable.name, searchPattern),
-            ilike(projectTable.description, searchPattern),
+            ilike(zoneTable.name, searchPattern),
+            ilike(zoneTable.description, searchPattern),
           ),
         ),
       )
-      .orderBy(desc(projectRelevanceScore), desc(projectTable.createdAt))
+      .orderBy(desc(projectRelevanceScore), desc(zoneTable.createdAt))
       .limit(limit);
 
     const projects = await projectQuery;
@@ -326,7 +323,7 @@ async function globalSearch(params: SearchParams): Promise<{
         type: "project",
         title: project.name,
         description: project.description || undefined,
-        projectId: project.id,
+        zoneId: project.id,
         projectSlug: project.slug || undefined,
         workspaceId: project.workspaceId,
         workspaceName: project.workspaceName || undefined,
@@ -405,10 +402,10 @@ async function globalSearch(params: SearchParams): Promise<{
         taskId: activityTable.taskId,
         taskTitle: taskTable.title,
         taskNumber: taskTable.number,
-        projectId: projectTable.id,
-        projectName: projectTable.name,
-        projectSlug: projectTable.slug,
-        workspaceId: projectTable.workspaceId,
+        zoneId: zoneTable.id,
+        projectName: zoneTable.name,
+        projectSlug: zoneTable.slug,
+        workspaceId: zoneTable.workspaceId,
         workspaceName: workspaceTable.name,
         userId: activityTable.userId,
         userName: userTable.name,
@@ -417,13 +414,13 @@ async function globalSearch(params: SearchParams): Promise<{
       })
       .from(activityTable)
       .leftJoin(taskTable, eq(activityTable.taskId, taskTable.id))
-      .leftJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-      .leftJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
+      .leftJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
+      .leftJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
       .leftJoin(userTable, eq(activityTable.userId, userTable.id))
       .where(
         and(
           workspaceFilter,
-          projectId ? eq(taskTable.projectId, projectId) : undefined,
+          zoneId ? eq(taskTable.zoneId, zoneId) : undefined,
           or(
             ilike(searchableActivityText, searchPattern),
             ilike(taskTable.title, searchPattern),
@@ -450,7 +447,7 @@ async function globalSearch(params: SearchParams): Promise<{
           ? `Comment on ${activity.taskTitle || "task"}`
           : `${activity.type} on ${activity.taskTitle || "task"}`,
         content: activityContent,
-        projectId: activity.projectId || undefined,
+        zoneId: activity.zoneId || undefined,
         projectName: activity.projectName || undefined,
         projectSlug: activity.projectSlug || undefined,
         workspaceId: activity.workspaceId || undefined,

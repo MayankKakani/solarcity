@@ -29,7 +29,7 @@ type WorkspaceRuleState = {
   gotifyEnabled: boolean;
   webhookEnabled: boolean;
   projectMode: "all" | "selected";
-  selectedProjectIds: string[];
+  selectedzoneIds: string[];
 };
 
 type GlobalChannelPrefsState = {
@@ -54,7 +54,7 @@ function createWorkspaceRuleState(input: {
       gotifyEnabled: input.rule.gotifyEnabled,
       webhookEnabled: input.rule.webhookEnabled,
       projectMode: input.rule.projectMode,
-      selectedProjectIds: input.rule.selectedProjectIds,
+      selectedzoneIds: input.rule.selectedzoneIds,
     };
   }
 
@@ -65,7 +65,7 @@ function createWorkspaceRuleState(input: {
     gotifyEnabled: input.hasGotifyChannel,
     webhookEnabled: input.hasWebhookChannel,
     projectMode: "all",
-    selectedProjectIds: [],
+    selectedzoneIds: [],
   };
 }
 
@@ -162,7 +162,7 @@ function WorkspaceRuleCard({
     gotifyEnabled: boolean;
     webhookEnabled: boolean;
     projectMode: "all" | "selected";
-    selectedProjectIds: string[];
+    selectedzoneIds: string[];
   };
   workspace: WorkspaceSummary;
 }) {
@@ -207,12 +207,12 @@ function WorkspaceRuleCard({
   const isConnected = Boolean(rule);
   const isBusy = isSaving || isDeleting;
 
-  const toggleProject = (projectId: string, checked: boolean) => {
+  const toggleProject = (zoneId: string, checked: boolean) => {
     setState((current) => ({
       ...current,
-      selectedProjectIds: checked
-        ? [...current.selectedProjectIds, projectId]
-        : current.selectedProjectIds.filter((id) => id !== projectId),
+      selectedzoneIds: checked
+        ? [...current.selectedzoneIds, zoneId]
+        : current.selectedzoneIds.filter((id) => id !== zoneId),
     }));
   };
 
@@ -373,7 +373,7 @@ function WorkspaceRuleCard({
               </p>
             ) : (
               projects.map((project) => {
-                const checked = state.selectedProjectIds.includes(project.id);
+                const checked = state.selectedzoneIds.includes(project.id);
 
                 return (
                   <label

@@ -120,7 +120,7 @@ export async function migrateNotificationPreferencesSchema() {
       ON "user_notification_workspace_project" ("workspace_rule_id");
     `);
     await db.execute(sql`
-      CREATE INDEX IF NOT EXISTS "user_notification_workspace_project_projectId_idx"
+      CREATE INDEX IF NOT EXISTS "user_notification_workspace_project_zoneId_idx"
       ON "user_notification_workspace_project" ("project_id");
     `);
 

@@ -4,12 +4,12 @@ import importTasks, { type TaskToImport } from "@/fetchers/task/import-tasks";
 const useImportTasks = () => {
   return useMutation({
     mutationFn: ({
-      projectId,
+      zoneId,
       tasks,
     }: {
-      projectId: string;
+      zoneId: string;
       tasks: TaskToImport[];
-    }) => importTasks(projectId, tasks),
+    }) => importTasks(zoneId, tasks),
   });
 };
 

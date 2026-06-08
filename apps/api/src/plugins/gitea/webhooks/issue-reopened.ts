@@ -98,7 +98,7 @@ export async function handleGiteaIssueReopened(payload: IssueReopenedPayload) {
       }
 
       const targetStatus = await resolveTargetStatus(
-        task.projectId,
+        task.zoneId,
         "issue_reopened",
         "to-do",
       );
@@ -110,7 +110,7 @@ export async function handleGiteaIssueReopened(payload: IssueReopenedPayload) {
       ) {
         await publishEvent("task.status_changed", {
           taskId: statusResult.after.id,
-          projectId: statusResult.after.projectId,
+          zoneId: statusResult.after.zoneId,
           userId: null,
           oldStatus: statusResult.before.status,
           newStatus: statusResult.after.status,

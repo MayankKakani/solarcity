@@ -1,0 +1,1 @@
+ALTER TABLE "amc_bundle" ADD COLUMN "is_active" boolean DEFAULT true NOT NULL;

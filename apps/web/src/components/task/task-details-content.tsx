@@ -20,21 +20,21 @@ import TaskTitle from "./task-title";
 
 type TaskDetailsContentProps = {
   taskId: string | undefined;
-  projectId: string;
+  zoneId: string;
   workspaceId: string;
   className?: string;
 };
 
 export default function TaskDetailsContent({
   taskId,
-  projectId,
+  zoneId,
   workspaceId,
   className,
 }: TaskDetailsContentProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { data: task } = useGetTask(taskId ?? "");
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
+  const { data: project } = useGetProject({ id: zoneId, workspaceId });
   const { data: activities = [] } = useGetActivitiesByTaskId(taskId ?? "");
   const { data: externalLinks = [], isLoading: isLoadingExternalLinks } =
     useExternalLinks(taskId ?? "");
@@ -57,10 +57,10 @@ export default function TaskDetailsContent({
             className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors w-fit"
             onClick={() =>
               navigate({
-                to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+                to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
                 params: {
                   workspaceId,
-                  projectId,
+                  zoneId,
                   taskId: parentTask.id,
                 },
               })
@@ -90,14 +90,14 @@ export default function TaskDetailsContent({
       <div className="mt-4">
         <TaskSubtasks
           taskId={taskId}
-          projectId={projectId}
+          zoneId={zoneId}
           workspaceId={workspaceId}
         />
       </div>
       <div className="mt-2">
         <TaskRelations
           taskId={taskId}
-          projectId={projectId}
+          zoneId={zoneId}
           workspaceId={workspaceId}
         />
       </div>

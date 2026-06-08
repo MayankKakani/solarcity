@@ -1,7 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { columnTable, projectTable, taskTable } from "../../database/schema";
+import { columnTable, taskTable, zoneTable } from "../../database/schema";
 import { publishEvent } from "../../events";
 import {
   coercePriority,
@@ -21,12 +21,12 @@ export type ImportTask = {
 };
 
 async function importTasks(
-  projectId: string,
+  zoneId: string,
   tasksToImport: ImportTask[],
   currentUserId?: string,
 ) {
-  const project = await db.query.projectTable.findFirst({
-    where: eq(projectTable.id, projectId),
+  const project = await db.query.zoneTable.findFirst({
+    where: eq(zoneTable.id, zoneId),
   });
 
   if (!project) {
@@ -35,8 +35,8 @@ async function importTasks(
     });
   }
 
-  let taskNumber = await getNextTaskNumber(projectId);
-  const validStatuses = await getValidTaskStatuses(projectId);
+  let taskNumber = await getNextTaskNumber(zoneId);
+  const validStatuses = await getValidTaskStatuses(zoneId);
 
   const results = [];
 
@@ -53,7 +53,7 @@ async function importTasks(
 
       const column = await db.query.columnTable.findFirst({
         where: and(
-          eq(columnTable.projectId, projectId),
+          eq(columnTable.zoneId, zoneId),
           eq(columnTable.slug, status),
         ),
       });
@@ -61,7 +61,7 @@ async function importTasks(
       const [createdTask] = await db
         .insert(taskTable)
         .values({
-          projectId,
+          zoneId,
           userId: taskData.userId || null,
           title: taskData.title,
           status,

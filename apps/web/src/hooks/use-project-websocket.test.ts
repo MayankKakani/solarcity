@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("@kaneo/libs", () => ({
+vi.mock("@solarplan/libs", () => ({
   windowId: "test-window-id",
 }));
 
@@ -42,7 +42,7 @@ describe("getWsUrl", () => {
     );
   });
 
-  it("URL-encodes the projectId", () => {
+  it("URL-encodes the zoneId", () => {
     expect(getWsUrl("a b/c?d")).toBe(
       "ws://localhost:1337/api/ws/a%20b%2Fc%3Fd?windowId=test-window-id",
     );

@@ -8,6 +8,8 @@ import assignLabelToTask from "./controllers/assign-label-to-task";
 import createLabel from "./controllers/create-label";
 import deleteLabel from "./controllers/delete-label";
 import getLabel from "./controllers/get-label";
+import getLabelsByContactId from "./controllers/get-labels-by-contact-id";
+import getLabelsBySiteId from "./controllers/get-labels-by-site-id";
 import getLabelsByTaskId from "./controllers/get-labels-by-task-id";
 import getLabelsByWorkspaceId from "./controllers/get-labels-by-workspace-id";
 import unassignLabelFromTask from "./controllers/unassign-label-from-task";
@@ -86,15 +88,68 @@ const label = new Hono<{
         color: v.string(),
         workspaceId: v.string(),
         taskId: v.optional(v.string()),
+        siteId: v.optional(v.string()),
+        contactId: v.optional(v.string()),
       }),
     ),
     workspaceAccess.fromBody(),
     requireWorkspacePermission({ label: ["create"] }),
     async (c) => {
-      const { name, color, workspaceId, taskId } = c.req.valid("json");
+      const { name, color, workspaceId, taskId, siteId, contactId } =
+        c.req.valid("json");
       const userId = c.get("userId");
-      const label = await createLabel(name, color, taskId, workspaceId, userId);
+      const label = await createLabel(
+        name,
+        color,
+        taskId,
+        workspaceId,
+        userId,
+        siteId,
+        contactId,
+      );
       return c.json(label);
+    },
+  )
+  .get(
+    "/site/:siteId",
+    describeRoute({
+      operationId: "getSiteLabels",
+      tags: ["Labels"],
+      description: "Get all labels for a site",
+      responses: {
+        200: {
+          description: "List of labels for the site",
+          content: {
+            "application/json": { schema: resolver(v.array(labelSchema)) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ siteId: v.string() })),
+    async (c) => {
+      const { siteId } = c.req.valid("param");
+      return c.json(await getLabelsBySiteId(siteId));
+    },
+  )
+  .get(
+    "/contact/:contactId",
+    describeRoute({
+      operationId: "getContactLabels",
+      tags: ["Labels"],
+      description: "Get all labels for a site contact",
+      responses: {
+        200: {
+          description: "List of labels for the contact",
+          content: {
+            "application/json": { schema: resolver(v.array(labelSchema)) },
+          },
+        },
+      },
+    }),
+    validator("param", v.object({ contactId: v.string() })),
+    async (c) => {
+      const { contactId } = c.req.valid("param");
+      return c.json(await getLabelsByContactId(contactId));
     },
   )
   .get(

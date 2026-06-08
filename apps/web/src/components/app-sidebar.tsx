@@ -10,14 +10,16 @@ import {
   SidebarHeader,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { VersionDisplay } from "@/components/version-display";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 import { shortcuts } from "@/constants/shortcuts";
 import { useRegisterShortcuts } from "@/hooks/use-keyboard-shortcuts";
+// import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import Search from "./search";
+import { UserAvatar } from "./user-avatar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { toggleSidebar } = useSidebar();
+  // const { isAdmin } = useWorkspacePermission();
 
   useRegisterShortcuts({
     modifierShortcuts: {
@@ -39,12 +41,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent className="overflow-hidden gap-1 py-1">
         <Search />
-        <NavMain />
         <NavProjects />
+        <NavMain />
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center justify-between">
-          <VersionDisplay />
+          <div className="w-full ">
+            <UserAvatar />
+          </div>
           <ThemeToggleDropdown />
         </div>
       </SidebarFooter>

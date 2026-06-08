@@ -3,9 +3,9 @@ import db from "../database";
 import {
   columnTable,
   integrationTable,
-  projectTable,
   taskTable,
   workflowRuleTable,
+  zoneTable,
 } from "../database/schema";
 
 const DEFAULT_COLUMNS = [
@@ -24,7 +24,7 @@ const EVENT_MAPPING: Record<string, string> = {
 export async function migrateColumns() {
   console.log("🔄 Starting column migration...");
 
-  const projects = await db.select().from(projectTable);
+  const projects = await db.select().from(zoneTable);
 
   if (projects.length === 0) {
     console.log("No projects found, skipping column migration");
@@ -38,7 +38,7 @@ export async function migrateColumns() {
         slug: columnTable.slug,
       })
       .from(columnTable)
-      .where(eq(columnTable.projectId, project.id));
+      .where(eq(columnTable.zoneId, project.id));
 
     const columnMap = new Map<string, string>(
       projectColumns.map((column) => [column.slug, column.id]),
@@ -56,7 +56,7 @@ export async function migrateColumns() {
         const [inserted] = await db
           .insert(columnTable)
           .values({
-            projectId: project.id,
+            zoneId: project.id,
             name: defaultColumn.name,
             slug: defaultColumn.slug,
             position: defaultColumn.position,
@@ -75,14 +75,14 @@ export async function migrateColumns() {
         .update(taskTable)
         .set({ columnId })
         .where(
-          sql`${taskTable.projectId} = ${project.id}
+          sql`${taskTable.zoneId} = ${project.id}
               AND ${taskTable.status} = ${slug}
               AND ${taskTable.columnId} IS DISTINCT FROM ${columnId}`,
         );
     }
 
     const integrations = await db.query.integrationTable.findMany({
-      where: eq(integrationTable.projectId, project.id),
+      where: eq(integrationTable.zoneId, project.id),
     });
 
     for (const integration of integrations) {
@@ -149,14 +149,14 @@ export async function migrateColumns() {
 }
 
 async function ensureMigrationWorkflowRule(
-  projectId: string,
+  zoneId: string,
   integrationType: "github" | "gitea",
   eventType: string,
   columnId: string,
 ) {
   const existing = await db.query.workflowRuleTable.findFirst({
     where: and(
-      eq(workflowRuleTable.projectId, projectId),
+      eq(workflowRuleTable.zoneId, zoneId),
       eq(workflowRuleTable.integrationType, integrationType),
       eq(workflowRuleTable.eventType, eventType),
     ),
@@ -167,7 +167,7 @@ async function ensureMigrationWorkflowRule(
   }
 
   await db.insert(workflowRuleTable).values({
-    projectId,
+    zoneId,
     integrationType,
     eventType,
     columnId,

@@ -16,8 +16,7 @@ import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
 import { toast } from "@/lib/toast";
 import { AuthLayout } from "../../components/auth/layout";
-import { OtpSignInForm } from "../../components/auth/otp-sign-in-form";
-import { SignInForm } from "../../components/auth/sign-in-form";
+import { PhoneOtpSignInForm } from "../../components/auth/phone-otp-sign-in-form";
 import { SignInFormSkeleton } from "../../components/auth/sign-in-form-skeleton";
 import { AuthToggle } from "../../components/auth/toggle";
 
@@ -70,7 +69,6 @@ function SignIn() {
   }, [isInstanceStatusError, instanceStatusError, t]);
 
   const invitationId = search.invitationId;
-  const defaultEmail = search.email;
 
   const getSafeRedirectPath = () => {
     const redirectPath = search.redirect;
@@ -190,17 +188,6 @@ function SignIn() {
     }
   };
 
-  const handleSignInSuccess = () => {
-    const redirectPath = getSafeRedirectPath();
-    if (redirectPath) {
-      navigate({ to: redirectPath });
-    } else if (invitationId) {
-      navigate({ to: `/invitation/accept/${invitationId}` });
-    } else {
-      navigate({ to: "/dashboard" });
-    }
-  };
-
   // Treat "no users yet" as still loading so the skeleton stays visible
   // while the useEffect above redirects to /auth/sign-up. Otherwise the
   // form briefly paints before the redirect fires.
@@ -230,7 +217,7 @@ function SignIn() {
         subtitle={
           invitationId
             ? t("auth:signIn.invitationSubtitle")
-            : t("auth:signIn.subtitle")
+            : t("auth:signIn.subtitlePhone")
         }
       >
         <div className="mt-6">
@@ -391,19 +378,10 @@ function SignIn() {
               </div>
             </>
           )}
-          {config?.hasSmtp ? (
-            <OtpSignInForm
-              invitationId={invitationId}
-              defaultEmail={defaultEmail}
-              redirect={getSafeRedirectPath()}
-              onSuccess={handleSignInSuccess}
-            />
-          ) : (
-            <SignInForm
-              defaultEmail={defaultEmail}
-              onSuccess={handleSignInSuccess}
-            />
-          )}
+          <PhoneOtpSignInForm
+            invitationId={invitationId}
+            redirect={getSafeRedirectPath()}
+          />
           {config?.disableRegistration ||
           config?.disablePasswordRegistration ? (
             <div className="text-center pt-4">

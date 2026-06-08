@@ -1,20 +1,20 @@
-# Kaneo Service
+# Solarplan Service
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "kaneo.fullname" . }}-kaneo
+  name: {{ include "solarplan.fullname" . }}-solarplan
   labels:
-    {{- include "kaneo.labels" . | nindent 4 }}
-    app.kubernetes.io/component: kaneo
+    {{- include "solarplan.labels" . | nindent 4 }}
+    app.kubernetes.io/component: solarplan
 spec:
-  type: {{ .Values.kaneo.service.type }}
+  type: {{ .Values.solarplan.service.type }}
   ports:
-    - port: {{ .Values.kaneo.service.port }}
-      targetPort: kaneo
+    - port: {{ .Values.solarplan.service.port }}
+      targetPort: solarplan
       protocol: TCP
       name: http
   selector:
-    {{- include "kaneo.selectorLabels" . | nindent 4 }}
+    {{- include "solarplan.selectorLabels" . | nindent 4 }}
 
 {{- if .Values.postgresql.enabled }}
 ---
@@ -22,9 +22,9 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "kaneo.fullname" . }}-postgresql
+  name: {{ include "solarplan.fullname" . }}-postgresql
   labels:
-    {{- include "kaneo.labels" . | nindent 4 }}
+    {{- include "solarplan.labels" . | nindent 4 }}
     app.kubernetes.io/component: postgresql
 spec:
   type: {{ .Values.postgresql.service.type }}
@@ -34,6 +34,6 @@ spec:
       protocol: TCP
       name: postgresql
   selector:
-    {{- include "kaneo.selectorLabels" . | nindent 4 }}
+    {{- include "solarplan.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: postgresql
 {{- end }}

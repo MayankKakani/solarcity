@@ -12,9 +12,9 @@ describe("github config", () => {
   });
 
   it("builds default config values", () => {
-    expect(getDefaultConfig("usekaneo", "kaneo", 42)).toEqual({
+    expect(getDefaultConfig("usekaneo", "solarplan", 42)).toEqual({
       repositoryOwner: "usekaneo",
-      repositoryName: "kaneo",
+      repositoryName: "solarplan",
       installationId: 42,
       branchPattern: "{slug}-{number}",
       commentTaskLinkOnGitHubIssue: true,
@@ -30,7 +30,7 @@ describe("github config", () => {
     await expect(
       validateGitHubConfig({
         repositoryOwner: "usekaneo",
-        repositoryName: "kaneo",
+        repositoryName: "solarplan",
         installationId: 42,
         branchPattern: "{slug}-{number}",
       }),

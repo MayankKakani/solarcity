@@ -1,4 +1,4 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 import type Task from "@/types/task";
 
 async function updateTask(taskId: string, task: Task) {
@@ -13,7 +13,7 @@ async function updateTask(taskId: string, task: Task) {
       startDate: task.startDate?.toString(),
       dueDate: task.dueDate?.toString(),
       position: task.position ?? 0,
-      projectId: task.projectId,
+      zoneId: task.zoneId,
     },
   });
 

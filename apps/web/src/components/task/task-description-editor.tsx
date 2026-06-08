@@ -26,7 +26,7 @@ export default function TaskDescriptionEditor({
       taskId={taskId}
       ensureTaskId={ensureTaskId}
       uploadSurface="description"
-      className="[&_.kaneo-comment-editor-content_.ProseMirror]:min-h-[11rem] [&_.kaneo-comment-editor-content_.ProseMirror]:max-h-none [&_.kaneo-comment-editor-content_.ProseMirror]:overflow-visible [&_.kaneo-comment-editor-content_.ProseMirror]:px-0 [&_.kaneo-comment-editor-content_.ProseMirror]:pt-1 [&_.kaneo-comment-editor-content_.ProseMirror]:pb-2"
+      className="[&_.solarplan-comment-editor-content_.ProseMirror]:min-h-[11rem] [&_.solarplan-comment-editor-content_.ProseMirror]:max-h-none [&_.solarplan-comment-editor-content_.ProseMirror]:overflow-visible [&_.solarplan-comment-editor-content_.ProseMirror]:px-0 [&_.solarplan-comment-editor-content_.ProseMirror]:pt-1 [&_.solarplan-comment-editor-content_.ProseMirror]:pb-2"
     />
   );
 }

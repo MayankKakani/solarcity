@@ -29,7 +29,9 @@ import { AuthLayout } from "../../components/auth/layout";
 export const Route = createFileRoute("/auth/verify-otp")({
   component: VerifyOtp,
   validateSearch: (search: Record<string, unknown>) => ({
-    email: search.email as string,
+    email: search.email as string | undefined,
+    phoneNumber: search.phoneNumber as string | undefined,
+    name: search.name as string | undefined,
     invitationId: search.invitationId as string | undefined,
     redirect: search.redirect as string | undefined,
   }),
@@ -38,10 +40,12 @@ export const Route = createFileRoute("/auth/verify-otp")({
 function VerifyOtp() {
   const { t } = useTranslation();
   const { history } = useRouter();
-  const { email, invitationId, redirect } = useSearch({
+  const { email, phoneNumber, name, invitationId, redirect } = useSearch({
     from: "/auth/verify-otp",
   });
   const [isPending, setIsPending] = useState(false);
+  const isPhoneFlow = Boolean(phoneNumber);
+  const recipient = phoneNumber ?? email ?? "";
 
   const verifyOtpSchema = useMemo(
     () =>
@@ -69,7 +73,6 @@ function VerifyOtp() {
     if (!redirect) {
       return "/auth/sign-in";
     }
-
     return `/auth/sign-in?redirect=${encodeURIComponent(redirect)}`;
   }, [redirect]);
 
@@ -77,15 +80,29 @@ function VerifyOtp() {
     async (data: VerifyOtpFormValues) => {
       setIsPending(true);
       try {
-        const result = await authClient.signIn.emailOtp({
-          email,
-          otp: data.otp,
-        });
+        let error: { message?: string } | null = null;
 
-        if (result.error) {
-          toast.error(
-            result.error.message || t("auth:verifyOtp.toast.invalidCode"),
-          );
+        if (isPhoneFlow && phoneNumber) {
+          const result = await authClient.phoneNumber.verify({
+            phoneNumber: String(phoneNumber),
+            code: data.otp,
+          });
+          error = result.error;
+
+          // If name was passed (sign-up flow), update the user's name now
+          if (!result.error && name) {
+            await authClient.updateUser({ name }).catch(() => {});
+          }
+        } else if (email) {
+          const result = await authClient.signIn.emailOtp({
+            email,
+            otp: data.otp,
+          });
+          error = result.error;
+        }
+
+        if (error) {
+          toast.error(error.message || t("auth:verifyOtp.toast.invalidCode"));
           return;
         }
 
@@ -97,49 +114,66 @@ function VerifyOtp() {
         } else {
           history.push("/dashboard");
         }
-      } catch (error) {
+      } catch (err) {
         toast.error(
-          error instanceof Error
-            ? error.message
+          err instanceof Error
+            ? err.message
             : t("auth:verifyOtp.toast.verifyFailed"),
         );
       } finally {
         setIsPending(false);
       }
     },
-    [email, invitationId, history, safeRedirect, t],
+    [
+      email,
+      phoneNumber,
+      isPhoneFlow,
+      name,
+      invitationId,
+      history,
+      safeRedirect,
+      t,
+    ],
   );
 
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === "otp" && value.otp?.length === 6 && !isPending) {
+    const subscription = form.watch((value, { name: fieldName }) => {
+      if (fieldName === "otp" && value.otp?.length === 6 && !isPending) {
         form.handleSubmit(onSubmit)();
       }
     });
     return () => subscription.unsubscribe();
   }, [form, isPending, onSubmit]);
 
-  const handleResendOtp = async () => {
+  const handleResend = async () => {
     setIsPending(true);
     try {
-      const result = await authClient.emailOtp.sendVerificationOtp({
-        email,
-        type: "sign-in",
-      });
+      let error: { message?: string } | null = null;
 
-      if (result.error) {
-        toast.error(
-          result.error.message || t("auth:verifyOtp.toast.resendFailed"),
-        );
+      if (isPhoneFlow && phoneNumber) {
+        const result = await authClient.phoneNumber.sendOtp({
+          phoneNumber: String(phoneNumber),
+        });
+        error = result.error;
+      } else if (email) {
+        const result = await authClient.emailOtp.sendVerificationOtp({
+          email,
+          type: "sign-in",
+        });
+        error = result.error;
+      }
+
+      if (error) {
+        toast.error(error.message || t("auth:verifyOtp.toast.resendFailed"));
         return;
       }
 
       toast.success(t("auth:verifyOtp.toast.resendSuccess"));
       form.reset();
-    } catch (error) {
+    } catch (err) {
       toast.error(
-        error instanceof Error
-          ? error.message
+        err instanceof Error
+          ? err.message
           : t("auth:verifyOtp.toast.resendFailed"),
       );
     } finally {
@@ -152,12 +186,20 @@ function VerifyOtp() {
       <PageTitle title={t("auth:verifyOtp.pageTitle")} />
       <AuthLayout
         title={t("auth:verifyOtp.title")}
-        subtitle={t("auth:verifyOtp.subtitle")}
+        subtitle={
+          isPhoneFlow
+            ? t("auth:verifyOtp.subtitlePhone")
+            : t("auth:verifyOtp.subtitle")
+        }
       >
         <div className="space-y-4">
           <Alert>
             <AlertDescription className="text-xs">
-              {t("auth:verifyOtp.codeSentTo", { email })}
+              {isPhoneFlow
+                ? t("auth:verifyOtp.codeSentToPhone", {
+                    phoneNumber: recipient,
+                  })
+                : t("auth:verifyOtp.codeSentTo", { email: recipient })}
             </AlertDescription>
           </Alert>
 
@@ -211,12 +253,14 @@ function VerifyOtp() {
                   className="w-full"
                 >
                   <ArrowLeft className="size-4" />
-                  {t("auth:verifyOtp.changeEmail")}
+                  {isPhoneFlow
+                    ? t("auth:verifyOtp.changePhone")
+                    : t("auth:verifyOtp.changeEmail")}
                 </Button>
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={handleResendOtp}
+                  onClick={handleResend}
                   disabled={isPending}
                   className="w-full"
                 >

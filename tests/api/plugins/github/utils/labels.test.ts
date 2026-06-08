@@ -32,7 +32,7 @@ describe("github labels helpers", () => {
       .mockResolvedValueOnce({})
       .mockRejectedValueOnce(new Error("missing"));
 
-    await ensureLabelsExist(octokit as never, "usekaneo", "kaneo", [
+    await ensureLabelsExist(octokit as never, "usekaneo", "solarplan", [
       "status:done",
       "priority:high",
     ]);
@@ -41,7 +41,7 @@ describe("github labels helpers", () => {
     expect(octokit.rest.issues.createLabel).toHaveBeenCalledTimes(1);
     expect(octokit.rest.issues.createLabel).toHaveBeenCalledWith({
       owner: "usekaneo",
-      repo: "kaneo",
+      repo: "solarplan",
       name: "priority:high",
       color: "F97316",
     });
@@ -51,7 +51,7 @@ describe("github labels helpers", () => {
     const octokit = createOctokitMock();
     octokit.rest.issues.getLabel.mockResolvedValue({});
 
-    await addLabelsToIssue(octokit as never, "usekaneo", "kaneo", 12, [
+    await addLabelsToIssue(octokit as never, "usekaneo", "solarplan", 12, [
       "priority:low",
       "status:done",
     ]);
@@ -60,7 +60,7 @@ describe("github labels helpers", () => {
     expect(octokit.rest.issues.createLabel).not.toHaveBeenCalled();
     expect(octokit.rest.issues.addLabels).toHaveBeenCalledWith({
       owner: "usekaneo",
-      repo: "kaneo",
+      repo: "solarplan",
       issue_number: 12,
       labels: ["priority:low", "status:done"],
     });
@@ -71,7 +71,7 @@ describe("github labels helpers", () => {
     octokit.rest.issues.removeLabel.mockRejectedValue({ status: 404 });
 
     await expect(
-      removeLabel(octokit as never, "usekaneo", "kaneo", 21, "status:done"),
+      removeLabel(octokit as never, "usekaneo", "solarplan", 21, "status:done"),
     ).resolves.toBeUndefined();
   });
 
@@ -81,7 +81,7 @@ describe("github labels helpers", () => {
     octokit.rest.issues.removeLabel.mockRejectedValue(error);
 
     await expect(
-      removeLabel(octokit as never, "usekaneo", "kaneo", 21, "status:done"),
+      removeLabel(octokit as never, "usekaneo", "solarplan", 21, "status:done"),
     ).rejects.toThrow("gone");
   });
 });

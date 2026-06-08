@@ -18,6 +18,7 @@ import { Trans, useTranslation } from "react-i18next";
 import PageTitle from "@/components/page-title";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import useAcceptPhoneInvite from "@/hooks/mutations/invitation/use-accept-phone-invite";
 import { useGetInvitationDetails } from "@/hooks/queries/invitation/use-get-invitation-details";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "@/lib/toast";
@@ -43,12 +44,33 @@ function AcceptInvitation() {
     error: invitationError,
   } = useGetInvitationDetails(inviteId);
 
+  const { mutateAsync: acceptPhoneInvite } = useAcceptPhoneInvite();
+
   const isLoading = isSessionLoading || isInvitationLoading;
   const isSignedIn = !!session?.user;
 
   const handleAcceptInvitation = async () => {
     setIsAccepting(true);
     try {
+      const invitation = invitationData?.invitation;
+      const isPhoneInvite = !!invitation?.phoneNumber;
+
+      if (isPhoneInvite) {
+        const result = await acceptPhoneInvite(inviteId);
+
+        await authClient.organization.setActive({
+          organizationId: result.workspaceId,
+        });
+
+        toast.success(t("auth:invitation.toast.acceptSuccess"));
+
+        navigate({
+          to: "/dashboard/workspace/$workspaceId",
+          params: { workspaceId: result.workspaceId },
+        });
+        return;
+      }
+
       const { data, error } = await authClient.organization.acceptInvitation({
         invitationId: inviteId,
       });
@@ -120,8 +142,12 @@ function AcceptInvitation() {
                 {t("auth:invitation.errorLoadDescription")}
               </AlertDescription>
             </Alert>
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/auth/sign-in">{t("auth:invitation.goToSignIn")}</Link>
+            <Button
+              render={<Link to="/auth/sign-in" />}
+              variant="outline"
+              className="w-full"
+            >
+              {t("auth:invitation.goToSignIn")}
             </Button>
           </div>
         </AuthLayout>
@@ -161,8 +187,12 @@ function AcceptInvitation() {
               )}
             </div>
 
-            <Button asChild variant="outline" className="w-full">
-              <Link to="/auth/sign-in">{t("auth:invitation.goToSignIn")}</Link>
+            <Button
+              render={<Link to="/auth/sign-in" />}
+              variant="outline"
+              className="w-full"
+            >
+              {t("auth:invitation.goToSignIn")}
             </Button>
           </div>
         </AuthLayout>
@@ -186,6 +216,8 @@ function AcceptInvitation() {
       </>
     );
   }
+
+  const isPhoneInvite = !!invitation.phoneNumber;
 
   if (isSignedIn) {
     return (
@@ -231,10 +263,12 @@ function AcceptInvitation() {
                 )}
               </Button>
 
-              <Button asChild variant="outline" className="w-full">
-                <Link to="/dashboard">
-                  {t("auth:invitation.goToDashboard")}
-                </Link>
+              <Button
+                render={<Link to="/dashboard" />}
+                variant="outline"
+                className="w-full"
+              >
+                {t("auth:invitation.goToDashboard")}
               </Button>
             </div>
 
@@ -290,11 +324,19 @@ function AcceptInvitation() {
           <div className="pt-4 border-t border-border">
             <div className="text-center space-y-1">
               <p className="text-xs text-muted-foreground">
-                <Trans
-                  i18nKey="auth:invitation.invitationFor"
-                  values={{ email: invitation.email }}
-                  components={{ email: <strong /> }}
-                />
+                {isPhoneInvite ? (
+                  <Trans
+                    i18nKey="auth:invitation.invitationForPhone"
+                    values={{ phoneNumber: invitation.phoneNumber }}
+                    components={{ phone: <strong /> }}
+                  />
+                ) : (
+                  <Trans
+                    i18nKey="auth:invitation.invitationFor"
+                    values={{ email: invitation.email }}
+                    components={{ email: <strong /> }}
+                  />
+                )}
               </p>
             </div>
           </div>

@@ -3,8 +3,11 @@ export {
   admin,
   type BuiltInRoleName,
   builtInRoles,
+  engineer,
+  executive,
   member,
   owner,
   statement,
+  supervisor,
   viewer,
-} from "@kaneo/permissions";
+} from "@solarplan/permissions";

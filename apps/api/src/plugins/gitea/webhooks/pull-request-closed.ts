@@ -98,7 +98,7 @@ export async function handleGiteaPullRequestClosed(payload: PRClosedPayload) {
 
       if (!hasOpenPRs) {
         const targetStatus = await resolveTargetStatus(
-          integration.projectId,
+          integration.zoneId,
           "pr_merged",
           config.statusTransitions?.onPRMerge || "done",
         );
@@ -109,7 +109,7 @@ export async function handleGiteaPullRequestClosed(payload: PRClosedPayload) {
         ) {
           await publishEvent("task.status_changed", {
             taskId: statusResult.after.id,
-            projectId: statusResult.after.projectId,
+            zoneId: statusResult.after.zoneId,
             userId: null,
             oldStatus: statusResult.before.status,
             newStatus: statusResult.after.status,

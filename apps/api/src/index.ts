@@ -16,6 +16,8 @@ import {
 } from "hono-openapi";
 import * as v from "valibot";
 import activity from "./activity";
+import amc from "./amc";
+import getPublicBundles from "./amc/controllers/get-public-bundles";
 import { auth } from "./auth";
 import column from "./column";
 import comment from "./comment";
@@ -41,10 +43,13 @@ import notificationPreferences from "./notification-preferences";
 import oauth from "./oauth";
 import { initializePlugins } from "./plugins";
 import { migrateGitHubIntegration } from "./plugins/github/migration";
+
 import project from "./project";
 import { getPublicProject } from "./project/controllers/get-public-project";
 import { initializeScheduler, shutdownScheduler } from "./scheduler";
 import search from "./search";
+import serviceMaster from "./service-master";
+import site from "./site";
 import slackIntegration from "./slack-integration";
 import { getPrivateObject } from "./storage/s3";
 import task from "./task";
@@ -135,7 +140,7 @@ export function createApp() {
   const { upgradeWebSocket, injectWebSocket } = nodeWs;
   const corsOriginSource = [
     process.env.CORS_ORIGINS,
-    process.env.KANEO_CLIENT_URL,
+    process.env.SOLARPLAN_CLIENT_URL,
   ].find((value) => value?.trim());
   const corsOrigins = corsOriginSource
     ?.split(",")
@@ -203,6 +208,18 @@ export function createApp() {
     return c.json(project);
   });
 
+  const publicAmcBundlesApi = api.get(
+    "/amc/public/bundles/:workspaceSlug",
+    async (c) => {
+      const { workspaceSlug } = c.req.param();
+      const result = await getPublicBundles(workspaceSlug);
+      if (!result) {
+        return c.json({ error: "Workspace not found" }, 404);
+      }
+      return c.json(result);
+    },
+  );
+
   api.post("/github-integration/webhook", handleGithubWebhookRoute);
 
   api.post(
@@ -264,12 +281,12 @@ export function createApp() {
           mimeType: schema.assetTable.mimeType,
           filename: schema.assetTable.filename,
           workspaceId: schema.assetTable.workspaceId,
-          isPublic: schema.projectTable.isPublic,
+          isPublic: schema.zoneTable.isPublic,
         })
         .from(schema.assetTable)
         .innerJoin(
-          schema.projectTable,
-          eq(schema.assetTable.projectId, schema.projectTable.id),
+          schema.zoneTable,
+          eq(schema.assetTable.zoneId, schema.zoneTable.id),
         )
         .where(eq(schema.assetTable.id, id))
         .limit(1);
@@ -314,17 +331,17 @@ export function createApp() {
     documentation: {
       openapi: "3.0.3",
       info: {
-        title: "Kaneo API",
+        title: "Solarplan API",
         version: "1.0.0",
         description:
-          "Kaneo Project Management API - Manage projects, tasks, labels, and more",
+          "Solarplan Project Management API - Manage projects, tasks, labels, and more",
       },
       servers: [
         {
           url: normalizeApiServerUrl(
-            process.env.KANEO_API_URL || "https://cloud.kaneo.app",
+            process.env.SOLARPLAN_API_URL || "https://cloud.solarplan.app",
           ),
-          description: "Kaneo API Server",
+          description: "Solarplan API Server",
         },
       ],
       components: {
@@ -430,7 +447,7 @@ export function createApp() {
       // Optional `ui=1` forces redirect when Sec-Fetch-* headers are missing (e.g. some clients).
       if (forceUiRedirect || secFetchDest === "document") {
         const clientUrl = (
-          process.env.KANEO_CLIENT_URL || "http://localhost:5173"
+          process.env.SOLARPLAN_CLIENT_URL || "http://localhost:5173"
         ).replace(/\/$/, "");
         const deviceUrl = new URL(`${clientUrl}/device`);
         if (userCode) {
@@ -489,7 +506,7 @@ export function createApp() {
       throw new HTTPException(500, { message: "Internal Server Error" });
     }
 
-    const windowId = c.req.header("X-Kaneo-Window-Id");
+    const windowId = c.req.header("X-Solarplan-Window-Id");
     const userId = c.get("userId");
     const initiatorId = windowId ? `${userId}:${windowId}` : userId;
 
@@ -499,6 +516,9 @@ export function createApp() {
   const oauthApi = api.route("/oauth", oauth);
 
   const projectApi = api.route("/project", project);
+  const siteApi = api.route("/site", site);
+  const serviceMasterApi = api.route("/services", serviceMaster);
+  const amcApi = api.route("/amc", amc);
   const taskApi = api.route("/task", task);
   const columnApi = api.route("/column", column);
   const activityApi = api.route("/activity", activity);
@@ -538,7 +558,7 @@ export function createApp() {
   app.route(
     "/",
     mcpWellKnownRoutes(
-      (process.env.KANEO_API_URL || "http://localhost:1337").replace(
+      (process.env.SOLARPLAN_API_URL || "http://localhost:1337").replace(
         /\/api\/?$/,
         "",
       ),
@@ -546,9 +566,9 @@ export function createApp() {
   );
 
   api.get(
-    "/ws/:projectId",
+    "/ws/:zoneId",
     upgradeWebSocket(async (c) => {
-      const projectId = c.req.param("projectId");
+      const zoneId = c.req.param("zoneId");
 
       try {
         await authenticateApiRequest(c);
@@ -562,11 +582,11 @@ export function createApp() {
 
       const userId = c.get("userId");
 
-      if (projectId) {
+      if (zoneId) {
         const [project] = await db
-          .select({ workspaceId: schema.projectTable.workspaceId })
-          .from(schema.projectTable)
-          .where(eq(schema.projectTable.id, projectId))
+          .select({ workspaceId: schema.zoneTable.workspaceId })
+          .from(schema.zoneTable)
+          .where(eq(schema.zoneTable.id, zoneId))
           .limit(1);
 
         if (!project) {
@@ -582,13 +602,13 @@ export function createApp() {
 
       return {
         onOpen(_evt, ws) {
-          if (projectId) {
-            conn = addConnection(projectId, ws, userId, initiatorId);
+          if (zoneId) {
+            conn = addConnection(zoneId, ws, userId, initiatorId);
           }
         },
         onClose() {
-          if (conn && projectId) {
-            removeConnection(projectId, conn);
+          if (conn && zoneId) {
+            removeConnection(zoneId, conn);
           }
         },
       };
@@ -617,7 +637,11 @@ export function createApp() {
     notificationPreferencesApi,
     projectApi,
     publicProjectApi,
+    publicAmcBundlesApi,
     searchApi,
+    siteApi,
+    serviceMasterApi,
+    amcApi,
     slackIntegrationApi,
     taskApi,
     taskRelationApi,
@@ -686,7 +710,7 @@ export async function startServer(
     },
     () => {
       console.log(
-        `⚡ API is running at ${process.env.KANEO_API_URL || "http://localhost:1337"}`,
+        `⚡ API is running at ${process.env.SOLARPLAN_API_URL || "http://localhost:1337"}`,
       );
     },
   );
@@ -733,7 +757,9 @@ const {
   notificationPreferencesApi,
   projectApi,
   publicProjectApi,
+  publicAmcBundlesApi,
   searchApi,
+  siteApi,
   slackIntegrationApi,
   taskApi,
   taskRelationApi,
@@ -776,7 +802,9 @@ export type AppType =
   | typeof invitationApi
   | typeof workspaceApi
   | typeof publicProjectApi
+  | typeof publicAmcBundlesApi
   | typeof invitationPublicApi
+  | typeof siteApi
   | typeof oauthApi;
 
 export default app;

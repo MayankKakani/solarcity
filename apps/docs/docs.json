@@ -1,7 +1,7 @@
 {
 	"$schema": "https://mintlify.com/docs.json",
 	"theme": "almond",
-	"name": "Kaneo",
+	"name": "Solarplan",
 	"colors": {
 		"primary": "#111111",
 		"light": "#fafafa",
@@ -115,19 +115,19 @@
 			},
 			{
 				"tab": "API Reference",
-				"openapi": "https://cloud.kaneo.app/api/openapi"
+				"openapi": "https://cloud.solarplan.app/api/openapi"
 			}
 		],
 		"global": {
 			"anchors": [
 				{
 					"anchor": "Website",
-					"href": "https://kaneo.app",
+					"href": "https://solarplan.app",
 					"icon": "globe"
 				},
 				{
 					"anchor": "GitHub",
-					"href": "https://github.com/usekaneo/kaneo",
+					"href": "https://github.com/usekaneo/solarplan",
 					"icon": "github"
 				}
 			]
@@ -137,13 +137,13 @@
 		"links": [
 			{
 				"label": "GitHub",
-				"href": "https://github.com/usekaneo/kaneo"
+				"href": "https://github.com/usekaneo/solarplan"
 			}
 		],
 		"primary": {
 			"type": "button",
-			"label": "Open Kaneo",
-			"href": "https://kaneo.app"
+			"label": "Open Solarplan",
+			"href": "https://solarplan.app"
 		}
 	},
 	"contextual": {
@@ -151,26 +151,26 @@
 	},
 	"footer": {
 		"socials": {
-			"website": "https://kaneo.app",
-			"github": "https://github.com/usekaneo/kaneo",
+			"website": "https://solarplan.app",
+			"github": "https://github.com/usekaneo/solarplan",
 			"x": "https://x.com/usekaneo"
 		}
 	},
 	"seo": {
 		"indexing": "all",
 		"metatags": {
-			"og:site_name": "Kaneo Docs",
+			"og:site_name": "Solarplan Docs",
 			"og:type": "website",
-			"og:image": "https://kaneo.app/images/hero.png",
+			"og:image": "https://solarplan.app/images/hero.png",
 			"twitter:card": "summary_large_image",
 			"twitter:site": "@usekaneo",
-			"twitter:image": "https://kaneo.app/images/hero.png"
+			"twitter:image": "https://solarplan.app/images/hero.png"
 		}
 	},
 	"integrations": {
 		"plausible": {
-			"domain": "kaneo.app/docs",
-			"server": "plausible.kaneo.app"
+			"domain": "solarplan.app/docs",
+			"server": "plausible.solarplan.app"
 		}
 	}
 }

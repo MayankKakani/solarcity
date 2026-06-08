@@ -1,4 +1,4 @@
-import { resolveApiBaseUrl } from "@kaneo/libs";
+import { resolveApiBaseUrl } from "@solarplan/libs";
 
 export type InstanceStatus = {
   hasUsers: boolean;

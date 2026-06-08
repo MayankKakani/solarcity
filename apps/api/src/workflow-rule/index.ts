@@ -13,7 +13,7 @@ const workflowRule = new Hono<{
   };
 }>()
   .get(
-    "/:projectId",
+    "/:zoneId",
     describeRoute({
       operationId: "getWorkflowRules",
       tags: ["Workflow Rules"],
@@ -27,16 +27,16 @@ const workflowRule = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
-    workspaceAccess.fromProject("projectId"),
+    validator("param", v.object({ zoneId: v.string() })),
+    workspaceAccess.fromProject("zoneId"),
     async (c) => {
-      const { projectId } = c.req.valid("param");
-      const rules = await getWorkflowRules(projectId);
+      const { zoneId } = c.req.valid("param");
+      const rules = await getWorkflowRules(zoneId);
       return c.json(rules);
     },
   )
   .put(
-    "/:projectId",
+    "/:zoneId",
     describeRoute({
       operationId: "upsertWorkflowRule",
       tags: ["Workflow Rules"],
@@ -50,7 +50,7 @@ const workflowRule = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator(
       "json",
       v.object({
@@ -59,13 +59,13 @@ const workflowRule = new Hono<{
         columnId: v.string(),
       }),
     ),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ project: ["update"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const { integrationType, eventType, columnId } = c.req.valid("json");
       const result = await upsertWorkflowRule({
-        projectId,
+        zoneId,
         integrationType,
         eventType,
         columnId,

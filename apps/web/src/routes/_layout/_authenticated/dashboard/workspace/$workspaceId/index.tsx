@@ -62,10 +62,10 @@ function RouteComponent() {
     },
   });
 
-  const handleProjectClick = (projectId: string) => {
+  const handleProjectClick = (zoneId: string) => {
     navigate({
-      to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
-      params: { workspaceId, projectId },
+      to: "/dashboard/workspace/$workspaceId/zone/$zoneId/board",
+      params: { workspaceId, zoneId },
     });
   };
 

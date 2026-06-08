@@ -62,7 +62,7 @@ const search = new Hono<{
         "all",
       ),
       workspaceId: v.optional(v.string()),
-      projectId: v.optional(v.string()),
+      zoneId: v.optional(v.string()),
       limit: v.optional(
         v.pipe(
           v.string(),
@@ -77,7 +77,7 @@ const search = new Hono<{
   ),
   workspaceAccess.fromQuery(),
   async (c) => {
-    const { q, type, workspaceId, projectId, limit, userEmail } =
+    const { q, type, workspaceId, zoneId, limit, userEmail } =
       c.req.valid("query");
     const userId = c.get("userId");
 
@@ -87,7 +87,7 @@ const search = new Hono<{
       userEmail,
       type,
       workspaceId,
-      projectId,
+      zoneId,
       limit: typeof limit === "string" ? Number(limit) : limit,
     });
 

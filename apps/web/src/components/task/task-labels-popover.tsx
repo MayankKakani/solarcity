@@ -154,7 +154,7 @@ export default function TaskLabelsPopover({
       }
 
       await queryClient.invalidateQueries({
-        queryKey: ["tasks", task.projectId],
+        queryKey: ["tasks", task.zoneId],
       });
     } catch (error) {
       toast.error(
@@ -193,7 +193,7 @@ export default function TaskLabelsPopover({
       });
 
       await queryClient.invalidateQueries({
-        queryKey: ["tasks", task.projectId],
+        queryKey: ["tasks", task.zoneId],
       });
 
       toast.success(t("tasks:popover.labels.createSuccess"));

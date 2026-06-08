@@ -5,8 +5,8 @@ import {
   activityTable,
   integrationTable,
   labelTable,
-  projectTable,
   taskTable,
+  zoneTable,
 } from "../../database/schema";
 import type { GitHubConfig } from "../../plugins/github/config";
 import {
@@ -59,14 +59,14 @@ type GitHubPullRequest = {
   user: { login: string; avatar_url: string } | null;
 };
 
-export async function importIssues(projectId: string): Promise<ImportResult> {
+export async function importIssues(zoneId: string): Promise<ImportResult> {
   const errors: string[] = [];
   let imported = 0;
   let updated = 0;
   let skipped = 0;
 
-  const project = await db.query.projectTable.findFirst({
-    where: eq(projectTable.id, projectId),
+  const project = await db.query.zoneTable.findFirst({
+    where: eq(zoneTable.id, zoneId),
   });
 
   if (!project) {
@@ -75,7 +75,7 @@ export async function importIssues(projectId: string): Promise<ImportResult> {
 
   const integration = await db.query.integrationTable.findFirst({
     where: and(
-      eq(integrationTable.projectId, projectId),
+      eq(integrationTable.zoneId, zoneId),
       eq(integrationTable.type, "github"),
     ),
   });
@@ -129,7 +129,7 @@ export async function importIssues(projectId: string): Promise<ImportResult> {
       const result = await importSingleIssue(
         issue,
         integration.id,
-        projectId,
+        zoneId,
         project.workspaceId,
         config,
         octokit,
@@ -174,7 +174,7 @@ export async function importIssues(projectId: string): Promise<ImportResult> {
       await linkPullRequestToTask(
         pr,
         integration.id,
-        projectId,
+        zoneId,
         project.slug,
         config,
       );
@@ -196,7 +196,7 @@ export async function importIssues(projectId: string): Promise<ImportResult> {
 async function importSingleIssue(
   issue: GitHubIssue,
   integrationId: string,
-  projectId: string,
+  zoneId: string,
   workspaceId: string,
   config: GitHubConfig,
   octokit: Awaited<ReturnType<typeof getInstallationOctokit>>,
@@ -236,10 +236,10 @@ async function importSingleIssue(
     return "updated";
   }
 
-  const nextTaskNumber = await getNextTaskNumber(projectId);
+  const nextTaskNumber = await getNextTaskNumber(zoneId);
 
   const taskValues: typeof taskTable.$inferInsert = {
-    projectId,
+    zoneId,
     userId: null,
     title: issue.title,
     description: formatTaskDescriptionFromIssue(issue.body),
@@ -407,7 +407,7 @@ async function importCommentsForTask(
 async function linkPullRequestToTask(
   pr: GitHubPullRequest,
   integrationId: string,
-  projectId: string,
+  zoneId: string,
   projectSlug: string,
   config: GitHubConfig,
 ): Promise<void> {
@@ -423,7 +423,7 @@ async function linkPullRequestToTask(
     return;
   }
 
-  const task = await findTaskByNumber(projectId, taskNumber);
+  const task = await findTaskByNumber(zoneId, taskNumber);
 
   if (!task) {
     return;

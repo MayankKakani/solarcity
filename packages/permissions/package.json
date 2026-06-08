@@ -1,6 +1,6 @@
 {
-	"name": "@kaneo/permissions",
-	"version": "0.0.0",
+	"name": "@solarplan/permissions",
+	"version": "0.0.1",
 	"private": true,
 	"type": "module",
 	"main": "./dist/index.js",
@@ -22,7 +22,7 @@
 		"better-auth": "^1.6.9"
 	},
 	"devDependencies": {
-		"@kaneo/typescript-config": "workspace:*",
+		"@solarplan/typescript-config": "workspace:*",
 		"typescript": "^5.9.2",
 		"vite": "^7.3.2",
 		"vitest": "^4.1.6"

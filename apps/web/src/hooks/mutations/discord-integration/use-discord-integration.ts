@@ -12,15 +12,15 @@ export function useCreateDiscordIntegration() {
 
   return useMutation({
     mutationFn: ({
-      projectId,
+      zoneId,
       data,
     }: {
-      projectId: string;
+      zoneId: string;
       data: CreateDiscordIntegrationRequest;
-    }) => createDiscordIntegration(projectId, data),
-    onSuccess: (_, { projectId }) => {
+    }) => createDiscordIntegration(zoneId, data),
+    onSuccess: (_, { zoneId }) => {
       void queryClient.invalidateQueries({
-        queryKey: ["discord-integration", projectId],
+        queryKey: ["discord-integration", zoneId],
       });
     },
   });
@@ -31,15 +31,15 @@ export function useUpdateDiscordIntegration() {
 
   return useMutation({
     mutationFn: ({
-      projectId,
+      zoneId,
       json,
     }: {
-      projectId: string;
+      zoneId: string;
       json: UpdateDiscordIntegrationRequest;
-    }) => updateDiscordIntegration(projectId, json),
-    onSuccess: (_, { projectId }) => {
+    }) => updateDiscordIntegration(zoneId, json),
+    onSuccess: (_, { zoneId }) => {
       void queryClient.invalidateQueries({
-        queryKey: ["discord-integration", projectId],
+        queryKey: ["discord-integration", zoneId],
       });
     },
   });
@@ -49,10 +49,10 @@ export function useDeleteDiscordIntegration() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (projectId: string) => deleteDiscordIntegration(projectId),
-    onSuccess: (_, projectId) => {
+    mutationFn: (zoneId: string) => deleteDiscordIntegration(zoneId),
+    onSuccess: (_, zoneId) => {
       void queryClient.invalidateQueries({
-        queryKey: ["discord-integration", projectId],
+        queryKey: ["discord-integration", zoneId],
       });
     },
   });

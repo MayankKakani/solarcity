@@ -106,10 +106,10 @@ function BacklogListView({
       Enter: () => {
         if (focusedTaskId && project) {
           navigate({
-            to: "/dashboard/workspace/$workspaceId/project/$projectId/task/$taskId",
+            to: "/dashboard/workspace/$workspaceId/zone/$zoneId/task/$taskId",
             params: {
               workspaceId: project.workspaceId,
-              projectId: project.id,
+              zoneId: project.id,
               taskId: focusedTaskId,
             },
           });
@@ -458,7 +458,7 @@ function BacklogListView({
 
       <CreateTaskModal
         open={isTaskModalOpen}
-        projectId={project?.id}
+        zoneId={project?.id}
         onClose={() => setIsTaskModalOpen(false)}
         status={activeColumn ?? "planned"}
       />

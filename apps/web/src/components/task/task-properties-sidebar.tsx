@@ -7,6 +7,7 @@ import {
   GitBranch,
   Plus,
 } from "lucide-react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -39,6 +40,7 @@ import TaskDueDatePopover from "./task-due-date-popover";
 import TaskLabelsPopover from "./task-labels-popover";
 import TaskMovePopover from "./task-move-popover";
 import TaskPriorityPopover from "./task-priority-popover";
+import TaskSitePopover from "./task-site-popover";
 import TaskStartDatePopover from "./task-start-date-popover";
 import TaskStatusPopover from "./task-status-popover";
 
@@ -66,7 +68,7 @@ function generateBranchName(
 
 type TaskPropertiesSidebarProps = {
   taskId: string | undefined;
-  projectId: string;
+  zoneId: string;
   workspaceId: string;
   className?: string;
   compact?: boolean;
@@ -74,22 +76,22 @@ type TaskPropertiesSidebarProps = {
 
 export default function TaskPropertiesSidebar({
   taskId,
-  projectId,
+  zoneId,
   workspaceId,
   className,
   compact = false,
 }: TaskPropertiesSidebarProps) {
   const { t } = useTranslation();
   const { data: task } = useGetTask(taskId ?? "");
-  const { data: project } = useGetProject({ id: projectId, workspaceId });
-  const { data: columns = [] } = useGetColumns(projectId);
+  const { data: project } = useGetProject({ id: zoneId, workspaceId });
+  const { data: columns = [] } = useGetColumns(zoneId);
   const { data: workspaceUsers } = useGetActiveWorkspaceUsers(workspaceId);
   const { data: taskLabels = [] } = useGetLabelsByTask(taskId ?? "");
-  const { data: githubIntegration } = useGetGithubIntegration(projectId);
-  const { data: giteaIntegration } = useGetGiteaIntegration(projectId);
+  const { data: githubIntegration } = useGetGithubIntegration(zoneId);
+  const { data: giteaIntegration } = useGetGiteaIntegration(zoneId);
   const { data: workspaceProjects = [] } = useGetProjects({ workspaceId });
   const canMoveTask =
-    Boolean(task) && workspaceProjects.some((p) => p.id !== task?.projectId);
+    Boolean(task) && workspaceProjects.some((p) => p.id !== task?.zoneId);
   const statusColumn = columns.find(
     (column) => column.slug === task?.status || column.id === task?.status,
   );
@@ -107,13 +109,23 @@ export default function TaskPropertiesSidebar({
     giteaIntegration?.branchPattern ||
     "{slug}-{number}";
 
-  const assignee = workspaceUsers?.members?.find(
-    (member) => member.userId === task?.userId,
-  );
+  const assigneeMap = useMemo(() => {
+    const map = new Map<
+      string,
+      { name: string | null; image: string | null }
+    >();
+    for (const member of workspaceUsers?.members ?? []) {
+      map.set(member.userId, {
+        name: member.user?.name ?? null,
+        image: member.user?.image ?? null,
+      });
+    }
+    return map;
+  }, [workspaceUsers]);
 
   const handleCopyTaskLink = () => {
     navigator.clipboard.writeText(
-      `${window.location.origin}/dashboard/workspace/${workspaceId}/project/${projectId}/task/${taskId}`,
+      `${window.location.origin}/dashboard/workspace/${workspaceId}/project/${zoneId}/task/${taskId}`,
     );
     toast.message(t("tasks:properties.copyTaskLink"));
   };
@@ -231,16 +243,26 @@ export default function TaskPropertiesSidebar({
                     size="sm"
                     className="justify-start h-7 px-1.5 gap-1.5"
                   >
-                    {task.userId ? (
-                      <Avatar className="h-[16px] w-[16px]">
-                        <AvatarImage
-                          src={assignee?.user?.image ?? ""}
-                          alt={assignee?.user?.name || ""}
-                        />
-                        <AvatarFallback className="text-[9px] font-medium border border-border/30 flex-shrink-0 h-[16px] w-[16px]">
-                          {assignee?.user?.name?.charAt(0).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
+                    {(task.assignees ?? []).length > 0 ? (
+                      <div className="flex -space-x-1">
+                        {(task.assignees ?? []).slice(0, 3).map((a) => {
+                          const info = assigneeMap.get(a.id);
+                          return (
+                            <Avatar
+                              key={a.id}
+                              className="h-[16px] w-[16px] ring-1 ring-background"
+                            >
+                              <AvatarImage
+                                src={info?.image ?? ""}
+                                alt={info?.name || ""}
+                              />
+                              <AvatarFallback className="text-[9px] font-medium border border-border/30 flex-shrink-0 h-[16px] w-[16px]">
+                                {info?.name?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                          );
+                        })}
+                      </div>
                     ) : (
                       <div
                         className="w-[16px] h-[16px] rounded-full bg-muted border border-border flex items-center justify-center flex-shrink-0"
@@ -250,9 +272,14 @@ export default function TaskPropertiesSidebar({
                       </div>
                     )}
                     <span className="text-xs font-semibold truncate max-w-[100px]">
-                      {assignee?.user?.name ||
-                        task.assigneeName ||
-                        t("tasks:popover.assignee.unassigned")}
+                      {(task.assignees ?? []).length > 0
+                        ? (task.assignees ?? []).length === 1
+                          ? (assigneeMap.get(task.assignees[0].id)?.name ??
+                            t("tasks:popover.assignee.unassigned"))
+                          : t("tasks:popover.assignee.count", {
+                              count: task.assignees.length,
+                            })
+                        : t("tasks:popover.assignee.unassigned")}
                     </span>
                   </Button>
                 </TaskAssigneePopover>
@@ -314,6 +341,30 @@ export default function TaskPropertiesSidebar({
                     )}
                   </Button>
                 </TaskDueDatePopover>
+              )}
+              {task && (
+                <TaskSitePopover task={task} workspaceId={workspaceId}>
+                  <Button
+                    size="sm"
+                    className="justify-start h-7 px-1.5 gap-1.5"
+                  >
+                    <span className="text-xs font-semibold truncate">
+                      {`Site: ${task.siteCode}`}
+                    </span>
+                  </Button>
+                </TaskSitePopover>
+              )}
+              {task && (
+                // <TaskServicePopover task={task} workspaceId={workspaceId}>
+                <Button size="sm" className="justify-start h-7 px-1.5 gap-1.5">
+                  <span className="text-xs font-semibold truncate">
+                    Service:{" "}
+                    <span className="text-xs font-semibold truncate capitalize">
+                      {task.serviceName}
+                    </span>
+                  </span>
+                </Button>
+                // </TaskServicePopover>
               )}
             </div>
           </div>
@@ -419,16 +470,26 @@ export default function TaskPropertiesSidebar({
                       size="sm"
                       className="justify-start h-7 px-1.5 gap-1.5"
                     >
-                      {task.userId ? (
-                        <Avatar className="h-[16px] w-[16px]">
-                          <AvatarImage
-                            src={assignee?.user?.image ?? ""}
-                            alt={assignee?.user?.name || ""}
-                          />
-                          <AvatarFallback className="text-[9px] font-medium border border-border/30 shrink-0 h-[16px] w-[16px]">
-                            {assignee?.user?.name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                      {(task.assignees ?? []).length > 0 ? (
+                        <div className="flex -space-x-1">
+                          {(task.assignees ?? []).slice(0, 3).map((a) => {
+                            const info = assigneeMap.get(a.id);
+                            return (
+                              <Avatar
+                                key={a.id}
+                                className="h-[16px] w-[16px] ring-1 ring-background"
+                              >
+                                <AvatarImage
+                                  src={info?.image ?? ""}
+                                  alt={info?.name || ""}
+                                />
+                                <AvatarFallback className="text-[9px] font-medium border border-border/30 shrink-0 h-[16px] w-[16px]">
+                                  {info?.name?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                            );
+                          })}
+                        </div>
                       ) : (
                         <div
                           className="w-[16px] h-[16px] rounded-full bg-muted border border-border flex items-center justify-center shrink-0"
@@ -438,9 +499,14 @@ export default function TaskPropertiesSidebar({
                         </div>
                       )}
                       <span className="text-xs font-semibold truncate max-w-[100px]">
-                        {assignee?.user?.name ||
-                          task.assigneeName ||
-                          t("tasks:popover.assignee.unassigned")}
+                        {(task.assignees ?? []).length > 0
+                          ? (task.assignees ?? []).length === 1
+                            ? (assigneeMap.get(task.assignees[0].id)?.name ??
+                              t("tasks:popover.assignee.unassigned"))
+                            : t("tasks:popover.assignee.count", {
+                                count: task.assignees.length,
+                              })
+                          : t("tasks:popover.assignee.unassigned")}
                       </span>
                     </Button>
                   </TaskAssigneePopover>
@@ -610,16 +676,26 @@ export default function TaskPropertiesSidebar({
                       size="sm"
                       className="justify-start h-7 px-1.5 gap-1.5 w-full"
                     >
-                      {task.userId ? (
-                        <Avatar className="h-[16px] w-[16px]">
-                          <AvatarImage
-                            src={assignee?.user?.image ?? ""}
-                            alt={assignee?.user?.name || ""}
-                          />
-                          <AvatarFallback className="text-[9px] font-medium border border-border/30 shrink-0 h-[16px] w-[16px]">
-                            {assignee?.user?.name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                      {(task.assignees ?? []).length > 0 ? (
+                        <div className="flex -space-x-1">
+                          {(task.assignees ?? []).slice(0, 3).map((a) => {
+                            const info = assigneeMap.get(a.id);
+                            return (
+                              <Avatar
+                                key={a.id}
+                                className="h-[16px] w-[16px] ring-1 ring-background"
+                              >
+                                <AvatarImage
+                                  src={info?.image ?? ""}
+                                  alt={info?.name || ""}
+                                />
+                                <AvatarFallback className="text-[9px] font-medium border border-border/30 shrink-0 h-[16px] w-[16px]">
+                                  {info?.name?.charAt(0).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                            );
+                          })}
+                        </div>
                       ) : (
                         <div
                           className="w-[16px] h-[16px] rounded-full bg-muted border border-border flex items-center justify-center shrink-0"
@@ -629,9 +705,14 @@ export default function TaskPropertiesSidebar({
                         </div>
                       )}
                       <span className="text-xs font-semibold truncate max-w-[100px]">
-                        {assignee?.user?.name ||
-                          task.assigneeName ||
-                          t("tasks:popover.assignee.unassigned")}
+                        {(task.assignees ?? []).length > 0
+                          ? (task.assignees ?? []).length === 1
+                            ? (assigneeMap.get(task.assignees[0].id)?.name ??
+                              t("tasks:popover.assignee.unassigned"))
+                            : t("tasks:popover.assignee.count", {
+                                count: task.assignees?.length,
+                              })
+                          : t("tasks:popover.assignee.unassigned")}
                       </span>
                     </Button>
                   </TaskAssigneePopover>

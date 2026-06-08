@@ -88,11 +88,11 @@ export async function handlePush(payload: PushPayload) {
       `[Push] Extracted task number: ${taskNumber} for project ${projectSlug}`,
     );
 
-    const task = await findTaskByNumber(integration.projectId, taskNumber);
+    const task = await findTaskByNumber(integration.zoneId, taskNumber);
 
     if (!task) {
       console.log(
-        `[Push] Task #${taskNumber} not found in project ${integration.projectId}`,
+        `[Push] Task #${taskNumber} not found in project ${integration.zoneId}`,
       );
       continue;
     }
@@ -121,7 +121,7 @@ export async function handlePush(payload: PushPayload) {
     });
 
     const targetStatus = await resolveTargetStatus(
-      integration.projectId,
+      integration.zoneId,
       "branch_push",
       config.statusTransitions?.onBranchPush || "in-progress",
     );
@@ -142,7 +142,7 @@ export async function handlePush(payload: PushPayload) {
       ) {
         await publishEvent("task.status_changed", {
           taskId: statusResult.after.id,
-          projectId: statusResult.after.projectId,
+          zoneId: statusResult.after.zoneId,
           userId: null,
           oldStatus: statusResult.before.status,
           newStatus: statusResult.after.status,

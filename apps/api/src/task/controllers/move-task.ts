@@ -4,23 +4,20 @@ import db from "../../database";
 import {
   assetTable,
   columnTable,
-  projectTable,
   taskTable,
+  zoneTable,
 } from "../../database/schema";
 import { publishEvent } from "../../events";
 import getNextTaskNumber from "./get-next-task-number";
 
 type DbOrTx = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-function isSameProjectMove(
-  sourceProjectId: string,
-  destinationProjectId: string,
-) {
-  return sourceProjectId === destinationProjectId;
+function isSameProjectMove(sourcezoneId: string, destinationzoneId: string) {
+  return sourcezoneId === destinationzoneId;
 }
 
 async function resolveDestinationStatus(
-  destinationProjectId: string,
+  destinationzoneId: string,
   currentStatus: string,
   requestedStatus?: string,
 ) {
@@ -31,7 +28,7 @@ async function resolveDestinationStatus(
       position: columnTable.position,
     })
     .from(columnTable)
-    .where(eq(columnTable.projectId, destinationProjectId))
+    .where(eq(columnTable.zoneId, destinationzoneId))
     .orderBy(asc(columnTable.position));
 
   if (destinationColumns.length === 0) {
@@ -59,7 +56,7 @@ async function resolveDestinationStatus(
 
 async function getNextTaskPosition(
   dbOrTx: DbOrTx,
-  projectId: string,
+  zoneId: string,
   status: string,
   columnId: string,
 ) {
@@ -68,7 +65,7 @@ async function getNextTaskPosition(
     .from(taskTable)
     .where(
       and(
-        eq(taskTable.projectId, projectId),
+        eq(taskTable.zoneId, zoneId),
         eq(taskTable.status, status),
         eq(taskTable.columnId, columnId),
       ),
@@ -79,12 +76,12 @@ async function getNextTaskPosition(
 
 async function moveTask({
   taskId,
-  destinationProjectId,
+  destinationzoneId,
   destinationStatus,
   currentUserId,
 }: {
   taskId: string;
-  destinationProjectId: string;
+  destinationzoneId: string;
   destinationStatus?: string;
   currentUserId: string;
 }) {
@@ -98,18 +95,18 @@ async function moveTask({
     });
   }
 
-  if (isSameProjectMove(existingTask.projectId, destinationProjectId)) {
+  if (isSameProjectMove(existingTask.zoneId, destinationzoneId)) {
     throw new HTTPException(400, {
       message: "Task is already in that project",
     });
   }
 
   const [sourceProject, destinationProject] = await Promise.all([
-    db.query.projectTable.findFirst({
-      where: eq(projectTable.id, existingTask.projectId),
+    db.query.zoneTable.findFirst({
+      where: eq(zoneTable.id, existingTask.zoneId),
     }),
-    db.query.projectTable.findFirst({
-      where: eq(projectTable.id, destinationProjectId),
+    db.query.zoneTable.findFirst({
+      where: eq(zoneTable.id, destinationzoneId),
     }),
   ]);
 
@@ -126,17 +123,17 @@ async function moveTask({
   }
 
   const resolvedColumn = await resolveDestinationStatus(
-    destinationProjectId,
+    destinationzoneId,
     existingTask.status,
     destinationStatus,
   );
 
   const movedTask = await db.transaction(async (tx) => {
     const [nextTaskNumber, nextPosition] = await Promise.all([
-      getNextTaskNumber(destinationProjectId, tx),
+      getNextTaskNumber(destinationzoneId, tx),
       getNextTaskPosition(
         tx,
-        destinationProjectId,
+        destinationzoneId,
         resolvedColumn.slug,
         resolvedColumn.id,
       ),
@@ -145,7 +142,7 @@ async function moveTask({
     const [updatedTask] = await tx
       .update(taskTable)
       .set({
-        projectId: destinationProjectId,
+        zoneId: destinationzoneId,
         status: resolvedColumn.slug,
         columnId: resolvedColumn.id,
         number: nextTaskNumber + 1,
@@ -162,7 +159,7 @@ async function moveTask({
 
     await tx
       .update(assetTable)
-      .set({ projectId: destinationProjectId })
+      .set({ zoneId: destinationzoneId })
       .where(eq(assetTable.taskId, taskId));
 
     return updatedTask;
@@ -172,9 +169,9 @@ async function moveTask({
     taskId,
     type: "moved",
     userId: currentUserId,
-    fromProjectId: sourceProject.id,
+    fromzoneId: sourceProject.id,
     fromProjectName: sourceProject.name,
-    toProjectId: destinationProject.id,
+    tozoneId: destinationProject.id,
     toProjectName: destinationProject.name,
     oldStatus: existingTask.status,
     newStatus: resolvedColumn.slug,
@@ -182,8 +179,8 @@ async function moveTask({
 
   return {
     task: movedTask,
-    sourceProjectId: sourceProject.id,
-    destinationProjectId: destinationProject.id,
+    sourcezoneId: sourceProject.id,
+    destinationzoneId: destinationProject.id,
   };
 }
 

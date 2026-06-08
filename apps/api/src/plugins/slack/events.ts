@@ -1,10 +1,10 @@
 import { and, eq } from "drizzle-orm";
 import db from "../../database";
 import {
-  projectTable,
   taskTable,
   userTable,
   workspaceTable,
+  zoneTable,
 } from "../../database/schema";
 import type {
   PluginContext,
@@ -57,7 +57,7 @@ function truncate(value: string, maxLength: number): string {
 
 async function getSlackEventData(
   taskId: string,
-  projectId: string,
+  zoneId: string,
   userId: string | null,
 ): Promise<SlackEventData | null> {
   const [taskRow] = await db
@@ -66,14 +66,14 @@ async function getSlackEventData(
       number: taskTable.number,
       status: taskTable.status,
       priority: taskTable.priority,
-      projectName: projectTable.name,
-      projectId: projectTable.id,
+      projectName: zoneTable.name,
+      zoneId: zoneTable.id,
       workspaceId: workspaceTable.id,
     })
     .from(taskTable)
-    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
-    .innerJoin(workspaceTable, eq(projectTable.workspaceId, workspaceTable.id))
-    .where(and(eq(taskTable.id, taskId), eq(projectTable.id, projectId)))
+    .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
+    .innerJoin(workspaceTable, eq(zoneTable.workspaceId, workspaceTable.id))
+    .where(and(eq(taskTable.id, taskId), eq(zoneTable.id, zoneId)))
     .limit(1);
 
   if (!taskRow) {
@@ -88,8 +88,8 @@ async function getSlackEventData(
         .limit(1)
     : [];
 
-  const clientUrl = process.env.KANEO_CLIENT_URL || "http://localhost:5173";
-  const taskUrl = `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.projectId}/task/${taskId}`;
+  const clientUrl = process.env.SOLARPLAN_CLIENT_URL || "http://localhost:5173";
+  const taskUrl = `${clientUrl}/dashboard/workspace/${taskRow.workspaceId}/project/${taskRow.zoneId}/task/${taskId}`;
 
   return {
     taskTitle: taskRow.title,
@@ -153,7 +153,7 @@ async function sendSlackMessage(
             type: "mrkdwn",
             text: data.actorName
               ? `Triggered by ${escapeSlack(data.actorName)}`
-              : "Triggered by Kaneo",
+              : "Triggered by Solarplan",
           },
         ],
       },
@@ -170,7 +170,7 @@ export async function handleTaskCreated(
 
   const data = await getSlackEventData(
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
   );
   if (!data) return;
@@ -192,7 +192,7 @@ export async function handleTaskStatusChanged(
 
   const data = await getSlackEventData(
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
   );
   if (!data) return;
@@ -214,7 +214,7 @@ export async function handleTaskPriorityChanged(
 
   const data = await getSlackEventData(
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
   );
   if (!data) return;
@@ -236,7 +236,7 @@ export async function handleTaskTitleChanged(
 
   const data = await getSlackEventData(
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
   );
   if (!data) return;
@@ -258,7 +258,7 @@ export async function handleTaskDescriptionChanged(
 
   const data = await getSlackEventData(
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
   );
   if (!data) return;
@@ -280,7 +280,7 @@ export async function handleTaskCommentCreated(
 
   const data = await getSlackEventData(
     event.taskId,
-    event.projectId,
+    event.zoneId,
     event.userId,
   );
   if (!data) return;

@@ -24,11 +24,11 @@ async function updateTaskStatus({
     });
   }
 
-  await assertValidTaskStatus(status, existingTask.projectId);
+  await assertValidTaskStatus(status, existingTask.zoneId);
 
   const column = await db.query.columnTable.findFirst({
     where: and(
-      eq(columnTable.projectId, existingTask.projectId),
+      eq(columnTable.zoneId, existingTask.zoneId),
       eq(columnTable.slug, status),
     ),
   });
@@ -47,7 +47,7 @@ async function updateTaskStatus({
 
   await publishEvent("task.status_changed", {
     taskId: updatedTask.id,
-    projectId: updatedTask.projectId,
+    zoneId: updatedTask.zoneId,
     userId: currentUserId,
     oldStatus: existingTask.status,
     newStatus: status,
@@ -57,7 +57,7 @@ async function updateTaskStatus({
   });
 
   await publishEvent("task-relation.refresh", {
-    projectId: updatedTask.projectId,
+    zoneId: updatedTask.zoneId,
     userId: currentUserId,
   });
 

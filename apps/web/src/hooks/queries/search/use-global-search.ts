@@ -11,7 +11,7 @@ type SearchParams = {
     | "comments"
     | "activities";
   workspaceId?: string;
-  projectId?: string;
+  zoneId?: string;
   limit?: number;
 };
 

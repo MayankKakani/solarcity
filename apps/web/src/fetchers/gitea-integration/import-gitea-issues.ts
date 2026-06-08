@@ -1,8 +1,8 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function importGiteaIssues(projectId: string) {
+async function importGiteaIssues(zoneId: string) {
   const response = await client["gitea-integration"]["import-issues"].$post({
-    json: { projectId },
+    json: { zoneId },
   });
 
   if (!response.ok) {

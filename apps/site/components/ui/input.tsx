@@ -48,8 +48,8 @@ function Input({
         <input
           className={inputClassName}
           data-slot="input"
-          size={typeof size === "number" ? size : undefined}
-          {...props}
+          {...(typeof size === "number" && { size })}
+          {...(props as React.ComponentPropsWithoutRef<"input">)}
         />
       ) : (
         <InputPrimitive

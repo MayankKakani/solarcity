@@ -15,7 +15,7 @@ const column = new Hono<{
   };
 }>()
   .get(
-    "/:projectId",
+    "/:zoneId",
     describeRoute({
       operationId: "getColumns",
       tags: ["Columns"],
@@ -29,16 +29,16 @@ const column = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
-    workspaceAccess.fromProject("projectId"),
+    validator("param", v.object({ zoneId: v.string() })),
+    workspaceAccess.fromProject("zoneId"),
     async (c) => {
-      const { projectId } = c.req.valid("param");
-      const columns = await getColumns(projectId);
+      const { zoneId } = c.req.valid("param");
+      const columns = await getColumns(zoneId);
       return c.json(columns);
     },
   )
   .post(
-    "/:projectId",
+    "/:zoneId",
     describeRoute({
       operationId: "createColumn",
       tags: ["Columns"],
@@ -52,7 +52,7 @@ const column = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator(
       "json",
       v.object({
@@ -62,13 +62,13 @@ const column = new Hono<{
         isFinal: v.optional(v.boolean()),
       }),
     ),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ project: ["update"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const { name, icon, color, isFinal } = c.req.valid("json");
       const result = await createColumn({
-        projectId,
+        zoneId,
         name,
         icon,
         color,
@@ -78,7 +78,7 @@ const column = new Hono<{
     },
   )
   .put(
-    "/reorder/:projectId",
+    "/reorder/:zoneId",
     describeRoute({
       operationId: "reorderColumns",
       tags: ["Columns"],
@@ -92,7 +92,7 @@ const column = new Hono<{
         },
       },
     }),
-    validator("param", v.object({ projectId: v.string() })),
+    validator("param", v.object({ zoneId: v.string() })),
     validator(
       "json",
       v.object({
@@ -104,12 +104,12 @@ const column = new Hono<{
         ),
       }),
     ),
-    workspaceAccess.fromProject("projectId"),
+    workspaceAccess.fromProject("zoneId"),
     requireWorkspacePermission({ project: ["update"] }),
     async (c) => {
-      const { projectId } = c.req.valid("param");
+      const { zoneId } = c.req.valid("param");
       const { columns } = c.req.valid("json");
-      const result = await reorderColumns(projectId, columns);
+      const result = await reorderColumns(zoneId, columns);
       return c.json(result);
     },
   )

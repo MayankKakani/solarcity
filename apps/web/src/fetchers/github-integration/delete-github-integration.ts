@@ -1,10 +1,10 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function deleteGithubIntegration(projectId: string) {
+async function deleteGithubIntegration(zoneId: string) {
   const response = await client["github-integration"].project[
-    ":projectId"
+    ":zoneId"
   ].$delete({
-    param: { projectId },
+    param: { zoneId },
   });
 
   if (!response.ok) {

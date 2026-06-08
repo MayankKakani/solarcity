@@ -1,9 +1,8 @@
 import { eq } from "drizzle-orm";
 import { HTTPException } from "hono/http-exception";
 import db from "../../database";
-import { labelTable, projectTable, taskTable } from "../../database/schema";
+import { labelTable, taskTable, zoneTable } from "../../database/schema";
 import { publishEvent } from "../../events";
-import { removeLabelFromGitHub } from "../../plugins/github/utils/sync-label-to-github";
 
 async function deleteLabel(id: string, userId: string) {
   const label = await db.query.labelTable.findFirst({
@@ -25,11 +24,11 @@ async function deleteLabel(id: string, userId: string) {
   const [task] = await db
     .select({
       id: taskTable.id,
-      projectId: taskTable.projectId,
-      workspaceId: projectTable.workspaceId,
+      zoneId: taskTable.zoneId,
+      workspaceId: zoneTable.workspaceId,
     })
     .from(taskTable)
-    .innerJoin(projectTable, eq(taskTable.projectId, projectTable.id))
+    .innerJoin(zoneTable, eq(taskTable.zoneId, zoneTable.id))
     .where(eq(taskTable.id, label.taskId))
     .limit(1);
 
@@ -50,18 +49,18 @@ async function deleteLabel(id: string, userId: string) {
     });
   }
 
-  if (deletedLabel?.taskId) {
-    removeLabelFromGitHub(deletedLabel.taskId, deletedLabel.name).catch(
-      (error) => {
-        console.error("Failed to remove label from GitHub:", error);
-      },
-    );
-  }
+  // if (deletedLabel?.taskId) {
+  //   removeLabelFromGitHub(deletedLabel.taskId, deletedLabel.name).catch(
+  //     (error) => {
+  //       console.error("Failed to remove label from GitHub:", error);
+  //     },
+  //   );
+  // }
 
   await publishEvent("task.label_deleted", {
     label: deletedLabel,
     task: task,
-    projectId: task.projectId,
+    zoneId: task.zoneId,
     taskId: task.id,
     userId: userId,
     type: "label_deleted",

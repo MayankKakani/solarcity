@@ -121,12 +121,12 @@ function SearchComponent() {
                       key={result.id}
                       type="button"
                       onClick={() => {
-                        if (result.type === "task" && result.projectId) {
+                        if (result.type === "task" && result.zoneId) {
                           navigate({
-                            to: "/dashboard/workspace/$workspaceId/project/$projectId/board",
+                            to: "/dashboard/workspace/$workspaceId/zone/$zoneId/board",
                             params: {
                               workspaceId,
-                              projectId: result.projectId,
+                              zoneId: result.zoneId,
                             },
                             search: { taskId: result.id },
                           });

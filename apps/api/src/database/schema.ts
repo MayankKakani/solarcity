@@ -1,17 +1,28 @@
 import { createId } from "@paralleldrive/cuid2";
 import { relations, sql } from "drizzle-orm";
 import {
+  type AnyPgColumn,
   boolean,
+  customType,
+  date,
   foreignKey,
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   text,
   timestamp,
   unique,
   uniqueIndex,
 } from "drizzle-orm/pg-core";
+
+// PostGIS geometry column — stored as WKB hex, cast to/from WKT via SQL
+const geometry = customType<{ data: string; driverData: string }>({
+  dataType() {
+    return "geometry";
+  },
+});
 
 export const userTable = pgTable("user", {
   id: text("id")
@@ -30,6 +41,10 @@ export const userTable = pgTable("user", {
     .$onUpdate(() => /* @__PURE__ */ new Date())
     .notNull(),
   isAnonymous: boolean("is_anonymous").default(false),
+  phoneNumber: text("phone_number").unique(),
+  phoneNumberVerified: boolean("phone_number_verified")
+    .default(false)
+    .notNull(),
   role: text("role"),
   banned: boolean("banned").default(false),
   banReason: text("ban_reason"),
@@ -115,6 +130,7 @@ export const workspaceTable = pgTable("workspace", {
   logo: text("logo"),
   metadata: text("metadata"),
   description: text("description"),
+  currency: text("currency").notNull().default("USD"),
   createdAt: timestamp("created_at", { mode: "date" }).notNull(),
 });
 
@@ -186,8 +202,8 @@ export const invitationTable = pgTable(
     workspaceId: text("workspace_id")
       .notNull()
       .references(() => workspaceTable.id, { onDelete: "cascade" }),
-    email: text("email").notNull(),
-    role: text("role"),
+    email: text("email"),
+    role: text("role").notNull(),
     teamId: text("team_id"),
     status: text("status").default("pending").notNull(),
     expiresAt: timestamp("expires_at").notNull(),
@@ -195,6 +211,8 @@ export const invitationTable = pgTable(
     inviterId: text("inviter_id")
       .notNull()
       .references(() => userTable.id, { onDelete: "cascade" }),
+    phoneNumber: text("phone_number").notNull(),
+    zoneIds: text("zone_ids").notNull(),
   },
   (table) => [
     index("invitation_workspaceId_idx").on(table.workspaceId),
@@ -229,8 +247,8 @@ export const workspaceRoleTable = pgTable(
   ],
 );
 
-export const projectTable = pgTable(
-  "project",
+export const zoneTable = pgTable(
+  "zone",
   {
     id: text("id")
       .$defaultFn(() => createId())
@@ -248,9 +266,11 @@ export const projectTable = pgTable(
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     isPublic: boolean("is_public").default(false),
     archivedAt: timestamp("archived_at", { mode: "date" }),
+    boundingBox: geometry("bounding_box"),
   },
   (table) => [
-    unique("project_workspace_id_id_unique").on(table.workspaceId, table.id),
+    unique("zone_workspace_id_id_unique").on(table.workspaceId, table.id),
+    index("zone_boundingBox_gist_idx").using("gist", sql`${table.boundingBox}`),
   ],
 );
 
@@ -260,9 +280,9 @@ export const columnTable = pgTable(
     id: text("id")
       .$defaultFn(() => createId())
       .primaryKey(),
-    projectId: text("project_id")
+    zoneId: text("zone_id")
       .notNull()
-      .references(() => projectTable.id, {
+      .references(() => zoneTable.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
@@ -278,7 +298,7 @@ export const columnTable = pgTable(
       .$onUpdate(() => new Date())
       .notNull(),
   },
-  (table) => [index("column_projectId_idx").on(table.projectId)],
+  (table) => [index("column_zoneId_idx").on(table.zoneId)],
 );
 
 export const workflowRuleTable = pgTable(
@@ -287,9 +307,9 @@ export const workflowRuleTable = pgTable(
     id: text("id")
       .$defaultFn(() => createId())
       .primaryKey(),
-    projectId: text("project_id")
+    zoneId: text("zone_id")
       .notNull()
-      .references(() => projectTable.id, {
+      .references(() => zoneTable.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
@@ -308,7 +328,7 @@ export const workflowRuleTable = pgTable(
       .notNull(),
   },
   (table) => [
-    index("workflow_rule_projectId_idx").on(table.projectId),
+    index("workflow_rule_zoneId_idx").on(table.zoneId),
     index("workflow_rule_columnId_idx").on(table.columnId),
   ],
 );
@@ -319,18 +339,18 @@ export const taskTable = pgTable(
     id: text("id")
       .$defaultFn(() => createId())
       .primaryKey(),
-    projectId: text("project_id")
+    zoneId: text("zone_id")
       .notNull()
-      .references(() => projectTable.id, {
+      .references(() => zoneTable.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
     position: integer("position").default(0),
     number: integer("number").default(1),
-    userId: text("assignee_id").references(() => userTable.id, {
-      onDelete: "cascade",
-      onUpdate: "cascade",
-    }),
+    // userId: text("assignee_id").references(() => userTable.id, {
+    //   onDelete: "cascade",
+    //   onUpdate: "cascade",
+    // }),
     title: text("title").notNull(),
     description: text("description"),
     status: text("status").notNull().default("to-do"),
@@ -341,6 +361,29 @@ export const taskTable = pgTable(
     priority: text("priority").default("low"),
     startDate: timestamp("start_date", { mode: "date" }),
     dueDate: timestamp("due_date", { mode: "date" }),
+    siteId: text("site_id").references(() => siteTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    siteContactId: text("site_contact_id").references(
+      () => siteContactTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    raisedByExecutiveId: text("raised_by_executive_id").references(
+      () => userTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    serviceMasterId: text("service_master_id").references(
+      () => serviceMasterTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    costSnapshot: numeric("cost_snapshot", { precision: 12, scale: 2 }),
+    costUnitSnapshot: text("cost_unit_snapshot"),
+    amcServiceId: text("amc_service_id").references(
+      (): AnyPgColumn => amcServiceTable.id,
+      { onDelete: "set null", onUpdate: "cascade" },
+    ),
+    outOfAmc: boolean("out_of_amc").notNull().default(false),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" })
       .defaultNow()
@@ -348,11 +391,13 @@ export const taskTable = pgTable(
       .notNull(),
   },
   (table) => [
-    index("task_projectId_idx").on(table.projectId),
+    index("task_zoneId_idx").on(table.zoneId),
     index("task_dueDate_idx").on(table.dueDate),
-    index("task_assigneeId_idx").on(table.userId),
+    // index("task_assigneeId_idx").on(table.userId),
     index("task_columnId_idx").on(table.columnId),
-    unique("task_project_number_unique").on(table.projectId, table.number),
+    index("task_siteId_idx").on(table.siteId),
+    index("task_amcServiceId_idx").on(table.amcServiceId),
+    unique("task_zone_number_unique").on(table.zoneId, table.number),
   ],
 );
 
@@ -468,9 +513,9 @@ export const assetTable = pgTable(
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
-    projectId: text("project_id")
+    zoneId: text("zone_id")
       .notNull()
-      .references(() => projectTable.id, {
+      .references(() => zoneTable.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
@@ -496,7 +541,7 @@ export const assetTable = pgTable(
   },
   (table) => [
     index("asset_workspaceId_idx").on(table.workspaceId),
-    index("asset_projectId_idx").on(table.projectId),
+    index("asset_zoneId_idx").on(table.zoneId),
     index("asset_taskId_idx").on(table.taskId),
     index("asset_activityId_idx").on(table.activityId),
     index("asset_createdBy_idx").on(table.createdBy),
@@ -524,14 +569,26 @@ export const labelTable = pgTable(
       onDelete: "cascade",
       onUpdate: "cascade",
     }),
+    siteId: text("site_id").references(() => siteTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
+    contactId: text("contact_id").references(() => siteContactTable.id, {
+      onDelete: "cascade",
+      onUpdate: "cascade",
+    }),
   },
   (table) => [
     index("label_task_id_idx").on(table.taskId),
     index("label_workspace_id_idx").on(table.workspaceId),
+    index("label_site_id_idx").on(table.siteId),
+    index("label_contact_id_idx").on(table.contactId),
     unique("label_task_name_unique").on(table.taskId, table.name),
     uniqueIndex("label_workspace_name_unique")
       .on(table.workspaceId, table.name)
       .where(sql`${table.taskId} is null`),
+    unique("label_site_name_unique").on(table.siteId, table.name),
+    unique("label_contact_name_unique").on(table.contactId, table.name),
   ],
 );
 
@@ -620,7 +677,7 @@ export const userNotificationWorkspaceRuleTable = pgTable(
     ntfyEnabled: boolean("ntfy_enabled").default(false).notNull(),
     gotifyEnabled: boolean("gotify_enabled").default(false).notNull(),
     webhookEnabled: boolean("webhook_enabled").default(false).notNull(),
-    projectMode: text("project_mode").default("all").notNull(),
+    zoneMode: text("zone_mode").default("all").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" })
       .defaultNow()
@@ -643,8 +700,8 @@ export const userNotificationWorkspaceRuleTable = pgTable(
   ],
 );
 
-export const userNotificationWorkspaceProjectTable = pgTable(
-  "user_notification_workspace_project",
+export const userNotificationWorkspacezoneTable = pgTable(
+  "user_notification_workspace_zone",
   {
     id: text("id")
       .$defaultFn(() => createId())
@@ -656,7 +713,7 @@ export const userNotificationWorkspaceProjectTable = pgTable(
         onUpdate: "cascade",
       }),
     workspaceRuleId: text("workspace_rule_id").notNull(),
-    projectId: text("project_id").notNull(),
+    zoneId: text("zone_id").notNull(),
     createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { mode: "date" })
       .defaultNow()
@@ -674,28 +731,26 @@ export const userNotificationWorkspaceProjectTable = pgTable(
       .onDelete("cascade")
       .onUpdate("cascade"),
     foreignKey({
-      columns: [table.workspaceId, table.projectId],
-      foreignColumns: [projectTable.workspaceId, projectTable.id],
+      columns: [table.workspaceId, table.zoneId],
+      foreignColumns: [zoneTable.workspaceId, zoneTable.id],
     })
       .onDelete("cascade")
       .onUpdate("cascade"),
-    index("user_notification_workspace_project_ruleId_idx").on(
+    index("user_notification_workspace_zone_ruleId_idx").on(
       table.workspaceRuleId,
     ),
-    index("user_notification_workspace_project_projectId_idx").on(
-      table.projectId,
-    ),
-    index("user_notification_workspace_project_workspaceId_projectId_idx").on(
+    index("user_notification_workspace_zone_zoneId_idx").on(table.zoneId),
+    index("user_notification_workspace_zone_workspaceId_zoneId_idx").on(
       table.workspaceId,
-      table.projectId,
+      table.zoneId,
     ),
     index("unwp_workspaceId_workspaceRuleId_idx").on(
       table.workspaceId,
       table.workspaceRuleId,
     ),
-    unique("user_notification_workspace_project_rule_project_unique").on(
+    unique("user_notification_workspace_zone_rule_zone_unique").on(
       table.workspaceRuleId,
-      table.projectId,
+      table.zoneId,
     ),
   ],
 );
@@ -704,9 +759,9 @@ export const githubIntegrationTable = pgTable("github_integration", {
   id: text("id")
     .$defaultFn(() => createId())
     .primaryKey(),
-  projectId: text("project_id")
+  zoneId: text("zone_id")
     .notNull()
-    .references(() => projectTable.id, {
+    .references(() => zoneTable.id, {
       onDelete: "cascade",
       onUpdate: "cascade",
     })
@@ -728,9 +783,9 @@ export const integrationTable = pgTable(
     id: text("id")
       .$defaultFn(() => createId())
       .primaryKey(),
-    projectId: text("project_id")
+    zoneId: text("zone_id")
       .notNull()
-      .references(() => projectTable.id, {
+      .references(() => zoneTable.id, {
         onDelete: "cascade",
         onUpdate: "cascade",
       }),
@@ -744,9 +799,9 @@ export const integrationTable = pgTable(
       .notNull(),
   },
   (table) => [
-    index("integration_projectId_idx").on(table.projectId),
+    index("integration_zoneId_idx").on(table.zoneId),
     index("integration_type_idx").on(table.type),
-    unique("integration_project_type_unique").on(table.projectId, table.type),
+    unique("integration_zone_type_unique").on(table.zoneId, table.type),
   ],
 );
 
@@ -1012,4 +1067,366 @@ export const organizationRoleRelations = relations(
       references: [workspace.id],
     }),
   }),
+);
+
+export const zoneAssignmentTable = pgTable(
+  "zone_assignment",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    zoneId: text("zone_id")
+      .notNull()
+      .references(() => zoneTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    createdBy: text("created_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+  },
+  (table) => [
+    index("zone_assignment_zoneId_idx").on(table.zoneId),
+    index("zone_assignment_userId_idx").on(table.userId),
+    unique("zone_assignment_zone_user_unique").on(table.zoneId, table.userId),
+  ],
+);
+
+// ============================================================================
+// NEW TABLES: site, site_contact, issue_type
+// ============================================================================
+
+export const siteTable = pgTable(
+  "site",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    siteCode: text("site_code").notNull(),
+    siteType: text("site_type").notNull().default("commercial"),
+    location: geometry("location"),
+    address: text("address"),
+    systemCapacityKwp: numeric("system_capacity_kwp", {
+      precision: 10,
+      scale: 2,
+    }),
+    installationDate: date("installation_date"),
+    panelCount: integer("panel_count"),
+    inverterModel: text("inverter_model"),
+    gridConnectionType: text("grid_connection_type").default("on_grid"),
+    status: text("status").notNull().default("active"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("site_workspaceId_idx").on(table.workspaceId),
+    index("site_siteCode_idx").on(table.siteCode),
+    index("site_location_gist_idx").using("gist", sql`${table.location}`),
+    unique("site_workspace_code_unique").on(table.workspaceId, table.siteCode),
+  ],
+);
+
+export const siteContactTable = pgTable(
+  "site_contact",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    siteId: text("site_id")
+      .notNull()
+      .references(() => siteTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    role: text("role").notNull().default("caretaker"),
+    phone: text("phone"),
+    email: text("email"),
+    isPrimary: boolean("is_primary").default(false).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("site_contact_siteId_idx").on(table.siteId)],
+);
+
+// ============================================================================
+// NEW TABLE: task_assignment
+// ============================================================================
+// Tracks which supervisors/engineers are assigned to which tasks
+// Role field is for DISPLAY purposes only - actual permissions come from workspace_member.role
+
+export const taskAssignmentTable = pgTable(
+  "task_assignment",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => userTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    // Display-only role - shows what capacity user is assigned in
+    // Actual permissions still come from workspace_member.role
+    role: text("role").notNull(), // "supervisor" | "engineer"
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    assignedBy: text("assigned_by").references(() => userTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+  },
+  (table) => [
+    index("task_assignment_taskId_idx").on(table.taskId),
+    index("task_assignment_userId_idx").on(table.userId),
+    index("task_assignment_role_idx").on(table.role),
+    unique("task_assignment_task_user_unique").on(table.taskId, table.userId),
+  ],
+);
+
+// ============================================================================
+// AMC (Annual Maintenance Contract) tables
+// ============================================================================
+
+export const serviceMasterTable = pgTable(
+  "service_master",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    description: text("description"),
+    defaultPrice: numeric("default_price", {
+      precision: 12,
+      scale: 2,
+    }).notNull(),
+    currency: text("currency"),
+    isActive: boolean("is_active")
+      .$defaultFn(() => true)
+      .notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("service_master_workspaceId_idx").on(table.workspaceId)],
+);
+
+export const amcBundleTable = pgTable(
+  "amc_bundle",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    name: text("name").notNull(),
+    description: text("description"),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("amc_bundle_workspaceId_idx").on(table.workspaceId)],
+);
+
+export const amcBundleServiceTable = pgTable(
+  "amc_bundle_service",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    bundleId: text("bundle_id")
+      .notNull()
+      .references(() => amcBundleTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    serviceMasterId: text("service_master_id")
+      .notNull()
+      .references(() => serviceMasterTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    frequency: text("frequency").notNull(), // "monthly" | "quarterly" | "half_yearly" | "yearly"
+    annualLimit: integer("annual_limit").notNull(),
+    price: numeric("price", { precision: 12, scale: 2 }).notNull(),
+    priceUnit: text("price_unit").notNull(), // "per_visit" | "per_unit" | "lump_sum"
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("amc_bundle_service_bundleId_idx").on(table.bundleId),
+    unique("amc_bundle_service_unique").on(
+      table.bundleId,
+      table.serviceMasterId,
+    ),
+  ],
+);
+
+export const amcTable = pgTable(
+  "amc",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    siteId: text("site_id")
+      .notNull()
+      .references(() => siteTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    bundleId: text("bundle_id").references(() => amcBundleTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    startDate: date("start_date", { mode: "date" }).notNull(),
+    endDate: date("end_date", { mode: "date" }).notNull(),
+    durationYears: integer("duration_years").notNull().default(1),
+    status: text("status").notNull().default("active"), // "active" | "expired" | "cancelled"
+    contractReference: text("contract_reference"),
+    notes: text("notes"),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    index("amc_siteId_idx").on(table.siteId),
+    uniqueIndex("amc_site_active_unique")
+      .on(table.siteId)
+      .where(sql`${table.status} = 'active'`),
+  ],
+);
+
+export const amcServiceTable = pgTable(
+  "amc_service",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    amcId: text("amc_id")
+      .notNull()
+      .references(() => amcTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    serviceMasterId: text("service_master_id")
+      .notNull()
+      .references(() => serviceMasterTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    frequency: text("frequency").notNull(),
+    annualLimit: integer("annual_limit").notNull(),
+    price: numeric("price", { precision: 12, scale: 2 }).notNull(),
+    priceUnit: text("price_unit").notNull(),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [index("amc_service_amcId_idx").on(table.amcId)],
+);
+
+export const amcRenewalReminderSentTable = pgTable(
+  "amc_renewal_reminder_sent",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    amcId: text("amc_id")
+      .notNull()
+      .references(() => amcTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    reminderType: text("reminder_type").notNull(), // "30_days" | "15_days" | "7_days"
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("amc_renewal_reminder_unique").on(
+      table.amcId,
+      table.reminderType,
+    ),
+  ],
+);
+
+export const amcAutoTaskTable = pgTable(
+  "amc_auto_task",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    amcServiceId: text("amc_service_id")
+      .notNull()
+      .references(() => amcServiceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    periodKey: text("period_key").notNull(),
+    taskId: text("task_id")
+      .notNull()
+      .references(() => taskTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("amc_auto_task_unique").on(table.amcServiceId, table.periodKey),
+  ],
 );

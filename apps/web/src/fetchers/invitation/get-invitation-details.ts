@@ -1,8 +1,10 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
 export type InvitationDetails = {
   id: string;
   email: string;
+  phoneNumber?: string | null;
+  zoneIds?: string | null;
   workspaceName: string;
   inviterName: string;
   expiresAt: string;

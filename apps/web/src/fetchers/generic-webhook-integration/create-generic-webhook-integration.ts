@@ -15,11 +15,11 @@ export type CreateGenericWebhookIntegrationRequest = {
 };
 
 async function createGenericWebhookIntegration(
-  projectId: string,
+  zoneId: string,
   json: CreateGenericWebhookIntegrationRequest,
 ) {
   const response = await fetch(
-    getApiUrl(`/generic-webhook-integration/project/${projectId}`),
+    getApiUrl(`/generic-webhook-integration/project/${zoneId}`),
     {
       method: "POST",
       credentials: "include",

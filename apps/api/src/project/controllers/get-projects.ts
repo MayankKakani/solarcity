@@ -1,14 +1,27 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import db from "../../database";
-import { projectTable } from "../../database/schema";
+import { zoneAssignmentTable, zoneTable } from "../../database/schema";
 
-async function getProjects(workspaceId: string, includeArchived = false) {
-  const projects = await db.query.projectTable.findMany({
+async function getProjects(
+  workspaceId: string,
+  userId: string,
+  includeArchived = false,
+) {
+  const assignedZoneIds = db
+    .select({ zoneId: zoneAssignmentTable.zoneId })
+    .from(zoneAssignmentTable)
+    .where(eq(zoneAssignmentTable.userId, userId));
+
+  const projects = await db.query.zoneTable.findMany({
     where: includeArchived
-      ? eq(projectTable.workspaceId, workspaceId)
+      ? and(
+          eq(zoneTable.workspaceId, workspaceId),
+          inArray(zoneTable.id, assignedZoneIds),
+        )
       : and(
-          eq(projectTable.workspaceId, workspaceId),
-          isNull(projectTable.archivedAt),
+          eq(zoneTable.workspaceId, workspaceId),
+          isNull(zoneTable.archivedAt),
+          inArray(zoneTable.id, assignedZoneIds),
         ),
     with: {
       tasks: true,

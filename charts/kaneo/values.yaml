@@ -30,7 +30,7 @@ postgresql:
     pullPolicy: IfNotPresent
   # Database configuration
   auth:
-    database: kaneo
+    database: solarplan
     username: kaneo_user
     password: kaneo_password
     # Use existing secret for database credentials (optional)
@@ -57,10 +57,10 @@ postgresql:
   #   requests:
   #     cpu: 100m
   #     memory: 128Mi
-# Kaneo application configuration (combined API + web frontend)
-kaneo:
+# Solarplan application configuration (combined API + web frontend)
+solarplan:
   image:
-    repository: ghcr.io/usekaneo/kaneo
+    repository: ghcr.io/usekaneo/solarplan
     tag: latest
     pullPolicy: IfNotPresent
   securityContext: {}
@@ -79,8 +79,8 @@ kaneo:
   #     memory: 128Mi
 
   env:
-    # Public URL of this Kaneo instance (e.g. https://kaneo.example.com)
-    # KANEO_API_URL is derived automatically as clientUrl/api if not set
+    # Public URL of this Solarplan instance (e.g. https://solarplan.example.com)
+    # SOLARPLAN_API_URL is derived automatically as clientUrl/api if not set
     clientUrl: ""
     # Allowed CORS origins. Accepts a comma-separated string or YAML list.
     # Defaults to clientUrl when left empty.
@@ -98,10 +98,10 @@ kaneo:
     database:
       # Use external PostgreSQL (set postgresql.enabled to false)
       # Important: when using external postgres, make sure you have set up the db user correctly:
-      #   CREATE DATABASE kaneo;
+      #   CREATE DATABASE solarplan;
       #   CREATE USER kaneo_user WITH PASSWORD 'your_password';
-      #   GRANT ALL PRIVILEGES ON DATABASE kaneo TO kaneo_user;
-      #   \c kaneo;
+      #   GRANT ALL PRIVILEGES ON DATABASE solarplan TO kaneo_user;
+      #   \c solarplan;
       #   GRANT USAGE ON SCHEMA public TO kaneo_user;
       #   GRANT CREATE ON SCHEMA public TO kaneo_user;
       #   ALTER SCHEMA public OWNER TO kaneo_user;
@@ -109,7 +109,7 @@ kaneo:
         enabled: false
         host: ""
         port: 5432
-        database: kaneo
+        database: solarplan
         username: kaneo_user
         password: ""
         # Use existing secret for external database credentials in the form of a uri, e.g.: "postgresql://user:pass@host:port/db"
@@ -117,7 +117,7 @@ kaneo:
           enabled: false
           name: ""
           passwordKey: postgres_uri
-  # Additional environment variables for the kaneo container.
+  # Additional environment variables for the solarplan container.
   # Each entry is a standard Kubernetes EnvVar (supports `value` or `valueFrom`).
   # Useful for CUSTOM_OAUTH_*, SMTP_*, etc. without editing the chart.
   # extraEnv entries are appended after chart-defined vars; duplicate names override.
@@ -133,13 +133,13 @@ kaneo:
   livenessProbe:
     httpGet:
       path: /api/health
-      port: kaneo
+      port: solarplan
     initialDelaySeconds: 60
     periodSeconds: 10
   readinessProbe:
     httpGet:
       path: /api/health
-      port: kaneo
+      port: solarplan
     initialDelaySeconds: 30
     periodSeconds: 10
 # Ingress configuration
@@ -148,11 +148,11 @@ ingress:
   className: nginx
   annotations: {}
   hosts:
-    - host: kaneo.local
+    - host: solarplan.local
       paths:
         - path: /
           pathType: Prefix
-          service: kaneo
+          service: solarplan
           port: 5173
   tls: []
 
@@ -169,5 +169,5 @@ gateway:
             type: PathPrefix
             value: /
       backendRefs:
-        - service: kaneo
+        - service: solarplan
           port: 5173

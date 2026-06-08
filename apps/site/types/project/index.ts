@@ -18,7 +18,7 @@ export type ProjectWithTasks = Project & {
     name: string;
     order: number;
     isFinal: boolean;
-    projectId: string;
+    zoneId: string;
     tasks: Task[];
   }>;
 };

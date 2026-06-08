@@ -1,8 +1,8 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import type { KaneoClient } from "../kaneo/client.js";
-import { buildFullTaskUpdateBody } from "../kaneo/task-helpers.js";
+import type { KaneoClient } from "../solarplan/client.js";
+import { buildFullTaskUpdateBody } from "../solarplan/task-helpers.js";
 import { errorResult, textResult } from "../utils/mcp-result.js";
 
 const prioritySchema = z.enum([
@@ -46,7 +46,7 @@ export function registerTools(
     "whoami",
     {
       description:
-        "Return the current Kaneo session and user for the cached device token.",
+        "Return the current Solarplan session and user for the cached device token.",
       inputSchema: z.object({}),
     },
     async () =>
@@ -186,7 +186,7 @@ export function registerTools(
   );
 
   const listTasksSchema = z.object({
-    projectId: nonEmptyString,
+    zoneId: nonEmptyString,
     status: optionalNonEmptyString,
     priority: prioritySchema.optional(),
     assigneeId: optionalNonEmptyString,
@@ -207,7 +207,7 @@ export function registerTools(
       inputSchema: listTasksSchema,
     },
     async (args) => {
-      const { projectId, ...rest } = args;
+      const { zoneId, ...rest } = args;
       const qs = new URLSearchParams();
       for (const [k, v] of Object.entries(rest)) {
         if (v === undefined || v === null) {
@@ -216,7 +216,7 @@ export function registerTools(
         qs.set(k, String(v));
       }
       const q = qs.toString();
-      const path = `/api/task/tasks/${encodeURIComponent(projectId)}${q ? `?${q}` : ""}`;
+      const path = `/api/task/tasks/${encodeURIComponent(zoneId)}${q ? `?${q}` : ""}`;
       return run(() => client.json(path, { method: "GET" }));
     },
   );
@@ -240,7 +240,7 @@ export function registerTools(
     {
       description: "Create a task in a project.",
       inputSchema: z.object({
-        projectId: nonEmptyString,
+        zoneId: nonEmptyString,
         title: nonEmptyString,
         description: z.string(),
         priority: prioritySchema,
@@ -267,7 +267,7 @@ export function registerTools(
         body.userId = args.userId;
       }
       return run(() =>
-        client.json(`/api/task/${encodeURIComponent(args.projectId)}`, {
+        client.json(`/api/task/${encodeURIComponent(args.zoneId)}`, {
           method: "POST",
           body: JSON.stringify(body),
         }),
@@ -281,7 +281,7 @@ export function registerTools(
     description: z.string().nullable().optional(),
     status: optionalNonEmptyString,
     priority: prioritySchema.optional(),
-    projectId: optionalNonEmptyString,
+    zoneId: optionalNonEmptyString,
     position: z.number().optional(),
     startDate: nullableOptionalIsoDateTimeSchema,
     dueDate: nullableOptionalIsoDateTimeSchema,
@@ -318,7 +318,7 @@ export function registerTools(
         "Move a task to another project (and optional column status).",
       inputSchema: z.object({
         taskId: nonEmptyString,
-        destinationProjectId: nonEmptyString,
+        destinationzoneId: nonEmptyString,
         destinationStatus: optionalNonEmptyString,
       }),
     },
@@ -327,7 +327,7 @@ export function registerTools(
         client.json(`/api/task/move/${encodeURIComponent(args.taskId)}`, {
           method: "PUT",
           body: JSON.stringify({
-            destinationProjectId: args.destinationProjectId,
+            destinationzoneId: args.destinationzoneId,
             ...(args.destinationStatus !== undefined
               ? { destinationStatus: args.destinationStatus }
               : {}),

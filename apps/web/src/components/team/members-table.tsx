@@ -1,10 +1,20 @@
-import { DEFAULT_ROLE_NAMES } from "@kaneo/permissions";
-import { EllipsisIcon, MailIcon, ShieldIcon, TrashIcon } from "lucide-react";
+import { DEFAULT_ROLE_NAMES } from "@solarplan/permissions";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  EllipsisIcon,
+  FolderIcon,
+  MailIcon,
+  ShieldIcon,
+  TrashIcon,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import addProjectMember from "@/fetchers/project/add-project-member";
+import removeProjectMember from "@/fetchers/project/remove-project-member";
 import useCancelInvitation from "@/hooks/mutations/workspace-user/use-cancel-invitation";
 import useDeleteWorkspaceUser from "@/hooks/mutations/workspace-user/use-delete-workspace-user";
 import useUpdateWorkspaceUserRole from "@/hooks/mutations/workspace-user/use-update-workspace-user-role";
+import useGetProjects from "@/hooks/queries/project/use-get-projects";
 import useWorkspaceRoles from "@/hooks/queries/workspace/use-workspace-roles";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { cn } from "@/lib/cn";
@@ -27,7 +37,13 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Badge } from "../ui/badge";
 import { Button } from "../ui/button";
-import { Menu, MenuItem, MenuPopup, MenuTrigger } from "../ui/menu";
+import {
+  Menu,
+  MenuCheckboxItem,
+  MenuItem,
+  MenuPopup,
+  MenuTrigger,
+} from "../ui/menu";
 import {
   Select,
   SelectContent,
@@ -94,6 +110,7 @@ function capitalize(value: string): string {
 
 function MembersTable({ workspaceId, invitations, users }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [memberToDelete, setMemberToDelete] = useState<WorkspaceUser | null>(
     null,
   );
@@ -107,11 +124,52 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
     useCancelInvitation();
   const { mutateAsync: updateMemberRole } = useUpdateWorkspaceUserRole();
   const { data: allWorkspaceRoles = [] } = useWorkspaceRoles(workspaceId);
+  const { data: allProjects = [] } = useGetProjects({ workspaceId });
   const { canManageTeam, canRemoveMembers, canInviteUsers } =
     useWorkspacePermission();
   const canChangeRoles = Boolean(canManageTeam());
   const canRemove = Boolean(canRemoveMembers());
   const canInvite = Boolean(canInviteUsers());
+
+  const handleToggleProject = async (
+    member: WorkspaceUser,
+    projectId: string,
+    projectName: string,
+    isAssigned: boolean,
+  ) => {
+    try {
+      if (isAssigned) {
+        await removeProjectMember({ zoneId: projectId, userId: member.userId });
+        toast.success(
+          t("team:membersTable.projectRemovedSuccess", {
+            defaultValue: "Removed {{name}} from {{project}}",
+            name: member.user.name || member.user.email,
+            project: projectName,
+          }),
+        );
+      } else {
+        await addProjectMember({ zoneId: projectId, userId: member.userId });
+        toast.success(
+          t("team:membersTable.projectAssignedSuccess", {
+            defaultValue: "Added {{name}} to {{project}}",
+            name: member.user.name || member.user.email,
+            project: projectName,
+          }),
+        );
+      }
+      await queryClient.invalidateQueries({
+        queryKey: ["workspace", "full", workspaceId],
+      });
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : t("team:membersTable.projectUpdateError", {
+              defaultValue: "Failed to update project assignment",
+            }),
+      );
+    }
+  };
 
   const customRoles = allWorkspaceRoles.filter(
     (role) => !RESERVED_ROLE_NAMES.has(role.role),
@@ -196,6 +254,11 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
               {t("team:membersTable.columns.role", { defaultValue: "Role" })}
             </TableHead>
             <TableHead className="text-foreground font-medium">
+              {t("team:membersTable.columns.projects", {
+                defaultValue: "Projects",
+              })}
+            </TableHead>
+            <TableHead className="text-foreground font-medium">
               {t("team:membersTable.columns.joined", {
                 defaultValue: "Joined",
               })}
@@ -210,7 +273,7 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
               canChangeRoles && !isSelf && member.role !== "owner";
             const tone = toneFor(member.user.email);
             return (
-              <TableRow key={member.user.email}>
+              <TableRow key={member.user.phone}>
                 <TableCell className="ps-6 py-3">
                   <div className="flex items-center gap-3">
                     <Avatar className={cn("size-8", tone)}>
@@ -288,6 +351,76 @@ function MembersTable({ workspaceId, invitations, users }: Props) {
                         defaultValue: capitalize(member.role),
                       })}
                     </Badge>
+                  )}
+                </TableCell>
+                <TableCell className="py-3">
+                  {canChangeRoles && !isSelf ? (
+                    <Menu>
+                      <MenuTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 min-w-[8rem] justify-start px-2 font-normal text-muted-foreground hover:text-foreground"
+                          />
+                        }
+                      >
+                        <FolderIcon className="mr-1.5 size-3.5 shrink-0" />
+                        {member.projects && member.projects.length > 0
+                          ? member.projects.length === 1
+                            ? member.projects[0].name
+                            : t("team:membersTable.projectsCount", {
+                                defaultValue: "{{count}} projects",
+                                count: member.projects.length,
+                              })
+                          : t("team:membersTable.noProjects", {
+                              defaultValue: "No projects",
+                            })}
+                      </MenuTrigger>
+                      <MenuPopup align="start">
+                        {allProjects && allProjects.length > 0 ? (
+                          allProjects.map((project) => {
+                            const isAssigned = Boolean(
+                              member.projects?.some((p) => p.id === project.id),
+                            );
+                            return (
+                              <MenuCheckboxItem
+                                key={project.id}
+                                checked={isAssigned}
+                                closeOnClick={false}
+                                onClick={() =>
+                                  handleToggleProject(
+                                    member,
+                                    project.id,
+                                    project.name,
+                                    isAssigned,
+                                  )
+                                }
+                              >
+                                {project.name}
+                              </MenuCheckboxItem>
+                            );
+                          })
+                        ) : (
+                          <MenuItem disabled>
+                            {t("team:membersTable.noProjectsAvailable", {
+                              defaultValue: "No projects available",
+                            })}
+                          </MenuItem>
+                        )}
+                      </MenuPopup>
+                    </Menu>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">
+                      {member.projects && member.projects.length > 0
+                        ? member.projects.length === 1
+                          ? member.projects[0].name
+                          : t("team:membersTable.projectsCount", {
+                              defaultValue: "{{count}} projects",
+                              count: member.projects.length,
+                            })
+                        : "—"}
+                    </span>
                   )}
                 </TableCell>
                 <TableCell className="py-3 text-sm text-muted-foreground tabular-nums">

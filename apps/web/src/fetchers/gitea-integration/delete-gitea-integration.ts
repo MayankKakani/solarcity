@@ -1,11 +1,11 @@
-import { client } from "@kaneo/libs";
+import { client } from "@solarplan/libs";
 
-async function deleteGiteaIntegration(projectId: string) {
-  const response = await client["gitea-integration"].project[
-    ":projectId"
-  ].$delete({
-    param: { projectId },
-  });
+async function deleteGiteaIntegration(zoneId: string) {
+  const response = await client["gitea-integration"].project[":zoneId"].$delete(
+    {
+      param: { zoneId },
+    },
+  );
 
   if (!response.ok) {
     const error = await response.text();

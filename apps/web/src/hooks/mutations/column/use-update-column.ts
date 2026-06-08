@@ -10,7 +10,7 @@ export function useUpdateColumn() {
       data,
     }: {
       id: string;
-      projectId: string;
+      zoneId: string;
       data: {
         name?: string;
         icon?: string | null;
@@ -21,11 +21,11 @@ export function useUpdateColumn() {
     onSuccess: async (_, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: ["columns", variables.projectId],
+          queryKey: ["columns", variables.zoneId],
           refetchType: "all",
         }),
         queryClient.invalidateQueries({
-          queryKey: ["tasks", variables.projectId],
+          queryKey: ["tasks", variables.zoneId],
           refetchType: "all",
         }),
       ]);

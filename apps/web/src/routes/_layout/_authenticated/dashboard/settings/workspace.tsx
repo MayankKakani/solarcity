@@ -2,10 +2,9 @@ import {
   createFileRoute,
   Link,
   Outlet,
-  redirect,
   useLocation,
 } from "@tanstack/react-router";
-import { Settings, Shield } from "lucide-react";
+import { Package, Settings, Shield, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -30,26 +29,42 @@ export const Route = createFileRoute(
   // before ever visiting a workspace dashboard would otherwise see an empty
   // sidebar ("WS / Roles.Undefined") and a stuck "Loading…" — pick the first
   // workspace as active so the layout has something to render.
-  beforeLoad: async () => {
+  loader: async () => {
     const session = await authClient.getSession();
-    if (session?.data?.session?.activeOrganizationId) return;
+    if (session?.data?.session?.activeOrganizationId) {
+      return { hasWorkspaces: true };
+    }
 
     const workspaces = await getWorkspaces();
     if (workspaces.length === 0) {
-      throw redirect({ to: "/onboarding" });
+      return { hasWorkspaces: false };
     }
 
     await authClient.organization.setActive({
       organizationId: workspaces[0].id,
     });
+    return { hasWorkspaces: true };
   },
   component: RouteComponent,
 });
 
 function RouteComponent() {
+  const { hasWorkspaces } = Route.useLoaderData();
   const { t } = useTranslation();
   const { workspace, role } = useWorkspacePermission();
   const location = useLocation();
+
+  if (!hasWorkspaces) {
+    return (
+      <div className="flex h-full items-center justify-center">
+        <p className="text-sm text-muted-foreground text-center">
+          You are not assigned to any Organisation, please reach out to your
+          admin.
+        </p>
+      </div>
+    );
+  }
+
   const menuItems = [
     {
       title: t("settings:workspaceGeneral.title"),
@@ -60,6 +75,16 @@ function RouteComponent() {
       title: t("settings:workspaceRoles.title", { defaultValue: "Roles" }),
       url: "/dashboard/settings/workspace/roles",
       icon: Shield,
+    },
+    {
+      title: "Service Masters",
+      url: "/dashboard/settings/workspace/services",
+      icon: Wrench,
+    },
+    {
+      title: "AMC Bundles",
+      url: "/dashboard/settings/workspace/amc-bundles",
+      icon: Package,
     },
   ];
   const isActivePath = (path: string) => location.pathname === path;

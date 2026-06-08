@@ -106,7 +106,7 @@ describe("S3 helpers", () => {
 
     const key = buildObjectKey({
       workspaceId: "Workspace 1",
-      projectId: "Project 2",
+      zoneId: "Project 2",
       taskId: "Task 3",
       surface: "comment",
       filename: "Sprint Plan Final!!.PNG",
@@ -116,7 +116,7 @@ describe("S3 helpers", () => {
     expect(
       buildObjectKeyPrefix({
         workspaceId: "Workspace 1",
-        projectId: "Project 2",
+        zoneId: "Project 2",
         taskId: "Task 3",
         surface: "comment",
       }),
@@ -126,7 +126,7 @@ describe("S3 helpers", () => {
       /^workspace\/workspace-1\/project\/project-2\/task\/task-3\/comments\/sprint-plan-final-1717171717000-[a-z0-9]+\.png$/,
     );
     process.env.S3_ENDPOINT = "https://storage.example.test";
-    process.env.S3_BUCKET = "kaneo";
+    process.env.S3_BUCKET = "solarplan";
     process.env.S3_ACCESS_KEY_ID = "test-access-key";
     process.env.S3_SECRET_ACCESS_KEY = "test-secret-key";
     delete process.env.S3_KEY_PREFIX;
@@ -134,7 +134,7 @@ describe("S3 helpers", () => {
     expect(
       assertTaskImageKeyMatchesContext(key, {
         workspaceId: "Workspace 1",
-        projectId: "Project 2",
+        zoneId: "Project 2",
         taskId: "Task 3",
         surface: "comment",
       }),
@@ -148,22 +148,22 @@ describe("S3 helpers", () => {
     expect(applyKeyPrefix("staging", "workspace/a/file.png")).toBe(
       "staging/workspace/a/file.png",
     );
-    expect(applyKeyPrefix("prod/kaneo/", "workspace/a/file.png")).toBe(
-      "prod/kaneo/workspace/a/file.png",
+    expect(applyKeyPrefix("prod/solarplan/", "workspace/a/file.png")).toBe(
+      "prod/solarplan/workspace/a/file.png",
     );
     expect(applyKeyPrefix("prefix///", "key")).toBe("prefix/key");
   });
 
   it("assertTaskImageKeyMatchesContext respects S3_KEY_PREFIX", () => {
     process.env.S3_ENDPOINT = "https://storage.example.test";
-    process.env.S3_BUCKET = "kaneo";
+    process.env.S3_BUCKET = "solarplan";
     process.env.S3_ACCESS_KEY_ID = "test-access-key";
     process.env.S3_SECRET_ACCESS_KEY = "test-secret-key";
     process.env.S3_KEY_PREFIX = "staging";
 
     const ctx = {
       workspaceId: "ws1",
-      projectId: "p1",
+      zoneId: "p1",
       taskId: "t1",
       surface: "description" as const,
     };
@@ -194,7 +194,7 @@ describe("S3 helpers", () => {
 
   it("creates presigned upload URLs without hoisted checksum query params", async () => {
     process.env.S3_ENDPOINT = "https://storage.example.test";
-    process.env.S3_BUCKET = "kaneo";
+    process.env.S3_BUCKET = "solarplan";
     process.env.S3_ACCESS_KEY_ID = "test-access-key";
     process.env.S3_SECRET_ACCESS_KEY = "test-secret-key";
     process.env.S3_REGION = "us-east-1";
@@ -203,7 +203,7 @@ describe("S3 helpers", () => {
 
     const upload = await createTaskImageUploadUrl({
       workspaceId: "workspace-1",
-      projectId: "project-1",
+      zoneId: "project-1",
       taskId: "task-1",
       surface: "description",
       filename: "report.png",
