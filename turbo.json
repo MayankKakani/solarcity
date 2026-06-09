@@ -5,9 +5,16 @@
 		"build": {
 			"dependsOn": ["^build"],
 			"inputs": ["$TURBO_DEFAULT$", ".env*"],
-			"outputs": ["dist/**"]
+			"outputs": ["dist/**"],
+			"env": [
+				"DATABASE_URL",
+				"AUTH_SECRET",
+				"ALLOW_USER_TO_CREATE_ORGANISATION",
+				"NODE_ENV",
+				"SOLARPLAN_CLIENT_URL",
+				"SOLARPLAN_API_URL"
+			]
 		},
-
 		"dev": {
 			"cache": false,
 			"persistent": true
