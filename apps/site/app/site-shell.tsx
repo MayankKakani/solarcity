@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/a11y/useValidAnchor: <ignore> */
 "use client";
 
+import { Sun } from "lucide-react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -44,7 +45,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           <div className="nav-inner">
             <a href="#" className="nav-brand" aria-label="Solarplan home">
               <div className="nav-mark" aria-hidden="true">
-                <i className="ti ti-solar-panel" />
+                {/* <i className="ti ti-solar-panel" /> */}
+                <Sun className="h-5 w-5 text-amber-500" />
               </div>
               <span className="nav-name">Solarplan</span>
             </a>
@@ -63,8 +65,13 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               >
                 Log in
               </Button>
-              <Button className="btn-primary" onClick={() => scrollTo("cta")}>
-                Get started free
+              <Button
+                className="btn-primary"
+                onClick={() =>
+                  (window.location.href = "https://wa.me/+917597204168")
+                }
+              >
+                Contact Us
               </Button>
             </div>
             <Button
@@ -98,9 +105,11 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
             <Button
               className="btn-primary"
               style={{ flex: 1, padding: "11px" }}
-              onClick={() => scrollTo("cta")}
+              onClick={() =>
+                (window.location.href = "https://wa.me/+917597204168")
+              }
             >
-              Get started
+              Contact us
             </Button>
           </div>
         </div>
@@ -113,7 +122,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               <div>
                 <div className="hero-pill hero-text-1">
                   <i className="ti ti-bolt" aria-hidden="true" />
-                  Solar service management
+                  Solar AMC & Work Management
                 </div>
                 <h1 className="hero-text-2">
                   Professional solar service,{" "}
@@ -129,7 +138,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                     className="btn-primary-lg"
                     onClick={() => scrollTo("cta")}
                   >
-                    Get started free{" "}
+                    Contact us{" "}
                     <i className="ti ti-arrow-right" aria-hidden="true" />
                   </Button>
                   <Button
@@ -252,7 +261,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
           </div>
         </section>
 
-        <div className="trust">
+        {/* <div className="trust">
           <div className="container">
             <div className="trust-inner">
               <span className="trust-label">
@@ -269,7 +278,7 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <section className="problem" id="problem">
           <div className="container">
@@ -820,26 +829,23 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
               </div>
               <h2>Ready to professionalize your solar service?</h2>
               <p className="lead">
-                Join 200+ solar companies delivering transparent, on-time
-                service — and turning after-sale into their biggest revenue
-                driver.
+                Join solar companies delivering transparent, on-time service —
+                and turning after-sale into their biggest revenue driver.
               </p>
               <div className="final-cta-btns">
                 <Button
                   className="btn-primary-lg"
                   onClick={() =>
-                    (window.location.href =
-                      "mailto:hello@solarplan.app?subject=Free Trial Request")
+                    (window.location.href = "https://wa.me/+917597204168")
                   }
                 >
-                  Start free — no card needed{" "}
+                  Start now — contact us{" "}
                   <i className="ti ti-arrow-right" aria-hidden="true" />
                 </Button>
                 <Button
                   className="btn-ghost-lg"
                   onClick={() =>
-                    (window.location.href =
-                      "mailto:hello@solarplan.app?subject=Demo Request")
+                    (window.location.href = "https://wa.me/+917597204168")
                   }
                 >
                   Book a 20-min demo

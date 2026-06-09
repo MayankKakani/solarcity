@@ -509,7 +509,7 @@ function RouteComponent() {
                 Compare plans <ArrowRight className="h-4 w-4" />
               </a>
               <a
-                href={`mailto:info@${workspaceSlug}.com`}
+                href={"mailto:info@solarplan.in"}
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-semibold transition-colors"
               >
                 <PhoneCall className="h-4 w-4" />
