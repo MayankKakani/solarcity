@@ -4,6 +4,8 @@ packages:
   - apps/api
   - apps/web
   - apps/site
+  - packages/typescript-config
+  - packages/libs
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - bcrypt

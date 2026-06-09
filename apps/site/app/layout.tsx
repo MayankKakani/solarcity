@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import SiteShell from "./site-shell";
 
 export const viewport: Viewport = {
@@ -90,6 +91,7 @@ export default function RootLayout({
       <body>
         <SiteShell>{children}</SiteShell>
       </body>
+      <Analytics />
     </html>
   );
 }
