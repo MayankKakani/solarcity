@@ -209,12 +209,12 @@ export function createApp() {
   });
 
   const publicAmcBundlesApi = api.get(
-    "/amc/public/bundles/:workspaceSlug",
+    "/amc/public/bundles/:workspaceId",
     async (c) => {
-      const { workspaceSlug } = c.req.param();
-      const result = await getPublicBundles(workspaceSlug);
+      const { workspaceId } = c.req.param();
+      const result = await getPublicBundles(workspaceId);
       if (!result) {
-        return c.json({ error: "Workspace not found" }, 404);
+        return c.json({ error: "Organisation not found" }, 404);
       }
       return c.json(result);
     },

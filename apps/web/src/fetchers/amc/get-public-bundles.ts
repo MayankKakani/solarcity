@@ -7,10 +7,10 @@ export type PublicBundlesResponse = {
 };
 
 async function getPublicBundles(
-  workspaceSlug: string,
+  workspaceId: string,
 ): Promise<PublicBundlesResponse> {
   const response = await fetch(
-    getApiUrl(`/amc/public/bundles/${encodeURIComponent(workspaceSlug)}`),
+    getApiUrl(`/amc/public/bundles/${encodeURIComponent(workspaceId)}`),
   );
   if (!response.ok) throw new Error(await response.text());
   return response.json();

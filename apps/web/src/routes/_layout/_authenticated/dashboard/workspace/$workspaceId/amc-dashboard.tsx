@@ -17,7 +17,6 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import useGetAmcDashboard from "@/hooks/queries/amc/use-get-amc-dashboard";
-import useGetFullWorkspace from "@/hooks/queries/workspace/use-get-full-workspace";
 
 export const Route = createFileRoute(
   "/_layout/_authenticated/dashboard/workspace/$workspaceId/amc-dashboard",
@@ -50,7 +49,7 @@ function RouteComponent() {
   const { workspaceId } = Route.useParams();
   const { data = [], isLoading } = useGetAmcDashboard(workspaceId);
   // const { data: fullWorkspce } = useGetFullWorkspace(workspaceId)
-  const work = useGetFullWorkspace({ workspaceId });
+  // const work = useGetFullWorkspace({ workspaceId });
   const [statusFilter, setStatusFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
@@ -100,7 +99,7 @@ function RouteComponent() {
       <div className="flex h-14 items-center gap-3 border-b px-4">
         <SidebarTrigger />
         <h1 className="text-lg font-semibold flex-1">AMC</h1>
-        <Link to={`/public-amc/${work.data?.slug}`} target="_blank">
+        <Link to={`/public-amc/${workspaceId}`} target="_blank">
           <Button variant="outline" size="sm" className="gap-1.5">
             <Share className="size-3.5" />
             Share

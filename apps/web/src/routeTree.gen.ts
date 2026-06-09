@@ -16,7 +16,7 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DeviceIndexRouteImport } from './routes/device/index'
 import { Route as PublicProjectProjectIdRouteImport } from './routes/public-project.$projectId'
-import { Route as PublicAmcWorkspaceSlugRouteImport } from './routes/public-amc.$workspaceSlug'
+import { Route as PublicAmcWorkspaceIdRouteImport } from './routes/public-amc.$workspaceId'
 import { Route as DeviceApproveRouteImport } from './routes/device/approve'
 import { Route as AuthVerifyOtpRouteImport } from './routes/auth/verify-otp'
 import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
@@ -97,9 +97,9 @@ const PublicProjectProjectIdRoute = PublicProjectProjectIdRouteImport.update({
   path: '/public-project/$projectId',
   getParentRoute: () => rootRouteImport,
 } as any)
-const PublicAmcWorkspaceSlugRoute = PublicAmcWorkspaceSlugRouteImport.update({
-  id: '/public-amc/$workspaceSlug',
-  path: '/public-amc/$workspaceSlug',
+const PublicAmcWorkspaceIdRoute = PublicAmcWorkspaceIdRouteImport.update({
+  id: '/public-amc/$workspaceId',
+  path: '/public-amc/$workspaceId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DeviceApproveRoute = DeviceApproveRouteImport.update({
@@ -403,7 +403,7 @@ export interface FileRoutesByFullPath {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
-  '/public-amc/$workspaceSlug': typeof PublicAmcWorkspaceSlugRoute
+  '/public-amc/$workspaceId': typeof PublicAmcWorkspaceIdRoute
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
   '/device/': typeof DeviceIndexRoute
   '/dashboard': typeof LayoutAuthenticatedDashboardRouteWithChildren
@@ -455,7 +455,7 @@ export interface FileRoutesByTo {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
-  '/public-amc/$workspaceSlug': typeof PublicAmcWorkspaceSlugRoute
+  '/public-amc/$workspaceId': typeof PublicAmcWorkspaceIdRoute
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
   '/device': typeof DeviceIndexRoute
   '/invitations': typeof LayoutAuthenticatedInvitationsRoute
@@ -508,7 +508,7 @@ export interface FileRoutesById {
   '/auth/sign-up': typeof AuthSignUpRoute
   '/auth/verify-otp': typeof AuthVerifyOtpRoute
   '/device/approve': typeof DeviceApproveRoute
-  '/public-amc/$workspaceSlug': typeof PublicAmcWorkspaceSlugRoute
+  '/public-amc/$workspaceId': typeof PublicAmcWorkspaceIdRoute
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
   '/device/': typeof DeviceIndexRoute
   '/_layout/_authenticated/dashboard': typeof LayoutAuthenticatedDashboardRouteWithChildren
@@ -563,7 +563,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-otp'
     | '/device/approve'
-    | '/public-amc/$workspaceSlug'
+    | '/public-amc/$workspaceId'
     | '/public-project/$projectId'
     | '/device/'
     | '/dashboard'
@@ -615,7 +615,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-otp'
     | '/device/approve'
-    | '/public-amc/$workspaceSlug'
+    | '/public-amc/$workspaceId'
     | '/public-project/$projectId'
     | '/device'
     | '/invitations'
@@ -667,7 +667,7 @@ export interface FileRouteTypes {
     | '/auth/sign-up'
     | '/auth/verify-otp'
     | '/device/approve'
-    | '/public-amc/$workspaceSlug'
+    | '/public-amc/$workspaceId'
     | '/public-project/$projectId'
     | '/device/'
     | '/_layout/_authenticated/dashboard'
@@ -717,7 +717,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRouteWithChildren
   DeviceRoute: typeof DeviceRouteWithChildren
   TestErrorRoute: typeof TestErrorRoute
-  PublicAmcWorkspaceSlugRoute: typeof PublicAmcWorkspaceSlugRoute
+  PublicAmcWorkspaceIdRoute: typeof PublicAmcWorkspaceIdRoute
   PublicProjectProjectIdRoute: typeof PublicProjectProjectIdRoute
   InvitationAcceptInviteIdRoute: typeof InvitationAcceptInviteIdRoute
 }
@@ -773,11 +773,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicProjectProjectIdRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/public-amc/$workspaceSlug': {
-      id: '/public-amc/$workspaceSlug'
-      path: '/public-amc/$workspaceSlug'
-      fullPath: '/public-amc/$workspaceSlug'
-      preLoaderRoute: typeof PublicAmcWorkspaceSlugRouteImport
+    '/public-amc/$workspaceId': {
+      id: '/public-amc/$workspaceId'
+      path: '/public-amc/$workspaceId'
+      fullPath: '/public-amc/$workspaceId'
+      preLoaderRoute: typeof PublicAmcWorkspaceIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/device/approve': {
@@ -1348,7 +1348,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRouteWithChildren,
   DeviceRoute: DeviceRouteWithChildren,
   TestErrorRoute: TestErrorRoute,
-  PublicAmcWorkspaceSlugRoute: PublicAmcWorkspaceSlugRoute,
+  PublicAmcWorkspaceIdRoute: PublicAmcWorkspaceIdRoute,
   PublicProjectProjectIdRoute: PublicProjectProjectIdRoute,
   InvitationAcceptInviteIdRoute: InvitationAcceptInviteIdRoute,
 }

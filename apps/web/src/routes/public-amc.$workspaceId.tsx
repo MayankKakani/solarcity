@@ -12,7 +12,7 @@ import { ThemeToggle } from "@/components/public-project/theme-toggle";
 import type { AmcBundle, AmcBundleService } from "@/fetchers/amc/types";
 import useGetPublicBundles from "@/hooks/queries/amc/use-get-public-bundles";
 
-export const Route = createFileRoute("/public-amc/$workspaceSlug")({
+export const Route = createFileRoute("/public-amc/$workspaceId")({
   component: RouteComponent,
 });
 
@@ -272,8 +272,8 @@ function ErrorView() {
 const W = "w-full max-w-5xl mx-auto px-4 sm:px-6";
 
 function RouteComponent() {
-  const { workspaceSlug } = Route.useParams();
-  const { data, isLoading, error } = useGetPublicBundles(workspaceSlug);
+  const { workspaceId } = Route.useParams();
+  const { data, isLoading, error } = useGetPublicBundles(workspaceId);
 
   if (isLoading) return <LoadingSkeleton />;
   if (error || !data || data.bundles.length === 0) return <ErrorView />;
