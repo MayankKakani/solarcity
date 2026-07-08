@@ -23,6 +23,7 @@ services:
   - type: web
     name: solarplan-web
     runtime: static
+    plan: free
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/web... build
     staticPublishPath: apps/web/dist
@@ -37,6 +38,7 @@ services:
   - type: web
     name: solarplan-site
     runtime: static
+    plan: free
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/site... build
     staticPublishPath: apps/site/out
