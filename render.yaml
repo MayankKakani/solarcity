@@ -1,0 +1,42 @@
+services:
+  - type: web
+    name: solarplan-api
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/api... build
+    startCommand: node apps/api/dist/index.js
+    envVars:
+      - key: NODE_VERSION
+        value: 20.19.0
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTH_SECRET
+        sync: false
+      - key: SOLARPLAN_CLIENT_URL
+        sync: false
+      - key: SOLARPLAN_API_URL
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false
+
+  - type: web
+    name: solarplan-web
+    runtime: static
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/web... build
+    staticPublishPath: apps/web/dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+  - type: web
+    name: solarplan-site
+    runtime: static
+    rootDir: .
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/site... build
+    staticPublishPath: apps/site/out

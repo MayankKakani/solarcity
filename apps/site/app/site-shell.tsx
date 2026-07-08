@@ -125,13 +125,13 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                   Solar AMC & Work Management
                 </div>
                 <h1 className="hero-text-2">
-                  Professional solar service,{" "}
-                  <em>from first visit to renewal.</em>
+                  Run your solar business. ,{" "}
+                  <em>Not just your installations.</em>
                 </h1>
                 <p className="lead hero-text-3">
-                  Solarplan helps solar companies manage AMCs, schedule field
-                  visits, and deliver a transparent customer experience — all
-                  from one platform.
+                  SolarPlan helps solar EMCs and local installers manage AMC
+                  contracts, service requests, field visits, and customer
+                  conversions — all in one place.
                 </p>
                 <div className="hero-ctas hero-text-4">
                   <Button
@@ -152,8 +152,8 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
                   className="hero-vision hero-text-4"
                   style={{ animationDelay: ".38s" }}
                 >
-                  "To deliver professional, on-time and transparent solar
-                  after-sale service that protects your investments."
+                  "Your customers invested in solar. Help them protect it. From
+                  installation to AMC — all your operations, one place."
                   <span>— Solarplan vision</span>
                 </blockquote>
               </div>
