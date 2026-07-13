@@ -3,6 +3,7 @@ services:
     name: solarplan-api
     runtime: node
     plan: free
+    region: singapore
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/api... build
     startCommand: node apps/api/dist/index.js
@@ -27,6 +28,7 @@ services:
   - type: web
     name: solarplan-web
     runtime: static
+    region: singapore
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/web... build
     staticPublishPath: apps/web/dist
