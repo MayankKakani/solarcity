@@ -28,7 +28,6 @@ services:
   - type: web
     name: solarplan-web
     runtime: static
-    region: singapore
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/web... build
     staticPublishPath: apps/web/dist
@@ -42,7 +41,6 @@ services:
 
   - type: web
     name: solarplan-site
-    region: singapore
     runtime: static
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/site... build
