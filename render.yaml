@@ -42,6 +42,7 @@ services:
 
   - type: web
     name: solarplan-site
+    region: singapore
     runtime: static
     rootDir: .
     buildCommand: pnpm install --frozen-lockfile && pnpm --filter @solarplan/site... build
