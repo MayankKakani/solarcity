@@ -309,6 +309,20 @@
 			"when": 1780599897865,
 			"tag": "0043_icy_vin_gonzales",
 			"breakpoints": true
+		},
+		{
+			"idx": 44,
+			"version": "7",
+			"when": 1783541054549,
+			"tag": "0044_slim_overlord",
+			"breakpoints": true
+		},
+		{
+			"idx": 45,
+			"version": "7",
+			"when": 1783593326707,
+			"tag": "0045_fluffy_otto_octavius",
+			"breakpoints": true
 		}
 	]
 }

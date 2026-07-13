@@ -1,0 +1,1 @@
+ALTER TABLE "plan" ADD COLUMN "self_serve_checkout" boolean DEFAULT false NOT NULL;

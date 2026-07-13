@@ -31,7 +31,6 @@ export const Route = createFileRoute("/auth/verify-otp")({
   validateSearch: (search: Record<string, unknown>) => ({
     email: search.email as string | undefined,
     phoneNumber: search.phoneNumber as string | undefined,
-    name: search.name as string | undefined,
     invitationId: search.invitationId as string | undefined,
     redirect: search.redirect as string | undefined,
   }),
@@ -40,7 +39,7 @@ export const Route = createFileRoute("/auth/verify-otp")({
 function VerifyOtp() {
   const { t } = useTranslation();
   const { history } = useRouter();
-  const { email, phoneNumber, name, invitationId, redirect } = useSearch({
+  const { email, phoneNumber, invitationId, redirect } = useSearch({
     from: "/auth/verify-otp",
   });
   const [isPending, setIsPending] = useState(false);
@@ -88,11 +87,6 @@ function VerifyOtp() {
             code: data.otp,
           });
           error = result.error;
-
-          // If name was passed (sign-up flow), update the user's name now
-          if (!result.error && name) {
-            await authClient.updateUser({ name }).catch(() => {});
-          }
         } else if (email) {
           const result = await authClient.signIn.emailOtp({
             email,
@@ -111,6 +105,9 @@ function VerifyOtp() {
           history.push(safeRedirect);
         } else if (invitationId) {
           history.push(`/invitation/accept/${invitationId}`);
+        } else if (isPhoneFlow) {
+          const { data: session } = await authClient.getSession();
+          history.push(session?.user?.name ? "/dashboard" : "/profile-setup");
         } else {
           history.push("/dashboard");
         }
@@ -124,16 +121,7 @@ function VerifyOtp() {
         setIsPending(false);
       }
     },
-    [
-      email,
-      phoneNumber,
-      isPhoneFlow,
-      name,
-      invitationId,
-      history,
-      safeRedirect,
-      t,
-    ],
+    [email, phoneNumber, isPhoneFlow, invitationId, history, safeRedirect, t],
   );
 
   useEffect(() => {

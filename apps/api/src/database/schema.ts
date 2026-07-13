@@ -1430,3 +1430,97 @@ export const amcAutoTaskTable = pgTable(
     uniqueIndex("amc_auto_task_unique").on(table.amcServiceId, table.periodKey),
   ],
 );
+
+// ============================================================================
+// Billing / plan entitlement tables
+// ============================================================================
+
+export const planTable = pgTable("plan", {
+  id: text("id").primaryKey(), // "free" | "pro" | "enterprise"
+  name: text("name").notNull(),
+  maxZones: integer("max_zones"), // null = unlimited
+  razorpayPlanId: text("razorpay_plan_id"),
+  monthlyPrice: integer("monthly_price").notNull().default(0), // minor units
+  selfServeCheckout: boolean("self_serve_checkout").notNull().default(false),
+  createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { mode: "date" })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
+
+export const workspaceSubscriptionTable = pgTable(
+  "workspace_subscription",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    planId: text("plan_id")
+      .notNull()
+      .references(() => planTable.id, {
+        onDelete: "restrict",
+        onUpdate: "cascade",
+      }),
+    status: text("status").notNull().default("active"), // "active" | "past_due" | "canceled"
+    razorpaySubscriptionId: text("razorpay_subscription_id").unique(),
+    currentPeriodEnd: timestamp("current_period_end", { mode: "date" }),
+    createdAt: timestamp("created_at", { mode: "date" }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { mode: "date" })
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
+  },
+  (table) => [
+    uniqueIndex("workspace_subscription_workspaceId_unique").on(
+      table.workspaceId,
+    ),
+  ],
+);
+
+export const amcSeatPurchaseTable = pgTable(
+  "amc_seat_purchase",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id")
+      .notNull()
+      .references(() => workspaceTable.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
+    seats: integer("seats").notNull(),
+    razorpayPaymentId: text("razorpay_payment_id").unique(),
+    note: text("note"), // set when granted manually by an instance admin
+    purchasedAt: timestamp("purchased_at", { mode: "date" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("amc_seat_purchase_workspaceId_idx").on(table.workspaceId)],
+);
+
+export const billingEventTable = pgTable(
+  "billing_event",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey(),
+    workspaceId: text("workspace_id").references(() => workspaceTable.id, {
+      onDelete: "set null",
+      onUpdate: "cascade",
+    }),
+    razorpayEventId: text("razorpay_event_id").notNull().unique(),
+    type: text("type").notNull(),
+    payload: jsonb("payload").notNull(),
+    processedAt: timestamp("processed_at", { mode: "date" })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => [index("billing_event_workspaceId_idx").on(table.workspaceId)],
+);

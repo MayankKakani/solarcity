@@ -7,7 +7,7 @@ type PageTitleProps = {
 };
 
 export default function PageTitle({
-  title,
+  title = "Solarplan",
   suffix = "Solarplan",
   hideAppName = false,
 }: PageTitleProps) {

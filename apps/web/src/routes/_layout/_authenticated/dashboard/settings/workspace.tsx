@@ -4,7 +4,7 @@ import {
   Outlet,
   useLocation,
 } from "@tanstack/react-router";
-import { Package, Settings, Shield, Wrench } from "lucide-react";
+import { CreditCard, Package, Settings, Shield, Wrench } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import getWorkspaces from "@/fetchers/workspace/get-workspaces";
+import useGetConfig from "@/hooks/queries/config/use-get-config";
 import { useWorkspacePermission } from "@/hooks/use-workspace-permission";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/cn";
@@ -53,6 +54,7 @@ function RouteComponent() {
   const { t } = useTranslation();
   const { workspace, role } = useWorkspacePermission();
   const location = useLocation();
+  const { data: config } = useGetConfig();
 
   if (!hasWorkspaces) {
     return (
@@ -86,6 +88,15 @@ function RouteComponent() {
       url: "/dashboard/settings/workspace/amc-bundles",
       icon: Package,
     },
+    ...(config?.hasBilling
+      ? [
+          {
+            title: "Billing",
+            url: "/dashboard/settings/workspace/billing",
+            icon: CreditCard,
+          },
+        ]
+      : []),
   ];
   const isActivePath = (path: string) => location.pathname === path;
   const workspaceInitials =

@@ -50,8 +50,7 @@ export function Hero() {
                 size="lg"
                 className="gap-2"
                 onClick={() => {
-                  window.location.href =
-                    "https://github.com/usekaneo/solarplan";
+                  window.location.href = "https://github.com/solarplan";
                 }}
               >
                 <Github className="h-4 w-4" />

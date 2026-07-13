@@ -88,13 +88,13 @@ const navigationLinks: NavigationLink[] = [
   {
     items: [
       { href: "#why", label: "Why Solarplan" },
-      { href: "https://github.com/usekaneo/solarplan", label: "Open Source" },
+      { href: "https://github.com/solarplan", label: "Open Source" },
       {
         href: "https://cloud.solarplan.app/public-project/vlu4ak2w8rs9rn1r4lirj2u1",
         label: "Roadmap",
       },
       {
-        href: "https://github.com/usekaneo/solarplan/blob/main/CONTRIBUTING.md",
+        href: "https://github.com/solarplan/blob/main/CONTRIBUTING.md",
         label: "Contributing",
       },
     ],

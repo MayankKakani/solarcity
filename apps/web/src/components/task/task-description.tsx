@@ -631,7 +631,7 @@ export default function TaskDescription({ taskId }: TaskDescriptionProps) {
             event.preventDefault();
             view.dispatch(
               view.state.tr.replaceSelectionWith(
-                view.state.schema.nodes.kaneoIssueLink.create({
+                view.state.schema.nodes.solarplanIssueLink.create({
                   url,
                   issueKey: issueKey || "",
                   taskId: taskIdFromUrl || "",

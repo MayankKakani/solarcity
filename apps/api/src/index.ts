@@ -16,9 +16,12 @@ import {
 } from "hono-openapi";
 import * as v from "valibot";
 import activity from "./activity";
+import admin from "./admin";
 import amc from "./amc";
 import getPublicBundles from "./amc/controllers/get-public-bundles";
 import { auth } from "./auth";
+import billing from "./billing";
+import { handleRazorpayWebhookRoute } from "./billing/webhook-route";
 import column from "./column";
 import comment from "./comment";
 import config from "./config";
@@ -77,6 +80,7 @@ import {
   normalizeOrganizationAuthOperations,
 } from "./utils/openapi-spec";
 import { seedDefaultWorkspaceRoles } from "./utils/seed-default-workspace-roles";
+import { seedPlansAndSubscriptions } from "./utils/seed-plans";
 import { validateWorkspaceAccess } from "./utils/validate-workspace-access";
 import workflowRule from "./workflow-rule";
 import workspace from "./workspace";
@@ -226,6 +230,8 @@ export function createApp() {
     "/gitea-integration/webhook/:integrationId",
     handleGiteaWebhookRoute,
   );
+
+  api.post("/billing/webhooks/razorpay", handleRazorpayWebhookRoute);
 
   const invitationPublicApi = api.get("/invitation/public/:id", async (c) => {
     const { id } = c.req.param();
@@ -554,6 +560,8 @@ export function createApp() {
   const workflowRuleApi = api.route("/workflow-rule", workflowRule);
   const invitationApi = api.route("/invitation", invitation);
   const workspaceApi = api.route("/workspace", workspace);
+  const adminApi = api.route("/admin", admin);
+  const billingApi = api.route("/billing", billing);
 
   app.route(
     "/",
@@ -622,6 +630,8 @@ export function createApp() {
     api,
     injectWebSocket,
     activityApi,
+    adminApi,
+    billingApi,
     columnApi,
     commentApi,
     configApi,
@@ -684,6 +694,7 @@ export async function runStartupTasks() {
   await migrateGitHubIntegration();
   await migrateColumns();
   await seedDefaultWorkspaceRoles();
+  await seedPlansAndSubscriptions();
 
   initializePlugins();
   initializeScheduler();
@@ -742,6 +753,8 @@ const {
   app,
   injectWebSocket,
   activityApi,
+  adminApi,
+  billingApi,
   columnApi,
   commentApi,
   configApi,
@@ -781,6 +794,8 @@ if (isMainModule) {
 
 export type AppType =
   | typeof configApi
+  | typeof adminApi
+  | typeof billingApi
   | typeof projectApi
   | typeof taskApi
   | typeof columnApi

@@ -121,7 +121,7 @@ function KaneoIssueLinkView({ node }: NodeViewProps) {
 }
 
 export const KaneoIssueLink = Node.create({
-  name: "kaneoIssueLink",
+  name: "solarplanIssueLink",
   group: "inline",
   inline: true,
   atom: true,

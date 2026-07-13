@@ -378,10 +378,12 @@ function SignIn() {
               </div>
             </>
           )}
-          <PhoneOtpSignInForm
-            invitationId={invitationId}
-            redirect={getSafeRedirectPath()}
-          />
+          {config?.hasPhoneOtp && (
+            <PhoneOtpSignInForm
+              invitationId={invitationId}
+              redirect={getSafeRedirectPath()}
+            />
+          )}
           {config?.disableRegistration ||
           config?.disablePasswordRegistration ? (
             <div className="text-center pt-4">

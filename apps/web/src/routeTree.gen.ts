@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TestErrorRouteImport } from './routes/test-error'
 import { Route as DeviceRouteImport } from './routes/device'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DeviceIndexRouteImport } from './routes/device/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as PublicProjectProjectIdRouteImport } from './routes/public-project.$projectId'
 import { Route as PublicAmcWorkspaceIdRouteImport } from './routes/public-amc.$workspaceId'
 import { Route as DeviceApproveRouteImport } from './routes/device/approve'
@@ -23,7 +25,9 @@ import { Route as AuthSignUpRouteImport } from './routes/auth/sign-up'
 import { Route as AuthSignInRouteImport } from './routes/auth/sign-in'
 import { Route as AuthCheckEmailRouteImport } from './routes/auth/check-email'
 import { Route as LayoutAuthenticatedRouteImport } from './routes/_layout/_authenticated'
+import { Route as AdminOrganisationsIndexRouteImport } from './routes/admin/organisations/index'
 import { Route as InvitationAcceptInviteIdRouteImport } from './routes/invitation/accept.$inviteId'
+import { Route as AdminOrganisationsWorkspaceIdRouteImport } from './routes/admin/organisations/$workspaceId'
 import { Route as LayoutAuthenticatedProfileSetupRouteImport } from './routes/_layout/_authenticated/profile-setup'
 import { Route as LayoutAuthenticatedOnboardingRouteImport } from './routes/_layout/_authenticated/onboarding'
 import { Route as LayoutAuthenticatedInvitationsRouteImport } from './routes/_layout/_authenticated/invitations'
@@ -44,6 +48,7 @@ import { Route as LayoutAuthenticatedDashboardWorkspaceWorkspaceIdAmcDashboardRo
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceServicesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/services'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceRolesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/roles'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/general'
+import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceBillingRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/billing'
 import { Route as LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/workspace/amc-bundles'
 import { Route as LayoutAuthenticatedDashboardSettingsAccountPreferencesRouteImport } from './routes/_layout/_authenticated/dashboard/settings/account/preferences'
 import { Route as LayoutAuthenticatedDashboardSettingsAccountNotificationsRouteImport } from './routes/_layout/_authenticated/dashboard/settings/account/notifications'
@@ -78,6 +83,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
   getParentRoute: () => rootRouteImport,
@@ -91,6 +101,11 @@ const DeviceIndexRoute = DeviceIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => DeviceRoute,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const PublicProjectProjectIdRoute = PublicProjectProjectIdRouteImport.update({
   id: '/public-project/$projectId',
@@ -131,11 +146,22 @@ const LayoutAuthenticatedRoute = LayoutAuthenticatedRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => LayoutRoute,
 } as any)
+const AdminOrganisationsIndexRoute = AdminOrganisationsIndexRouteImport.update({
+  id: '/organisations/',
+  path: '/organisations/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const InvitationAcceptInviteIdRoute =
   InvitationAcceptInviteIdRouteImport.update({
     id: '/invitation/accept/$inviteId',
     path: '/invitation/accept/$inviteId',
     getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminOrganisationsWorkspaceIdRoute =
+  AdminOrganisationsWorkspaceIdRouteImport.update({
+    id: '/organisations/$workspaceId',
+    path: '/organisations/$workspaceId',
+    getParentRoute: () => AdminRoute,
   } as any)
 const LayoutAuthenticatedProfileSetupRoute =
   LayoutAuthenticatedProfileSetupRouteImport.update({
@@ -258,6 +284,12 @@ const LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute =
   LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRouteImport.update({
     id: '/general',
     path: '/general',
+    getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
+  } as any)
+const LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute =
+  LayoutAuthenticatedDashboardSettingsWorkspaceBillingRouteImport.update({
+    id: '/billing',
+    path: '/billing',
     getParentRoute: () => LayoutAuthenticatedDashboardSettingsWorkspaceRoute,
   } as any)
 const LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRoute =
@@ -395,6 +427,7 @@ const LayoutAuthenticatedDashboardWorkspaceWorkspaceIdZoneZoneIdTaskTaskIdRoute 
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/device': typeof DeviceRouteWithChildren
   '/test-error': typeof TestErrorRoute
@@ -405,12 +438,15 @@ export interface FileRoutesByFullPath {
   '/device/approve': typeof DeviceApproveRoute
   '/public-amc/$workspaceId': typeof PublicAmcWorkspaceIdRoute
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/device/': typeof DeviceIndexRoute
   '/dashboard': typeof LayoutAuthenticatedDashboardRouteWithChildren
   '/invitations': typeof LayoutAuthenticatedInvitationsRoute
   '/onboarding': typeof LayoutAuthenticatedOnboardingRoute
   '/profile-setup': typeof LayoutAuthenticatedProfileSetupRoute
+  '/admin/organisations/$workspaceId': typeof AdminOrganisationsWorkspaceIdRoute
   '/invitation/accept/$inviteId': typeof InvitationAcceptInviteIdRoute
+  '/admin/organisations/': typeof AdminOrganisationsIndexRoute
   '/dashboard/invitations': typeof LayoutAuthenticatedDashboardInvitationsRoute
   '/dashboard/settings': typeof LayoutAuthenticatedDashboardSettingsRouteWithChildren
   '/dashboard/': typeof LayoutAuthenticatedDashboardIndexRoute
@@ -424,6 +460,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings/account/notifications': typeof LayoutAuthenticatedDashboardSettingsAccountNotificationsRoute
   '/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
   '/dashboard/settings/workspace/amc-bundles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRoute
+  '/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
   '/dashboard/settings/workspace/general': typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute
   '/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
   '/dashboard/settings/workspace/services': typeof LayoutAuthenticatedDashboardSettingsWorkspaceServicesRoute
@@ -457,11 +494,14 @@ export interface FileRoutesByTo {
   '/device/approve': typeof DeviceApproveRoute
   '/public-amc/$workspaceId': typeof PublicAmcWorkspaceIdRoute
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
+  '/admin': typeof AdminIndexRoute
   '/device': typeof DeviceIndexRoute
   '/invitations': typeof LayoutAuthenticatedInvitationsRoute
   '/onboarding': typeof LayoutAuthenticatedOnboardingRoute
   '/profile-setup': typeof LayoutAuthenticatedProfileSetupRoute
+  '/admin/organisations/$workspaceId': typeof AdminOrganisationsWorkspaceIdRoute
   '/invitation/accept/$inviteId': typeof InvitationAcceptInviteIdRoute
+  '/admin/organisations': typeof AdminOrganisationsIndexRoute
   '/dashboard/invitations': typeof LayoutAuthenticatedDashboardInvitationsRoute
   '/dashboard/settings': typeof LayoutAuthenticatedDashboardSettingsRouteWithChildren
   '/dashboard': typeof LayoutAuthenticatedDashboardIndexRoute
@@ -474,6 +514,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings/account/notifications': typeof LayoutAuthenticatedDashboardSettingsAccountNotificationsRoute
   '/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
   '/dashboard/settings/workspace/amc-bundles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRoute
+  '/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
   '/dashboard/settings/workspace/general': typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute
   '/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
   '/dashboard/settings/workspace/services': typeof LayoutAuthenticatedDashboardSettingsWorkspaceServicesRoute
@@ -499,6 +540,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_layout': typeof LayoutRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRouteWithChildren
   '/device': typeof DeviceRouteWithChildren
   '/test-error': typeof TestErrorRoute
@@ -510,12 +552,15 @@ export interface FileRoutesById {
   '/device/approve': typeof DeviceApproveRoute
   '/public-amc/$workspaceId': typeof PublicAmcWorkspaceIdRoute
   '/public-project/$projectId': typeof PublicProjectProjectIdRoute
+  '/admin/': typeof AdminIndexRoute
   '/device/': typeof DeviceIndexRoute
   '/_layout/_authenticated/dashboard': typeof LayoutAuthenticatedDashboardRouteWithChildren
   '/_layout/_authenticated/invitations': typeof LayoutAuthenticatedInvitationsRoute
   '/_layout/_authenticated/onboarding': typeof LayoutAuthenticatedOnboardingRoute
   '/_layout/_authenticated/profile-setup': typeof LayoutAuthenticatedProfileSetupRoute
+  '/admin/organisations/$workspaceId': typeof AdminOrganisationsWorkspaceIdRoute
   '/invitation/accept/$inviteId': typeof InvitationAcceptInviteIdRoute
+  '/admin/organisations/': typeof AdminOrganisationsIndexRoute
   '/_layout/_authenticated/dashboard/invitations': typeof LayoutAuthenticatedDashboardInvitationsRoute
   '/_layout/_authenticated/dashboard/settings': typeof LayoutAuthenticatedDashboardSettingsRouteWithChildren
   '/_layout/_authenticated/dashboard/': typeof LayoutAuthenticatedDashboardIndexRoute
@@ -529,6 +574,7 @@ export interface FileRoutesById {
   '/_layout/_authenticated/dashboard/settings/account/notifications': typeof LayoutAuthenticatedDashboardSettingsAccountNotificationsRoute
   '/_layout/_authenticated/dashboard/settings/account/preferences': typeof LayoutAuthenticatedDashboardSettingsAccountPreferencesRoute
   '/_layout/_authenticated/dashboard/settings/workspace/amc-bundles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRoute
+  '/_layout/_authenticated/dashboard/settings/workspace/billing': typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
   '/_layout/_authenticated/dashboard/settings/workspace/general': typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute
   '/_layout/_authenticated/dashboard/settings/workspace/roles': typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
   '/_layout/_authenticated/dashboard/settings/workspace/services': typeof LayoutAuthenticatedDashboardSettingsWorkspaceServicesRoute
@@ -555,6 +601,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
     | '/auth'
     | '/device'
     | '/test-error'
@@ -565,12 +612,15 @@ export interface FileRouteTypes {
     | '/device/approve'
     | '/public-amc/$workspaceId'
     | '/public-project/$projectId'
+    | '/admin/'
     | '/device/'
     | '/dashboard'
     | '/invitations'
     | '/onboarding'
     | '/profile-setup'
+    | '/admin/organisations/$workspaceId'
     | '/invitation/accept/$inviteId'
+    | '/admin/organisations/'
     | '/dashboard/invitations'
     | '/dashboard/settings'
     | '/dashboard/'
@@ -584,6 +634,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/account/notifications'
     | '/dashboard/settings/account/preferences'
     | '/dashboard/settings/workspace/amc-bundles'
+    | '/dashboard/settings/workspace/billing'
     | '/dashboard/settings/workspace/general'
     | '/dashboard/settings/workspace/roles'
     | '/dashboard/settings/workspace/services'
@@ -617,11 +668,14 @@ export interface FileRouteTypes {
     | '/device/approve'
     | '/public-amc/$workspaceId'
     | '/public-project/$projectId'
+    | '/admin'
     | '/device'
     | '/invitations'
     | '/onboarding'
     | '/profile-setup'
+    | '/admin/organisations/$workspaceId'
     | '/invitation/accept/$inviteId'
+    | '/admin/organisations'
     | '/dashboard/invitations'
     | '/dashboard/settings'
     | '/dashboard'
@@ -634,6 +688,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings/account/notifications'
     | '/dashboard/settings/account/preferences'
     | '/dashboard/settings/workspace/amc-bundles'
+    | '/dashboard/settings/workspace/billing'
     | '/dashboard/settings/workspace/general'
     | '/dashboard/settings/workspace/roles'
     | '/dashboard/settings/workspace/services'
@@ -658,6 +713,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_layout'
+    | '/admin'
     | '/auth'
     | '/device'
     | '/test-error'
@@ -669,12 +725,15 @@ export interface FileRouteTypes {
     | '/device/approve'
     | '/public-amc/$workspaceId'
     | '/public-project/$projectId'
+    | '/admin/'
     | '/device/'
     | '/_layout/_authenticated/dashboard'
     | '/_layout/_authenticated/invitations'
     | '/_layout/_authenticated/onboarding'
     | '/_layout/_authenticated/profile-setup'
+    | '/admin/organisations/$workspaceId'
     | '/invitation/accept/$inviteId'
+    | '/admin/organisations/'
     | '/_layout/_authenticated/dashboard/invitations'
     | '/_layout/_authenticated/dashboard/settings'
     | '/_layout/_authenticated/dashboard/'
@@ -688,6 +747,7 @@ export interface FileRouteTypes {
     | '/_layout/_authenticated/dashboard/settings/account/notifications'
     | '/_layout/_authenticated/dashboard/settings/account/preferences'
     | '/_layout/_authenticated/dashboard/settings/workspace/amc-bundles'
+    | '/_layout/_authenticated/dashboard/settings/workspace/billing'
     | '/_layout/_authenticated/dashboard/settings/workspace/general'
     | '/_layout/_authenticated/dashboard/settings/workspace/roles'
     | '/_layout/_authenticated/dashboard/settings/workspace/services'
@@ -714,6 +774,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   LayoutRoute: typeof LayoutRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRouteWithChildren
   DeviceRoute: typeof DeviceRouteWithChildren
   TestErrorRoute: typeof TestErrorRoute
@@ -745,6 +806,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_layout': {
       id: '/_layout'
       path: ''
@@ -765,6 +833,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/device/'
       preLoaderRoute: typeof DeviceIndexRouteImport
       parentRoute: typeof DeviceRoute
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/public-project/$projectId': {
       id: '/public-project/$projectId'
@@ -822,12 +897,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAuthenticatedRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/admin/organisations/': {
+      id: '/admin/organisations/'
+      path: '/organisations'
+      fullPath: '/admin/organisations/'
+      preLoaderRoute: typeof AdminOrganisationsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/invitation/accept/$inviteId': {
       id: '/invitation/accept/$inviteId'
       path: '/invitation/accept/$inviteId'
       fullPath: '/invitation/accept/$inviteId'
       preLoaderRoute: typeof InvitationAcceptInviteIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/admin/organisations/$workspaceId': {
+      id: '/admin/organisations/$workspaceId'
+      path: '/organisations/$workspaceId'
+      fullPath: '/admin/organisations/$workspaceId'
+      preLoaderRoute: typeof AdminOrganisationsWorkspaceIdRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/_layout/_authenticated/profile-setup': {
       id: '/_layout/_authenticated/profile-setup'
@@ -967,6 +1056,13 @@ declare module '@tanstack/react-router' {
       path: '/general'
       fullPath: '/dashboard/settings/workspace/general'
       preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRouteImport
+      parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
+    }
+    '/_layout/_authenticated/dashboard/settings/workspace/billing': {
+      id: '/_layout/_authenticated/dashboard/settings/workspace/billing'
+      path: '/billing'
+      fullPath: '/dashboard/settings/workspace/billing'
+      preLoaderRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRouteImport
       parentRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRoute
     }
     '/_layout/_authenticated/dashboard/settings/workspace/amc-bundles': {
@@ -1124,6 +1220,7 @@ const LayoutAuthenticatedDashboardSettingsAccountRouteWithChildren =
 
 interface LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren {
   LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRoute
+  LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute
   LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute
   LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute
   LayoutAuthenticatedDashboardSettingsWorkspaceServicesRoute: typeof LayoutAuthenticatedDashboardSettingsWorkspaceServicesRoute
@@ -1133,6 +1230,8 @@ const LayoutAuthenticatedDashboardSettingsWorkspaceRouteChildren: LayoutAuthenti
   {
     LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRoute:
       LayoutAuthenticatedDashboardSettingsWorkspaceAmcBundlesRoute,
+    LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute:
+      LayoutAuthenticatedDashboardSettingsWorkspaceBillingRoute,
     LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute:
       LayoutAuthenticatedDashboardSettingsWorkspaceGeneralRoute,
     LayoutAuthenticatedDashboardSettingsWorkspaceRolesRoute:
@@ -1313,6 +1412,20 @@ const LayoutRouteChildren: LayoutRouteChildren = {
 const LayoutRouteWithChildren =
   LayoutRoute._addFileChildren(LayoutRouteChildren)
 
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminOrganisationsWorkspaceIdRoute: typeof AdminOrganisationsWorkspaceIdRoute
+  AdminOrganisationsIndexRoute: typeof AdminOrganisationsIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminOrganisationsWorkspaceIdRoute: AdminOrganisationsWorkspaceIdRoute,
+  AdminOrganisationsIndexRoute: AdminOrganisationsIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface AuthRouteChildren {
   AuthCheckEmailRoute: typeof AuthCheckEmailRoute
   AuthSignInRoute: typeof AuthSignInRoute
@@ -1345,6 +1458,7 @@ const DeviceRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   LayoutRoute: LayoutRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRouteWithChildren,
   DeviceRoute: DeviceRouteWithChildren,
   TestErrorRoute: TestErrorRoute,

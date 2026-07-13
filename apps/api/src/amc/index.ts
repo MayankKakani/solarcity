@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { describeRoute, resolver, validator } from "hono-openapi";
 import * as v from "valibot";
+import { requireAmcSeatLimit } from "../entitlements/require-amc-seat-limit";
 import { workspaceAccess } from "../utils/workspace-access-middleware";
 import addAmcService from "./controllers/add-amc-service";
 import createAmc from "./controllers/create-amc";
@@ -207,6 +208,7 @@ const amc = new Hono<{ Variables: { userId: string; workspaceId: string } }>()
     }),
     validator("query", v.object({ workspaceId: v.string() })),
     workspaceAccess.fromQuery(),
+    requireAmcSeatLimit(),
     validator(
       "json",
       v.object({

@@ -6,6 +6,7 @@ import {
   amcBundleServiceTable,
   amcBundleTable,
   amcRenewalReminderSentTable,
+  amcSeatPurchaseTable,
   amcServiceTable,
   amcTable,
   apikeyTable,
@@ -18,6 +19,7 @@ import {
   invitationTable,
   labelTable,
   notificationTable,
+  planTable,
   serviceMasterTable,
   sessionTable,
   siteContactTable,
@@ -36,6 +38,7 @@ import {
   verificationTable,
   workflowRuleTable,
   workspaceRoleTable,
+  workspaceSubscriptionTable,
   workspaceTable,
   workspaceUserTable,
   zoneAssignmentTable,
@@ -104,6 +107,36 @@ export const workspaceTableRelations = relations(
     sites: many(siteTable),
     serviceMasters: many(serviceMasterTable),
     amcBundles: many(amcBundleTable),
+    subscription: many(workspaceSubscriptionTable),
+    amcSeatPurchases: many(amcSeatPurchaseTable),
+  }),
+);
+
+export const planTableRelations = relations(planTable, ({ many }) => ({
+  subscriptions: many(workspaceSubscriptionTable),
+}));
+
+export const workspaceSubscriptionTableRelations = relations(
+  workspaceSubscriptionTable,
+  ({ one }) => ({
+    workspace: one(workspaceTable, {
+      fields: [workspaceSubscriptionTable.workspaceId],
+      references: [workspaceTable.id],
+    }),
+    plan: one(planTable, {
+      fields: [workspaceSubscriptionTable.planId],
+      references: [planTable.id],
+    }),
+  }),
+);
+
+export const amcSeatPurchaseTableRelations = relations(
+  amcSeatPurchaseTable,
+  ({ one }) => ({
+    workspace: one(workspaceTable, {
+      fields: [amcSeatPurchaseTable.workspaceId],
+      references: [workspaceTable.id],
+    }),
   }),
 );
 

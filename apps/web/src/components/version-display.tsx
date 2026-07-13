@@ -1,7 +1,6 @@
 export function VersionDisplay() {
   const version = __APP_VERSION__;
-  const changelogUrl =
-    "https://github.com/usekaneo/solarplan/blob/main/CHANGELOG.md";
+  const changelogUrl = "https://github.com/solarplan/blob/main/CHANGELOG.md";
 
   return (
     <div className="flex items-center justify-center px-2 py-1.5">

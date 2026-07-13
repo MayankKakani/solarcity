@@ -36,6 +36,8 @@ import { publishEvent } from "./events";
 import { checkRegistrationAllowed } from "./utils/check-registration-allowed";
 import { generateDemoName } from "./utils/generate-demo-name";
 import { getGithubSsoOAuthCredentials } from "./utils/github-sso-env";
+import { DEFAULT_PLAN_ID } from "./utils/seed-plans";
+import { sendSmsOtp } from "./utils/send-sms-otp";
 
 config();
 
@@ -337,6 +339,25 @@ export const auth = betterAuth({
             );
           }
 
+          // Every workspace gets a subscription row so entitlement checks
+          // never need an "or else assume free" branch. New workspaces start
+          // on the free plan; the boot-time backfill (seedPlansAndSubscriptions)
+          // is the belt-and-braces path for workspaces created before this
+          // hook existed.
+          try {
+            await db.insert(schema.workspaceSubscriptionTable).values({
+              workspaceId: organization.id,
+              planId: DEFAULT_PLAN_ID,
+              status: "active",
+            });
+          } catch (error) {
+            console.error(
+              "Failed to create default subscription for workspace",
+              organization.id,
+              error,
+            );
+          }
+
           publishEvent("workspace.created", {
             workspaceId: organization.id,
             workspaceName: organization.name,
@@ -416,11 +437,11 @@ export const auth = betterAuth({
         if (process.env.NODE_ENV !== "production") {
           console.log(`[DEV] Phone OTP for ${phone}: ${code}`);
         }
-        // In production, send via SMS provider (e.g., Twilio)
+        await sendSmsOtp(phone, code);
       },
       signUpOnVerification: {
         getTempEmail: (phone) =>
-          `${phone.replace(/[^0-9]/g, "")}@phone.solarcity`,
+          `${phone.replace(/[^0-9]/g, "")}@phone.solarplan`,
         // getTempName: (phone) => phone,
       },
     }),

@@ -13,44 +13,32 @@ export const Route = createFileRoute("/_layout/_authenticated/dashboard/")({
       throw redirect({ to: "/invitations" });
     }
 
+    if (!workspaces.length) {
+      throw redirect({ to: "/onboarding" });
+    }
+
     const session = await authClient.getSession();
     const activeWorkspaceId = session?.data?.session?.activeOrganizationId;
 
-    if (workspaces && workspaces.length > 0) {
-      if (
-        activeWorkspaceId &&
-        workspaces.some((ws) => ws.id === activeWorkspaceId)
-      ) {
-        throw redirect({
-          to: "/dashboard/workspace/$workspaceId",
-          params: { workspaceId: activeWorkspaceId },
-        });
-      }
-
-      const firstWorkspace = workspaces[0];
-
-      authClient.organization.setActive({
-        organizationId: firstWorkspace.id,
-      });
-
+    if (
+      activeWorkspaceId &&
+      workspaces.some((ws) => ws.id === activeWorkspaceId)
+    ) {
       throw redirect({
         to: "/dashboard/workspace/$workspaceId",
-        params: { workspaceId: firstWorkspace.id },
+        params: { workspaceId: activeWorkspaceId },
       });
     }
-  },
-  component: NoOrganisationMessage,
-});
 
-function NoOrganisationMessage() {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-2 text-center w-full">
-      <p className="text-base font-medium text-neutral-800 dark:text-neutral-200">
-        You are not assigned to any Organisation
-      </p>
-      <p className="text-sm text-neutral-500 dark:text-neutral-400">
-        Please reach out to your admin.
-      </p>
-    </div>
-  );
-}
+    const firstWorkspace = workspaces[0];
+
+    authClient.organization.setActive({
+      organizationId: firstWorkspace.id,
+    });
+
+    throw redirect({
+      to: "/dashboard/workspace/$workspaceId",
+      params: { workspaceId: firstWorkspace.id },
+    });
+  },
+});

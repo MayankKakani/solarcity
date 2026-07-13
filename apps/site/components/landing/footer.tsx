@@ -41,7 +41,7 @@ export function Footer() {
               <p className="font-medium">Resources</p>
               <a
                 className="block text-muted-foreground transition-colors hover:text-foreground"
-                href="https://github.com/usekaneo/solarplan"
+                href="https://github.com/solarplan"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -49,7 +49,7 @@ export function Footer() {
               </a>
               <a
                 className="block text-muted-foreground transition-colors hover:text-foreground"
-                href="https://github.com/usekaneo/solarplan/blob/main/LICENSE"
+                href="https://github.com/solarplan/blob/main/LICENSE"
                 target="_blank"
                 rel="noreferrer"
               >
@@ -57,7 +57,7 @@ export function Footer() {
               </a>
               <a
                 className="block text-muted-foreground transition-colors hover:text-foreground"
-                href="https://github.com/usekaneo/solarplan/blob/main/CONTRIBUTING.md"
+                href="https://github.com/solarplan/blob/main/CONTRIBUTING.md"
                 target="_blank"
                 rel="noreferrer"
               >

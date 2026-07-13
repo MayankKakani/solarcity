@@ -30,7 +30,6 @@ export function SignUpForm({ invitationId }: SignUpFormProps) {
   const signUpSchema = useMemo(
     () =>
       z.object({
-        name: z.string().min(2, { message: t("auth:signUpForm.nameTooShort") }),
         phoneNumber: z
           .string()
           .min(7, { message: t("auth:phoneOtp.invalidPhone") })
@@ -46,7 +45,6 @@ export function SignUpForm({ invitationId }: SignUpFormProps) {
   const form = useForm<SignUpFormValues>({
     resolver: standardSchemaResolver(signUpSchema),
     defaultValues: {
-      name: "",
       phoneNumber: "",
     },
   });
@@ -67,7 +65,6 @@ export function SignUpForm({ invitationId }: SignUpFormProps) {
 
       const searchParams = new URLSearchParams({
         phoneNumber: data.phoneNumber,
-        name: data.name,
         ...(invitationId && { invitationId }),
       });
       history.push(`/auth/verify-otp?${searchParams.toString()}`);
@@ -86,27 +83,6 @@ export function SignUpForm({ invitationId }: SignUpFormProps) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
         <div className="space-y-3">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field, fieldState }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium">
-                  {t("auth:signUpForm.fullName")}
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder={t("auth:signUpForm.namePlaceholder")}
-                    type="text"
-                    autoComplete="name"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage>{fieldState.error?.message}</FormMessage>
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="phoneNumber"

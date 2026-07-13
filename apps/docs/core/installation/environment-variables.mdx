@@ -22,6 +22,7 @@ The variables are split up into the following sections:
 - [Custom OAuth/OIDC](#custom-oauth-oidc)
 - [Redis](#redis)
 - [SMTP Configuration](#smtp-configuration)
+- [Twilio (Phone OTP)](#twilio-phone-otp)
 
 ## Required variables
 
@@ -181,6 +182,16 @@ Name | Description |
 | `SMTP_REQUIRE_TLS` | Whether to explicitly force to use TLS. [See more on](https://nodemailer.com/smtp#tls-options).
 | `SMTP_IGNORE_TLS` | Ignore TLS certificate errors. Set to `true` for self-signed or invalid certificates. Default: `false`.
 
+### Twilio (Phone OTP)
+
+Phone number sign-in sends a one-time code via SMS using [Twilio](https://www.twilio.com/docs/verify). Create a Twilio account, buy/verify a sending phone number, and set the following variables. If unset, phone sign-in falls back to logging the OTP to the server console in non-production environments only — no SMS is sent.
+
+Name | Description |
+--- | --- |
+| `TWILIO_ACCOUNT_SID` | Your Twilio Account SID.
+| `TWILIO_AUTH_TOKEN` | Your Twilio Auth Token.
+| `TWILIO_PHONE_NUMBER` | The Twilio phone number OTP messages are sent from, in E.164 format (e.g. `+15551234567`).
+
 ## Key points
 
 - If you enable GitHub SSO, create a GitHub OAuth App in [GitHub Developer Settings](https://github.com/settings/developers) and set `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` (or the legacy `GITHUB_CLIENT_*` variables). See the [GitHub SSO guide](/core/social-providers/github).
@@ -189,4 +200,5 @@ Name | Description |
 - If you enable Discord SSO, you need to set up the Discord application which is used to authenticate users in the [Discord Developer Portal](https://discord.com/developers/applications). See the [Discord SSO guide](/core/social-providers/discord).
 - If you enable Custom OAuth/OIDC, you need to configure your identity provider with the appropriate redirect URI. See the [Custom OAuth/OIDC guide](/core/social-providers/custom-oauth).
 - If you have enabled SMTP, your sign in will be done via email using a magic link.
+- If you enable Twilio, phone number sign-in will send OTP codes via SMS. See [Twilio (Phone OTP)](#twilio-phone-otp).
 - If you need device authorization for clients beyond the defaults (`solarplan-cli`, `solarplan-mcp` when `DEVICE_AUTH_CLIENT_IDS` is unset), set `DEVICE_AUTH_CLIENT_IDS` to the full comma-separated list of trusted client IDs for your deployment.
