@@ -37,7 +37,7 @@ import { checkRegistrationAllowed } from "./utils/check-registration-allowed";
 import { generateDemoName } from "./utils/generate-demo-name";
 import { getGithubSsoOAuthCredentials } from "./utils/github-sso-env";
 import { DEFAULT_PLAN_ID } from "./utils/seed-plans";
-import { sendSmsOtp } from "./utils/send-sms-otp";
+import { sendWhatsappOtp } from "./utils/whatsapp-otp";
 
 config();
 
@@ -434,10 +434,7 @@ export const auth = betterAuth({
     }),
     phoneNumber({
       sendOTP: async ({ phoneNumber: phone, code }) => {
-        if (process.env.NODE_ENV !== "production") {
-          console.log(`[DEV] Phone OTP for ${phone}: ${code}`);
-        }
-        await sendSmsOtp(phone, code);
+        await sendWhatsappOtp(phone, code);
       },
       signUpOnVerification: {
         getTempEmail: (phone) =>

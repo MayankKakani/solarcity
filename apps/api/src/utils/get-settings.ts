@@ -1,7 +1,7 @@
 import { config } from "dotenv-mono";
 import { isGithubSsoConfigured } from "./github-sso-env";
 import { isRazorpayConfigured } from "./razorpay-env";
-import { isTwilioConfigured } from "./twilio-env";
+import { isWhatsappConfigured } from "./whatsapp-env";
 
 config();
 
@@ -28,7 +28,7 @@ function getSettings() {
       Boolean(process.env.CUSTOM_OAUTH_CLIENT_ID) &&
       Boolean(process.env.CUSTOM_OAUTH_CLIENT_SECRET),
     hasGuestAccess: process.env.DISABLE_GUEST_ACCESS !== "true",
-    hasPhoneOtp: process.env.NODE_ENV === "dev" ? true : isTwilioConfigured(),
+    hasPhoneOtp: process.env.NODE_ENV === "dev" ? true : isWhatsappConfigured(),
     hasBilling: isRazorpayConfigured(),
     customOAuthLogoutUrl: process.env.CUSTOM_OAUTH_LOGOUT_URL || null,
   };

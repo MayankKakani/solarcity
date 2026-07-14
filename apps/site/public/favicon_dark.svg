@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="335" height="339" viewBox="20 20 335 339" role="img" aria-label="Solarplan icon">
+<svg xmlns="http://www.w3.org/2000/svg" width="450" height="450" viewBox="20 20 450 450" role="img" aria-label="Solarplan icon">
   <title>Solarplan icon</title>
   <desc>Separate four-panel Solarplan icon. Each panel is an individual SVG path so colors can be changed independently.</desc>
   <path id="panel-top-left" fill="#111111" d="M 173.0 21.0 L 170.0 20.0 L 113.0 20.0 L 92.0 24.0 L 76.0 30.0 L 67.0 35.0 L 56.0 43.0 L 45.0 54.0 L 36.0 66.0 L 30.0 77.0 L 24.0 93.0 L 21.0 106.0 L 21.0 113.0 L 20.0 114.0 L 20.0 175.0 L 24.0 180.0 L 26.0 181.0 L 120.0 181.0 L 134.0 178.0 L 143.0 174.0 L 151.0 169.0 L 162.0 159.0 L 168.0 151.0 L 173.0 141.0 L 177.0 123.0 L 177.0 26.0 Z"/>

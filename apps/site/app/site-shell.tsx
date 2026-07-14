@@ -1,860 +1,975 @@
 /** biome-ignore-all lint/a11y/useValidAnchor: <ignore> */
 "use client";
 
-import { Sun } from "lucide-react";
-import { useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useMemo, useState } from "react";
+
+function formatIndianMoney(amount: number) {
+  const sign = amount < 0 ? "−" : "";
+  const value = Math.abs(amount);
+  if (value >= 10000000)
+    return `${sign}₹${(value / 10000000).toFixed(1).replace(".0", "")}Cr`;
+  if (value >= 100000)
+    return `${sign}₹${(value / 100000).toFixed(1).replace(".0", "")}L`;
+  if (value >= 1000)
+    return `${sign}₹${(value / 1000).toFixed(1).replace(".0", "")}K`;
+  return `${sign}₹${Math.round(value).toLocaleString("en-IN")}`;
+}
+
+function rangeFill(value: number, min: number, max: number) {
+  return `${((value - min) / (max - min)) * 100}%`;
+}
 
 export default function SiteShell({ children }: { children: React.ReactNode }) {
-  function toggleMenu() {
-    const nav = document.getElementById("mobile-nav");
-    const btn = document.getElementById("hamburger");
-    const icon = document.getElementById("ham-icon");
-    const open = nav?.classList.toggle("open");
-    btn?.setAttribute("aria-expanded", String(open));
-    // biome-ignore lint/style/noNonNullAssertion: <ignore>
-    icon!.className = open ? "ti ti-x" : "ti ti-menu-2";
-  }
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [installedBase, setInstalledBase] = useState(500);
+  const [monthlyInstalls, setMonthlyInstalls] = useState(20);
+  const [conversionPct, setConversionPct] = useState(30);
+  const [price, setPrice] = useState(6000);
+  const [cost, setCost] = useState(2000);
+  const [renewalPct, setRenewalPct] = useState(80);
 
-  function scrollTo(id: string) {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  function closeMenu() {
+    setMenuOpen(false);
   }
 
   useEffect(() => {
-    const revealEls = document.querySelectorAll(".reveal");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((el) => {
-          if (el.isIntersecting) {
-            el.target.classList.add("in");
-            observer.unobserve(el.target);
+    document.body.classList.toggle("menu-open", menuOpen);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const revealItems = document.querySelectorAll("[data-reveal]");
+    if (
+      "IntersectionObserver" in window &&
+      !window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add("visible");
+              observer.unobserve(entry.target);
+            }
           }
-        });
-      },
-      { threshold: 0.12 },
-    );
-    // biome-ignore lint/suspicious/useIterableCallbackReturn: <ignore>
-    revealEls.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+        },
+        { threshold: 0.12 },
+      );
+      for (const item of revealItems) observer.observe(item);
+      return () => observer.disconnect();
+    }
+    for (const item of revealItems) item.classList.add("visible");
   }, []);
+
+  const roi = useMemo(() => {
+    const conversion = conversionPct / 100;
+    const renewal = renewalPct / 100;
+    const annualNewContracts = monthlyInstalls * 12 * conversion;
+    const activeContracts: number[] = [
+      installedBase * conversion + annualNewContracts,
+    ];
+    activeContracts.push(activeContracts[0] * renewal + annualNewContracts);
+    activeContracts.push(activeContracts[1] * renewal + annualNewContracts);
+    const annualRevenue = activeContracts.map((contracts) => contracts * price);
+    const annualMargin = activeContracts[0] * (price - cost);
+    const cumulativeRevenue = annualRevenue.reduce(
+      (total, value) => total + value,
+      0,
+    );
+    const maxRevenue = Math.max(...annualRevenue);
+    return { annualRevenue, annualMargin, cumulativeRevenue, maxRevenue };
+  }, [installedBase, monthlyInstalls, conversionPct, price, cost, renewalPct]);
 
   return (
     <>
-      <nav className="nav" aria-label="Main navigation">
-        <div className="container">
-          <div className="nav-inner">
-            <a href="#" className="nav-brand" aria-label="Solarplan home">
-              <div className="nav-mark" aria-hidden="true">
-                {/* <i className="ti ti-solar-panel" /> */}
-                <Sun className="h-5 w-5 text-amber-500" />
-              </div>
-              <span className="nav-name">Solarplan</span>
+      <header>
+        <nav className="nav shell" aria-label="Main navigation">
+          <a className="brand" href="#top" aria-label="Solarplan home">
+            {/** biome-ignore lint/performance/noImgElement: <ignore> */}
+            <img
+              className="brand-logo"
+              src="/solar-logo-dark.svg"
+              alt="Solarplan"
+            />
+          </a>
+          <div className={`nav-links${menuOpen ? " open" : ""}`} id="nav-links">
+            <a href="#workflow" onClick={closeMenu}>
+              How it works
             </a>
-            <div className="nav-links">
-              <a href="#solution">Product</a>
-              <a href="#how-it-works">How it works</a>
-              <a href="#polish">Customers</a>
-              <a href="#cta">Pricing</a>
-            </div>
-            <div className="nav-ctas">
-              <Button
-                className="btn-ghost"
-                onClick={() =>
-                  (window.location.href = "mailto:hello@solarplan.app")
-                }
-              >
-                Log in
-              </Button>
-              <Button
-                className="btn-primary"
-                onClick={() =>
-                  (window.location.href = "https://wa.me/+917597204168")
-                }
-              >
-                Contact Us
-              </Button>
-            </div>
-            <Button
-              className="nav-hamburger"
-              onClick={toggleMenu}
-              aria-label="Toggle menu"
-              aria-expanded="false"
-              id="hamburger"
+            <a href="#field-service" onClick={closeMenu}>
+              Field service
+            </a>
+            <a href="#roi" onClick={closeMenu}>
+              ROI calculator
+            </a>
+            <a href="#platform" onClick={closeMenu}>
+              Features
+            </a>
+            <a
+              className="button"
+              href="https://solarplan-web-bro6.onrender.com/"
+              onClick={closeMenu}
             >
-              <i className="ti ti-menu-2" id="ham-icon" />
-            </Button>
+              login
+              <svg viewBox="0 0 20 20" aria-hidden="true">
+                <path
+                  d="M4 10h11M11 5l5 5-5 5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
           </div>
-        </div>
-        <div className="mobile-nav" id="mobile-nav" role="menu">
-          <a href="#solution" onClick={toggleMenu}>
-            Product
-          </a>
-          <a href="#how-it-works" onClick={toggleMenu}>
-            How it works
-          </a>
-          <a href="#polish" onClick={toggleMenu}>
-            Customers
-          </a>
-          <a href="#cta" onClick={toggleMenu}>
-            Pricing
-          </a>
-          <div className="mobile-ctas">
-            <Button className="btn-ghost" style={{ flex: 1, padding: "11px" }}>
-              Log in
-            </Button>
-            <Button
-              className="btn-primary"
-              style={{ flex: 1, padding: "11px" }}
-              onClick={() =>
-                (window.location.href = "https://wa.me/+917597204168")
-              }
-            >
-              Contact us
-            </Button>
-          </div>
-        </div>
-      </nav>
+          <button
+            className="menu-button"
+            type="button"
+            aria-controls="nav-links"
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span />
+            <span />
+          </button>
+        </nav>
+      </header>
 
-      <main>
-        <section className="hero">
-          <div className="container">
-            <div className="hero-grid">
-              <div>
-                <div className="hero-pill hero-text-1">
-                  <i className="ti ti-bolt" aria-hidden="true" />
-                  Solar AMC & Work Management
-                </div>
-                <h1 className="hero-text-2">
-                  Run your solar business. ,{" "}
-                  <em>Not just your installations.</em>
-                </h1>
-                <p className="lead hero-text-3">
-                  SolarPlan helps solar EMCs and local installers manage AMC
-                  contracts, service requests, field visits, and customer
-                  conversions — all in one place.
-                </p>
-                <div className="hero-ctas hero-text-4">
-                  <Button
-                    className="btn-primary-lg"
-                    onClick={() => scrollTo("cta")}
-                  >
-                    Contact us{" "}
-                    <i className="ti ti-arrow-right" aria-hidden="true" />
-                  </Button>
-                  <Button
-                    className="btn-ghost-lg"
-                    onClick={() => scrollTo("how-it-works")}
-                  >
-                    See how it works
-                  </Button>
-                </div>
-                <blockquote
-                  className="hero-vision hero-text-4"
-                  style={{ animationDelay: ".38s" }}
-                >
-                  "Your customers invested in solar. Help them protect it. From
-                  installation to AMC — all your operations, one place."
-                  <span>— Solarplan vision</span>
-                </blockquote>
-              </div>
-
-              <div className="mockup-wrap" aria-hidden="true">
-                <div className="browser">
-                  <div className="browser-bar">
-                    <div className="browser-dots">
-                      <span />
-                      <span />
-                      <span />
-                    </div>
-                    <div className="browser-url">solarplan.app/dashboard</div>
-                  </div>
-                  <div className="dash">
-                    <div className="dash-sidebar">
-                      <div className="ds-logo">
-                        <i className="ti ti-solar-panel" />
-                      </div>
-                      <div className="ds-icon active">
-                        <i className="ti ti-layout-dashboard" />
-                      </div>
-                      <div className="ds-icon">
-                        <i className="ti ti-calendar-event" />
-                      </div>
-                      <div className="ds-icon">
-                        <i className="ti ti-users" />
-                      </div>
-                      <div className="ds-icon">
-                        <i className="ti ti-file-invoice" />
-                      </div>
-                      <div className="ds-icon">
-                        <i className="ti ti-chart-bar" />
-                      </div>
-                    </div>
-                    <div className="dash-main">
-                      <div className="dash-header">
-                        <h4>Dashboard</h4>
-                        <span>Mon, 14 Jan 2025</span>
-                      </div>
-                      <div className="dash-stats">
-                        <div className="ds-stat">
-                          <div
-                            className="ds-stat-val"
-                            style={{ color: "var(--teal-600)" }}
-                          >
-                            8
-                          </div>
-                          <div className="ds-stat-lbl">Visits today</div>
-                        </div>
-                        <div className="ds-stat">
-                          <div className="ds-stat-val">147</div>
-                          <div className="ds-stat-lbl">Active AMCs</div>
-                        </div>
-                        <div className="ds-stat">
-                          <div
-                            className="ds-stat-val"
-                            style={{ color: "var(--amber-600)" }}
-                          >
-                            5
-                          </div>
-                          <div className="ds-stat-lbl">Due for renewal</div>
-                        </div>
-                      </div>
-                      <div className="dash-section-lbl">
-                        Today's service visits
-                      </div>
-                      <div className="visit-rows">
-                        <div className="visit-row">
-                          <div className="va green">RK</div>
-                          <div className="visit-info">
-                            <div className="visit-name">Rajesh Kumar</div>
-                            <div className="visit-type">
-                              Panel cleaning · 5 kW
-                            </div>
-                          </div>
-                          <span className="v-badge done">Done</span>
-                        </div>
-                        <div className="visit-row">
-                          <div className="va blue">PM</div>
-                          <div className="visit-info">
-                            <div className="visit-name">Priya Mehta</div>
-                            <div className="visit-type">
-                              Technical audit · 10 kW
-                            </div>
-                          </div>
-                          <span className="v-badge live">In progress</span>
-                        </div>
-                        <div className="visit-row">
-                          <div className="va amber">AS</div>
-                          <div className="visit-info">
-                            <div className="visit-name">Arun Sharma</div>
-                            <div className="visit-type">
-                              Inverter check · 3 kW
-                            </div>
-                          </div>
-                          <span className="v-badge sched">2:30 PM</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* <div className="trust">
-          <div className="container">
-            <div className="trust-inner">
-              <span className="trust-label">
-                Trusted by 200+ solar companies
+      <main id="main">
+        <section className="hero" id="top">
+          <div className="shell">
+            <div className="hero-copy" data-reveal>
+              <span className="eyebrow">
+                After-sales operating system for solar installers
               </span>
-              <div className="trust-divider" />
-              <div className="trust-logos">
-                <span className="trust-chip">Surya Solar</span>
-                <span className="trust-chip">GreenWatt Energy</span>
-                <span className="trust-chip">Helios Power</span>
-                <span className="trust-chip">SunForce Pvt.</span>
-                <span className="trust-chip">Aditya Energy</span>
-                <span className="trust-chip">Brighter Solar</span>
-              </div>
-            </div>
-          </div>
-        </div> */}
-
-        <section className="problem" id="problem">
-          <div className="container">
-            <div className="problem-intro reveal">
-              <div className="section-eye">The problem</div>
-              <h2>Solar after-sale is where companies lose customers</h2>
-              <p className="lead">
-                The panel is installed. The commission is paid. Then the chaos
-                begins — and your customer's trust quietly erodes.
+              <h1>
+                Grow recurring revenue.{" "}
+                <span className="accent">Deliver every visit on time.</span>
+              </h1>
+              <p className="lede">
+                Solarplan brings AMCs and field service together—helping you
+                sell care plans, schedule and dispatch technicians, meet SLAs,
+                capture proof of work, and renew customers from one platform.
               </p>
-            </div>
-            <div className="g3">
-              <div className="card reveal reveal-d1">
-                <div className="card-icon danger">
-                  <i className="ti ti-calendar-off" aria-hidden="true" />
-                </div>
-                <div className="card-stat" style={{ color: "var(--error)" }}>
-                  67%
-                </div>
-                <h3>Missed service visits</h3>
-                <p>
-                  Technicians rely on WhatsApp and memory. Visits get skipped,
-                  output drops, and customers notice. AMC renewals quietly
-                  disappear.
-                </p>
-              </div>
-              <div className="card reveal reveal-d2">
-                <div className="card-icon amber">
-                  <i className="ti ti-eye-off" aria-hidden="true" />
-                </div>
-                <div
-                  className="card-stat"
-                  style={{ color: "var(--amber-600)" }}
-                >
-                  23%
-                </div>
-                <h3>Zero customer visibility</h3>
-                <p>
-                  Customers have no idea what was done, when, or what's next.
-                  Trust erodes invisibly — until they choose a competitor at
-                  renewal time.
-                </p>
-              </div>
-              <div className="card reveal reveal-d3">
-                <div className="card-icon gray">
-                  <i className="ti ti-table-off" aria-hidden="true" />
-                </div>
-                <div className="card-stat" style={{ color: "var(--text2)" }}>
-                  50+
-                </div>
-                <h3>Manual processes don't scale</h3>
-                <p>
-                  Excel, notebooks, and phone calls manage 20 customers. At 50
-                  customers, everything breaks — and your most profitable
-                  revenue stream collapses.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="alt" id="solution">
-          <div className="container">
-            <div className="solution-intro reveal">
-              <div className="section-eye">The solution</div>
-              <h2>One platform. Every touchpoint covered.</h2>
-              <p className="lead">
-                Solarplan gives your business the infrastructure to run
-                after-sale service like a product — not an afterthought.
-              </p>
-            </div>
-            <div className="g2">
-              <div className="card reveal reveal-d1">
-                <div className="card-icon amber">
-                  <i className="ti ti-file-invoice" aria-hidden="true" />
-                </div>
-                <h3>AMC management</h3>
-                <p>
-                  Build service bundles with pricing, frequencies, and
-                  inclusions. Share a branded public link with customers — they
-                  compare plans, choose a tier, and sign digitally. No PDFs, no
-                  back-and-forth.
-                </p>
-              </div>
-              <div className="card reveal reveal-d2">
-                <div className="card-icon teal">
-                  <i className="ti ti-calendar-event" aria-hidden="true" />
-                </div>
-                <h3>Smart scheduling</h3>
-                <p>
-                  Auto-generate the full service calendar from every active AMC.
-                  Assign technicians, send visit reminders, and track completion
-                  in real time. Nothing falls through — ever.
-                </p>
+              <div className="hero-actions">
+                <a className="button" href="#contact">
+                  Book a product walkthrough
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path
+                      d="M4 10h11M11 5l5 5-5 5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
+                <a className="button secondary" href="#roi">
+                  Calculate AMC revenue
+                </a>
               </div>
               <div
-                className="card reveal reveal-d1"
-                style={{ transitionDelay: ".07s" }}
+                className="proof-line"
+                // aria-label="Key benefits"
               >
-                <div className="card-icon teal">
-                  <i className="ti ti-device-mobile" aria-hidden="true" />
-                </div>
-                <h3>Customer portal</h3>
-                <p>
-                  Every customer gets a live, branded view of their AMC, service
-                  history, upcoming visits, and performance reports. Transparent
-                  service builds the trust that renews contracts.
-                </p>
+                <span>AMC sales and renewals</span>
+                <span>Scheduling and dispatch</span>
+                <span>SLA and proof of work</span>
               </div>
+            </div>
+
+            <div className="product-stage" data-reveal>
               <div
-                className="card reveal reveal-d2"
-                style={{ transitionDelay: ".14s" }}
+                className="product-window"
+                // aria-label="Solarplan service command centre preview"
               >
-                <div className="card-icon gray">
-                  <i className="ti ti-chart-bar" aria-hidden="true" />
+                <div className="window-top">
+                  <i />
+                  <i />
+                  <i />
+                  <span className="address">app.solarplan.in</span>
                 </div>
-                <h3>Business intelligence</h3>
-                <p>
-                  See renewal rates, technician performance, revenue at risk,
-                  and upcoming AMC expirations — so you act before you lose the
-                  business, not after.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="polish">
-          <div className="container">
-            <div
-              className="reveal"
-              style={{ maxWidth: "580px", marginBottom: "48px" }}
-            >
-              <div className="section-eye">What your customers see</div>
-              <h2>A Fortune 500 experience from a local solar company</h2>
-              <p className="lead">
-                Solarplan puts a polished, professional surface between your
-                operations and your customers — so every interaction builds
-                trust, not doubt.
-              </p>
-            </div>
-
-            <div className="g3" style={{ marginBottom: "48px" }}>
-              <div className="touch-card reveal reveal-d1">
-                <div className="touch-preview">
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      color: "var(--text3)",
-                      textTransform: "uppercase",
-                      letterSpacing: ".06em",
-                      marginBottom: "9px",
-                    }}
-                  >
-                    Shareable bundle page
+                <aside className="app-side" aria-hidden="true">
+                  <div className="app-logo">
+                    <b>S</b> solarplan
                   </div>
-                  <div className="mini-row">
-                    <div
-                      className="mini-dot"
-                      style={{
-                        background: "var(--amber-50)",
-                        border: "1px solid var(--amber-100)",
-                      }}
-                    />
-                    <div
-                      className="mini-bar"
-                      style={{ background: "var(--amber-100)" }}
-                    />
-                    <span
-                      className="mini-tag"
-                      style={{
-                        background: "var(--gray-50)",
-                        color: "var(--text2)",
-                        border: "1px solid var(--border)",
-                      }}
-                    >
-                      ₹5,999
-                    </span>
+                  <div className="side-label">Workspace</div>
+                  <div className="side-item active">
+                    <i />
+                    Command centre
                   </div>
-                  <div
-                    className="mini-row"
-                    style={{ borderColor: "var(--teal-100)" }}
-                  >
-                    <div
-                      className="mini-dot"
-                      style={{
-                        background: "var(--teal-50)",
-                        border: "1px solid var(--teal-100)",
-                      }}
-                    />
-                    <div
-                      className="mini-bar"
-                      style={{ background: "var(--teal-100)" }}
-                    />
-                    <span
-                      className="mini-tag"
-                      style={{
-                        background: "var(--teal-50)",
-                        color: "var(--teal-800)",
-                      }}
-                    >
-                      ₹9,999 ★
-                    </span>
+                  <div className="side-item">
+                    <i />
+                    Customers
                   </div>
-                  <div className="mini-row">
-                    <div
-                      className="mini-dot"
-                      style={{
-                        background: "var(--gray-50)",
-                        border: "1px solid var(--border)",
-                      }}
-                    />
-                    <div className="mini-bar" />
-                    <span
-                      className="mini-tag"
-                      style={{
-                        background: "var(--gray-50)",
-                        color: "var(--text2)",
-                        border: "1px solid var(--border)",
-                      }}
-                    >
-                      Custom
-                    </span>
+                  <div className="side-item">
+                    <i />
+                    Service visits <span className="side-count">12</span>
                   </div>
-                </div>
-                <div className="touch-body">
-                  <h3>Branded AMC bundle page</h3>
-                  <p>
-                    Customers receive a link to compare plans, see inclusions,
-                    and choose their AMC — no PDFs, no calls, no confusion.
-                  </p>
-                </div>
-              </div>
-
-              <div className="touch-card reveal reveal-d2">
-                <div className="touch-preview">
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      color: "var(--text3)",
-                      textTransform: "uppercase",
-                      letterSpacing: ".06em",
-                      marginBottom: "9px",
-                    }}
-                  >
-                    Visit confirmation
+                  <div className="side-item">
+                    <i />
+                    AMCs
                   </div>
-                  <div
-                    style={{
-                      background: "var(--surface)",
-                      border: "1px solid var(--border)",
-                      borderRadius: "var(--r-md)",
-                      padding: "10px 12px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: "11px",
-                        fontWeight: 600,
-                        color: "var(--text)",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      Service visit scheduled
+                  <div className="side-label">Manage</div>
+                  <div className="side-item">
+                    <i />
+                    Field teams
+                  </div>
+                  <div className="side-item">
+                    <i />
+                    Reports
+                  </div>
+                </aside>
+                <div className="app-main" aria-hidden="true">
+                  <div className="app-head">
+                    <div>
+                      <p>Saturday, 11 July</p>
+                      <h3>Service command centre</h3>
                     </div>
-                    <div
-                      style={{
-                        fontSize: "10px",
-                        color: "var(--text2)",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      Panel cleaning + inverter check
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                        marginBottom: "4px",
-                      }}
-                    >
-                      <i
-                        className="ti ti-calendar"
-                        style={{ fontSize: "12px", color: "var(--teal-600)" }}
-                      />
-                      <span
-                        style={{ fontSize: "10px", color: "var(--teal-600)" }}
-                      >
-                        Tue, 14 Jan · 10:00 AM
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "5px",
-                      }}
-                    >
-                      <i
-                        className="ti ti-user"
-                        style={{ fontSize: "12px", color: "var(--text3)" }}
-                      />
-                      <span style={{ fontSize: "10px", color: "var(--text2)" }}>
-                        Technician: Ramesh V.
+                    <div className="app-actions">
+                      <span className="tiny-button">Export</span>
+                      <span className="tiny-button filled">
+                        + Schedule visit
                       </span>
                     </div>
                   </div>
-                </div>
-                <div className="touch-body">
-                  <h3>Automatic visit confirmations</h3>
-                  <p>
-                    Customers know who's coming, when, and for what — before
-                    they even think to ask. Zero support calls.
-                  </p>
-                </div>
-              </div>
-
-              <div className="touch-card reveal reveal-d3">
-                <div className="touch-preview">
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      color: "var(--text3)",
-                      textTransform: "uppercase",
-                      letterSpacing: ".06em",
-                      marginBottom: "9px",
-                    }}
-                  >
-                    Service report
+                  <div className="metrics">
+                    <div className="metric">
+                      <div className="metric-label">
+                        Active AMCs <i />
+                      </div>
+                      <strong>1,248</strong>
+                      <small className="good">↑ 8.2% this month</small>
+                    </div>
+                    <div className="metric">
+                      <div className="metric-label">
+                        AMC revenue <i />
+                      </div>
+                      <strong>₹42L</strong>
+                      <small>Annual run rate</small>
+                    </div>
+                    <div className="metric">
+                      <div className="metric-label">
+                        Renewal rate <i />
+                      </div>
+                      <strong>83%</strong>
+                      <small className="good">↑ 4.1% vs last quarter</small>
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "7px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <span style={{ fontSize: "10px", color: "var(--text2)" }}>
-                        Annual generation
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "10px",
-                          fontWeight: 600,
-                          color: "var(--success)",
-                        }}
-                      >
-                        7,240 kWh
-                      </span>
+                  <div className="command-grid">
+                    <div className="panel">
+                      <div className="panel-title">
+                        <strong>Live field coverage</strong>
+                        <span>8 technicians active</span>
+                      </div>
+                      <div className="route-map">
+                        <span className="map-block one" />
+                        <span className="map-block two" />
+                        <span className="map-route" />
+                        <span className="map-pin a" />
+                        <span className="map-pin b" />
+                      </div>
                     </div>
-                    <div
-                      style={{
-                        height: "5px",
-                        background: "var(--border)",
-                        borderRadius: "3px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "79%",
-                          height: "100%",
-                          background: "var(--success)",
-                          borderRadius: "3px",
-                        }}
-                      />
-                    </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <span style={{ fontSize: "10px", color: "var(--text2)" }}>
-                        System health score
-                      </span>
-                      <span
-                        style={{
-                          fontSize: "10px",
-                          fontWeight: 600,
-                          color: "var(--teal-600)",
-                        }}
-                      >
-                        94 / 100
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        height: "5px",
-                        background: "var(--border)",
-                        borderRadius: "3px",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <div
-                        style={{
-                          width: "94%",
-                          height: "100%",
-                          background: "var(--teal-600)",
-                          borderRadius: "3px",
-                        }}
-                      />
+                    <div className="panel">
+                      <div className="panel-title">
+                        <strong>Upcoming visits</strong>
+                        <span>View all</span>
+                      </div>
+                      <div className="visit-list">
+                        <div className="visit">
+                          <span className="avatar">AK</span>
+                          <span>
+                            <strong>Annual health check</strong>
+                            <small>Aarav Khanna · 10:30</small>
+                          </span>
+                          <span className="status">On route</span>
+                        </div>
+                        <div className="visit">
+                          <span className="avatar">RS</span>
+                          <span>
+                            <strong>Panel cleaning</strong>
+                            <small>Riya Solar · 12:00</small>
+                          </span>
+                          <span className="status wait">Planned</span>
+                        </div>
+                        <div className="visit">
+                          <span className="avatar">MT</span>
+                          <span>
+                            <strong>Inverter inspection</strong>
+                            <small>Mehta Textiles · 14:30</small>
+                          </span>
+                          <span className="status wait">Planned</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="touch-body">
-                  <h3>Digital performance reports</h3>
-                  <p>
-                    After every visit, customers get a branded report with work
-                    done, health score, and next recommended action.
-                  </p>
-                </div>
               </div>
-            </div>
-
-            <div
-              style={{ marginBottom: "14px", maxWidth: "580px" }}
-              className="reveal"
-            >
-              <div className="section-eye">Impact by numbers</div>
-            </div>
-            <div className="g4">
-              <div className="metric-card reveal reveal-d1">
-                <div
-                  className="metric-num"
-                  style={{ color: "var(--teal-600)" }}
-                >
-                  85%
+              <div className="floating-note" aria-hidden="true">
+                <div className="note-top">
+                  <span className="note-icon">✓</span>
+                  <span>
+                    <strong>Visit completed</strong>
+                    <span>Customer notified automatically</span>
+                  </span>
                 </div>
-                <div className="metric-lbl">
-                  avg. AMC renewal rate for Solarplan companies vs 43% industry
-                  average
-                </div>
-              </div>
-              <div className="metric-card reveal reveal-d2">
-                <div
-                  className="metric-num"
-                  style={{ color: "var(--amber-600)" }}
-                >
-                  3×
-                </div>
-                <div className="metric-lbl">
-                  faster service scheduling vs manual coordination with Excel
-                  and WhatsApp
-                </div>
-              </div>
-              <div className="metric-card reveal reveal-d3">
-                <div className="metric-num" style={{ color: "var(--success)" }}>
-                  −60%
-                </div>
-                <div className="metric-lbl">
-                  drop in customer support calls after the live portal goes live
-                </div>
-              </div>
-              <div className="metric-card reveal reveal-d4">
-                <div className="metric-num">₹2.4L</div>
-                <div className="metric-lbl">
-                  avg. additional annual revenue recovered per field technician
+                <div className="note-progress">
+                  <i />
                 </div>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="alt" id="how-it-works">
-          <div className="container">
-            <div className="reveal" style={{ maxWidth: "560px" }}>
-              <div className="section-eye">How it works</div>
-              <h2>Set up in a day. Running in a week.</h2>
-              <p className="lead">
-                Solarplan is built for solar companies, not enterprise IT teams.
-                You're live before the end of the week.
+        <section className="workflow" id="workflow">
+          <div className="shell">
+            <div className="section-head" data-reveal>
+              <div>
+                <span className="eyebrow">Why installers need Solarplan</span>
+                <h2>One system for service revenue and service delivery.</h2>
+              </div>
+              <p>
+                Selling an AMC is only the beginning. Solarplan connects the
+                promise you sell with the people, schedules, SLAs, and proof
+                needed to deliver it reliably at scale.
               </p>
             </div>
             <div className="steps">
-              <div className="step reveal reveal-d1">
-                <div className="step-num amber">1</div>
-                <div className="step-content">
-                  <h3>Build your AMC plans</h3>
-                  <p>
-                    Create your service bundles — define services, frequencies,
-                    and pricing for each tier. Solarplan generates a branded
-                    public link you can share with every new customer or embed
-                    on your website.
-                  </p>
+              <article className="step" data-reveal>
+                <span className="step-number">01</span>
+                <h3>Sell recurring solar care</h3>
+                <p>
+                  Configure AMC plans, publish branded public pages, and convert
+                  your installed base into recurring service customers.
+                </p>
+                <div className="step-tag">
+                  Plans that are easy to buy
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path
+                      d="M4 10h11M11 5l5 5-5 5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                  </svg>
+                </div>
+              </article>
+              <article className="step" data-reveal>
+                <span className="step-number">02</span>
+                <h3>Plan and dispatch work</h3>
+                <p>
+                  Turn preventive visits and breakdown requests into work
+                  orders, assign the right technician, and manage every
+                  schedule.
+                </p>
+                <div className="step-tag">
+                  The right team, on time
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path
+                      d="M4 10h11M11 5l5 5-5 5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                  </svg>
+                </div>
+              </article>
+              <article className="step" data-reveal>
+                <span className="step-number">03</span>
+                <h3>Complete, prove, and renew</h3>
+                <p>
+                  Track SLAs, capture checklists and proof of work, notify
+                  customers, and convert reliable delivery into renewals.
+                </p>
+                <div className="step-tag">
+                  Trust that compounds
+                  <svg viewBox="0 0 20 20" aria-hidden="true">
+                    <path
+                      d="M4 10h11M11 5l5 5-5 5"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                    />
+                  </svg>
+                </div>
+              </article>
+            </div>
+          </div>
+        </section>
+
+        <section className="field-service" id="field-service">
+          <div className="shell field-grid">
+            <div className="field-copy" data-reveal>
+              <span className="eyebrow">Field service management</span>
+              <h2>The AMC is sold. Now deliver every promise on time.</h2>
+              <p>
+                Solarplan turns preventive maintenance and breakdown requests
+                into a controlled service operation—from the first work order to
+                customer sign-off.
+              </p>
+              <div className="field-benefits">
+                <div className="field-benefit">
+                  <span className="field-icon">01</span>
+                  <div>
+                    <strong>Work orders and intelligent scheduling</strong>
+                    <span>
+                      Plan recurring visits, handle breakdowns, and see team
+                      capacity before assigning work.
+                    </span>
+                  </div>
+                </div>
+                <div className="field-benefit">
+                  <span className="field-icon">02</span>
+                  <div>
+                    <strong>Dispatch, SLAs, and escalation</strong>
+                    <span>
+                      Send the right technician, monitor due times, and surface
+                      at-risk jobs before customers chase you.
+                    </span>
+                  </div>
+                </div>
+                <div className="field-benefit">
+                  <span className="field-icon">03</span>
+                  <div>
+                    <strong>Field execution and proof of work</strong>
+                    <span>
+                      Give technicians site history, checklists, and job
+                      details; capture photos, readings, notes, and customer
+                      sign-off.
+                    </span>
+                  </div>
                 </div>
               </div>
-              <div className="step reveal reveal-d2">
-                <div className="step-num teal">2</div>
-                <div className="step-content">
-                  <h3>Import your customer base</h3>
-                  <p>
-                    Add existing customers and map each to their AMC tier.
-                    Solarplan auto-generates the complete service schedule for
-                    the year — monthly cleanings, half-yearly audits, quarterly
-                    checks, all planned automatically.
-                  </p>
+            </div>
+            <div
+              className="dispatch-board"
+              data-reveal
+              // aria-label="Solarplan field service schedule preview"
+            >
+              <div className="dispatch-top">
+                <div>
+                  <small>Operations workspace</small>
+                  <strong>Today’s service schedule</strong>
+                </div>
+                <span className="dispatch-date">11 July · Jaipur</span>
+              </div>
+              <div className="dispatch-stats" aria-hidden="true">
+                <div className="dispatch-stat">
+                  <span>On schedule</span>
+                  <strong>18</strong>
+                </div>
+                <div className="dispatch-stat">
+                  <span>At risk</span>
+                  <strong>4</strong>
+                </div>
+                <div className="dispatch-stat">
+                  <span>Unassigned</span>
+                  <strong>2</strong>
                 </div>
               </div>
-              <div className="step reveal reveal-d3">
-                <div className="step-num teal">3</div>
-                <div className="step-content">
-                  <h3>Dispatch and track field visits</h3>
-                  <p>
-                    Assign technicians, track visit status in real time, and
-                    collect digital service sign-offs on-site. Customers receive
-                    automatic updates at every stage — no calls, no follow-ups.
-                  </p>
+              <div className="dispatch-table-head" aria-hidden="true">
+                <span>Time</span>
+                <span>Customer</span>
+                <span>Work order</span>
+                <span>Technician</span>
+                <span>Status</span>
+              </div>
+              <div className="dispatch-rows" aria-hidden="true">
+                <div className="dispatch-row">
+                  <span className="dispatch-time">09:00</span>
+                  <div className="dispatch-customer">
+                    <strong>Aarav Khanna</strong>
+                    <span>5.2 kW · Vaishali Nagar</span>
+                  </div>
+                  <div className="dispatch-job">
+                    <strong>Preventive visit</strong>
+                    <span>WO-2048 · AMC</span>
+                  </div>
+                  <div className="tech">
+                    <i>RK</i>
+                    <span>R. Kumar</span>
+                  </div>
+                  <span className="dispatch-status">On site</span>
+                </div>
+                <div className="dispatch-row">
+                  <span className="dispatch-time">10:30</span>
+                  <div className="dispatch-customer">
+                    <strong>Mehta Textiles</strong>
+                    <span>48 kW · Sitapura</span>
+                  </div>
+                  <div className="dispatch-job">
+                    <strong>Inverter alert</strong>
+                    <span>WO-2051 · Breakdown</span>
+                  </div>
+                  <div className="tech">
+                    <i>AS</i>
+                    <span>A. Singh</span>
+                  </div>
+                  <span className="dispatch-status risk">At risk</span>
+                </div>
+                <div className="dispatch-row">
+                  <span className="dispatch-time">12:00</span>
+                  <div className="dispatch-customer">
+                    <strong>Riya Residency</strong>
+                    <span>12 kW · Mansarovar</span>
+                  </div>
+                  <div className="dispatch-job">
+                    <strong>Panel cleaning</strong>
+                    <span>WO-2054 · AMC</span>
+                  </div>
+                  <div className="tech">
+                    <i>NP</i>
+                    <span>N. Patel</span>
+                  </div>
+                  <span className="dispatch-status">On route</span>
+                </div>
+                <div className="dispatch-row">
+                  <span className="dispatch-time">14:30</span>
+                  <div className="dispatch-customer">
+                    <strong>Sharma House</strong>
+                    <span>3.5 kW · Ajmer Road</span>
+                  </div>
+                  <div className="dispatch-job">
+                    <strong>Low generation</strong>
+                    <span>WO-2058 · Breakdown</span>
+                  </div>
+                  <div className="tech">
+                    <i>—</i>
+                    <span>Unassigned</span>
+                  </div>
+                  <span className="dispatch-status open">Open</span>
                 </div>
               </div>
-              <div className="step reveal reveal-d4">
-                <div className="step-num gray">4</div>
-                <div className="step-content">
-                  <h3>Renew, upsell, and grow</h3>
-                  <p>
-                    Get renewal alerts 60 days before expiry, identify upgrade
-                    opportunities, and track your entire AMC portfolio revenue
-                    from one dashboard. After-sale becomes your most predictable
-                    revenue line.
-                  </p>
-                </div>
+              <div className="service-proof" aria-hidden="true">
+                <b>✓</b>
+                <span>
+                  <strong>Work order WO-2048 completed</strong>
+                  <span>
+                    Checklist, 6 photos, readings, and customer OTP captured
+                  </span>
+                </span>
+                <em>Customer notified</em>
               </div>
             </div>
           </div>
         </section>
 
-        <section id="cta">
-          <div className="container">
-            <div className="final-cta-box reveal">
-              <div
-                className="section-eye"
-                style={{ justifyContent: "center", marginBottom: "16px" }}
-              >
-                <i className="ti ti-rocket" aria-hidden="true" />
-                Start for free
+        <section className="revenue" id="roi">
+          <div className="shell">
+            <div className="revenue-head" data-reveal>
+              <span className="eyebrow">AMC revenue calculator</span>
+              <div>
+                <h2>Protect customer ROI. Grow your recurring revenue.</h2>
+                <p>
+                  Preventive maintenance helps solar systems sustain generation,
+                  reduce avoidable downtime, and protect the savings promised at
+                  sale. For installers, the same AMC creates predictable margin,
+                  stronger retention, and a reason to stay connected for the
+                  system’s lifetime.
+                </p>
               </div>
-              <h2>Ready to professionalize your solar service?</h2>
-              <p className="lead">
-                Join solar companies delivering transparent, on-time service —
-                and turning after-sale into their biggest revenue driver.
-              </p>
-              <div className="final-cta-btns">
-                <Button
-                  className="btn-primary-lg"
-                  onClick={() =>
-                    (window.location.href = "https://wa.me/+917597204168")
-                  }
-                >
-                  Start now — contact us{" "}
-                  <i className="ti ti-arrow-right" aria-hidden="true" />
-                </Button>
-                <Button
-                  className="btn-ghost-lg"
-                  onClick={() =>
-                    (window.location.href = "https://wa.me/+917597204168")
-                  }
-                >
-                  Book a 20-min demo
-                </Button>
+            </div>
+            <div className="roi-benefits" data-reveal>
+              <div className="roi-benefit">
+                <strong>Protect energy output</strong>
+                <span>
+                  Planned checks and cleaning help customers preserve the
+                  financial return on their solar investment.
+                </span>
               </div>
-              <p className="final-cta-note">
-                Free 30-day trial &nbsp;·&nbsp; Full features &nbsp;·&nbsp;
-                Setup support included
-              </p>
+              <div className="roi-benefit">
+                <strong>Create recurring margin</strong>
+                <span>
+                  Convert one-time installation customers into a renewable,
+                  high-trust service revenue stream.
+                </span>
+              </div>
+              <div className="roi-benefit">
+                <strong>Increase lifetime value</strong>
+                <span>
+                  Stay first in line for renewals, referrals, upgrades,
+                  batteries, and expansion projects.
+                </span>
+              </div>
+            </div>
+            <div
+              className="roi-calculator"
+              data-reveal
+              // aria-labelledby="roi-title"
+            >
+              <div className="roi-controls">
+                <h3 id="roi-title">Your AMC opportunity</h3>
+                <p>
+                  Adjust the assumptions to estimate the recurring revenue
+                  already inside your customer base.
+                </p>
+                <div className="roi-field">
+                  <label className="roi-label" htmlFor="installed-base">
+                    <span>Existing installations</span>
+                    <output id="installed-base-value" htmlFor="installed-base">
+                      {installedBase.toLocaleString("en-IN")} sites
+                    </output>
+                  </label>
+                  <input
+                    id="installed-base"
+                    type="range"
+                    min="50"
+                    max="5000"
+                    step="50"
+                    value={installedBase}
+                    style={
+                      {
+                        "--fill": rangeFill(installedBase, 50, 5000),
+                      } as React.CSSProperties
+                    }
+                    onChange={(e) => setInstalledBase(Number(e.target.value))}
+                  />
+                </div>
+                <div className="roi-field">
+                  <label className="roi-label" htmlFor="monthly-installs">
+                    <span>New installations per month</span>
+                    <output
+                      id="monthly-installs-value"
+                      htmlFor="monthly-installs"
+                    >
+                      {monthlyInstalls.toLocaleString("en-IN")} sites
+                    </output>
+                  </label>
+                  <input
+                    id="monthly-installs"
+                    type="range"
+                    min="0"
+                    max="250"
+                    step="5"
+                    value={monthlyInstalls}
+                    style={
+                      {
+                        "--fill": rangeFill(monthlyInstalls, 0, 250),
+                      } as React.CSSProperties
+                    }
+                    onChange={(e) => setMonthlyInstalls(Number(e.target.value))}
+                  />
+                </div>
+                <div className="roi-field">
+                  <label className="roi-label" htmlFor="amc-conversion">
+                    <span>Customers choosing an AMC</span>
+                    <output id="amc-conversion-value" htmlFor="amc-conversion">
+                      {conversionPct}%
+                    </output>
+                  </label>
+                  <input
+                    id="amc-conversion"
+                    type="range"
+                    min="5"
+                    max="80"
+                    step="5"
+                    value={conversionPct}
+                    style={
+                      {
+                        "--fill": rangeFill(conversionPct, 5, 80),
+                      } as React.CSSProperties
+                    }
+                    onChange={(e) => setConversionPct(Number(e.target.value))}
+                  />
+                </div>
+                <div className="roi-field">
+                  <label className="roi-label" htmlFor="amc-price">
+                    <span>Average annual AMC price</span>
+                    <output id="amc-price-value" htmlFor="amc-price">
+                      ₹{price.toLocaleString("en-IN")}
+                    </output>
+                  </label>
+                  <input
+                    id="amc-price"
+                    type="range"
+                    min="2000"
+                    max="30000"
+                    step="500"
+                    value={price}
+                    style={
+                      {
+                        "--fill": rangeFill(price, 2000, 30000),
+                      } as React.CSSProperties
+                    }
+                    onChange={(e) => setPrice(Number(e.target.value))}
+                  />
+                </div>
+                <div className="roi-field">
+                  <label className="roi-label" htmlFor="service-cost">
+                    <span>Delivery cost per AMC</span>
+                    <output id="service-cost-value" htmlFor="service-cost">
+                      ₹{cost.toLocaleString("en-IN")}
+                    </output>
+                  </label>
+                  <input
+                    id="service-cost"
+                    type="range"
+                    min="500"
+                    max="15000"
+                    step="500"
+                    value={cost}
+                    style={
+                      {
+                        "--fill": rangeFill(cost, 500, 15000),
+                      } as React.CSSProperties
+                    }
+                    onChange={(e) => setCost(Number(e.target.value))}
+                  />
+                </div>
+                <div className="roi-field">
+                  <label className="roi-label" htmlFor="renewal-rate">
+                    <span>Annual renewal rate</span>
+                    <output id="renewal-rate-value" htmlFor="renewal-rate">
+                      {renewalPct}%
+                    </output>
+                  </label>
+                  <input
+                    id="renewal-rate"
+                    type="range"
+                    min="40"
+                    max="100"
+                    step="5"
+                    value={renewalPct}
+                    style={
+                      {
+                        "--fill": rangeFill(renewalPct, 40, 100),
+                      } as React.CSSProperties
+                    }
+                    onChange={(e) => setRenewalPct(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+              <div className="roi-results" aria-live="polite">
+                <div className="roi-results-head">
+                  <div>
+                    <p>Projected opportunity</p>
+                    <h3>Recurring revenue at scale</h3>
+                  </div>
+                  <span className="roi-badge">Illustrative estimate</span>
+                </div>
+                <div className="roi-metrics">
+                  <div className="roi-metric">
+                    <span>Year-one run-rate revenue</span>
+                    <strong id="year-one-revenue">
+                      {formatIndianMoney(roi.annualRevenue[0])}
+                    </strong>
+                  </div>
+                  <div className="roi-metric">
+                    <span>Year-one recurring margin</span>
+                    <strong id="year-one-margin">
+                      {formatIndianMoney(roi.annualMargin)}
+                    </strong>
+                  </div>
+                  <div className="roi-metric">
+                    <span>Three-year cumulative revenue</span>
+                    <strong id="three-year-revenue">
+                      {formatIndianMoney(roi.cumulativeRevenue)}
+                    </strong>
+                  </div>
+                </div>
+                <div className="roi-chart-head">
+                  <strong>Projected AMC revenue</strong>
+                  <span>Annual run rate</span>
+                </div>
+                <div
+                  className="roi-chart"
+                  role="img"
+                  aria-label={`Projected AMC annual revenue: year one ${formatIndianMoney(roi.annualRevenue[0])}, year two ${formatIndianMoney(roi.annualRevenue[1])}, year three ${formatIndianMoney(roi.annualRevenue[2])}.`}
+                  id="roi-chart"
+                >
+                  {(["one", "two", "three"] as const).map((label, index) => {
+                    const revenue = roi.annualRevenue[index];
+                    return (
+                      <div className="roi-bar-wrap" key={label}>
+                        <div
+                          className="roi-bar"
+                          id={`roi-bar-${label}`}
+                          style={
+                            {
+                              "--bar-height": `${20 + (revenue / roi.maxRevenue) * 60}%`,
+                            } as React.CSSProperties
+                          }
+                        >
+                          <strong id={`roi-bar-value-${label}`}>
+                            {formatIndianMoney(revenue)}
+                          </strong>
+                        </div>
+                        <span>Year {index + 1}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="roi-note">
+                  Assumes your existing base is offered an AMC in year one, new
+                  installations convert at the selected rate, and active
+                  contracts renew annually. Excludes taxes and customer
+                  acquisition cost.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="platform" id="platform">
+          <div className="shell">
+            <div className="platform-intro" data-reveal>
+              <span className="eyebrow">One after-sales platform</span>
+              <div>
+                <h2>
+                  Everything you need to sell, deliver, and renew solar care.
+                </h2>
+                <p>
+                  Once your customer base grows beyond a few dozen sites,
+                  informal after-sales becomes expensive and invisible.
+                  Solarplan connects sales, service coordinators, field
+                  technicians, customers, and leadership in one measurable
+                  operation.
+                </p>
+              </div>
+            </div>
+            <div className="bento">
+              <article className="feature large" data-reveal>
+                <div className="feature-kicker">Public AMC pages</div>
+                <h3>
+                  Your branded AMC storefront—configured, published, and ready
+                  to share.
+                </h3>
+                <p>
+                  Create public pages for every AMC plan with your logo,
+                  benefits, inclusions, pricing, and call to action. Share a
+                  simple link through WhatsApp, email, your website, or a QR
+                  code.
+                </p>
+                <div className="phone" aria-hidden="true">
+                  <div className="phone-screen">
+                    <div className="phone-bar">
+                      <span>sunpeak.solarplan.in</span>
+                      <span>● ● ●</span>
+                    </div>
+                    <div className="public-page-head">
+                      <div className="public-brand">
+                        <i>S</i>SunPeak Solar
+                      </div>
+                      <span>Need help? Contact us</span>
+                    </div>
+                    <div className="public-hero">
+                      <small>Protect your solar investment</small>
+                      <strong>Solar care plans built around you.</strong>
+                      <p>
+                        Reliable maintenance, priority support, and better
+                        system performance—all year.
+                      </p>
+                    </div>
+                    <div className="public-plans">
+                      <div className="public-plan">
+                        <b>Essential Care</b>
+                        <strong>₹4,999/yr</strong>
+                        <span>
+                          2 preventive visits
+                          <br />
+                          System health report
+                          <br />
+                          Priority phone support
+                        </span>
+                        <em>Choose Essential</em>
+                      </div>
+                      <div className="public-plan featured">
+                        <b>Complete Care</b>
+                        <strong>₹7,999/yr</strong>
+                        <span>
+                          4 preventive visits
+                          <br />
+                          Panel cleaning included
+                          <br />
+                          Priority breakdown visit
+                        </span>
+                        <em>Choose Complete</em>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </article>
+              <article className="feature" data-reveal>
+                <div className="feature-kicker">Renewals and revenue</div>
+                <h3>Know what is due, renewed, and at risk.</h3>
+                <p>
+                  Automate timely reminders and give your team a live view of
+                  recurring service revenue.
+                </p>
+                <div className="renewal-visual" aria-hidden="true">
+                  <div className="renewal-ring">
+                    <strong>83%</strong>
+                  </div>
+                  <div className="renewal-stats">
+                    <div className="renewal-stat">
+                      <span>Renewed</span>
+                      <strong>248</strong>
+                    </div>
+                    <div className="renewal-stat">
+                      <span>Due this month</span>
+                      <strong>36</strong>
+                    </div>
+                    <div className="renewal-stat">
+                      <span>At risk</span>
+                      <strong>8</strong>
+                    </div>
+                  </div>
+                </div>
+              </article>
+              <article className="feature" data-reveal>
+                <div className="feature-kicker">Customer communication</div>
+                <h3>Proactive updates, without the WhatsApp chaos.</h3>
+                <p>
+                  Automatically confirm visits, share technician status, send
+                  completion reports, and keep customers informed before they
+                  need to call.
+                </p>
+                <div className="message-visual" aria-hidden="true">
+                  <div className="bubble">
+                    Technician Ravi is on the way for your 10:30 AM preventive
+                    visit.
+                  </div>
+                  <div className="bubble out">Perfect, thank you!</div>
+                </div>
+              </article>
+            </div>
+
+            <div className="cta" id="contact" data-reveal>
+              <div className="cta-grid">
+                <div>
+                  <span className="eyebrow">
+                    Build a complete after-sales business
+                  </span>
+                  <h2>Grow the revenue. Deliver the promise.</h2>
+                </div>
+                <div>
+                  <p>
+                    See how Solarplan can help you sell AMCs, coordinate field
+                    teams, meet service SLAs, and build a revenue stream that
+                    renews year after year.
+                  </p>
+                  <div className="cta-actions">
+                    <a
+                      className="button light"
+                      href="mailto:mkakani1@gmail.com?subject=Solarplan%20product%20walkthrough"
+                    >
+                      Book a walkthrough
+                      <svg viewBox="0 0 20 20" aria-hidden="true">
+                        <path
+                          d="M4 10h11M11 5l5 5-5 5"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                        />
+                      </svg>
+                    </a>
+                    <a className="button secondary" href="#field-service">
+                      Explore field service
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -863,34 +978,19 @@ export default function SiteShell({ children }: { children: React.ReactNode }) {
       </main>
 
       <footer>
-        <div className="container">
-          <div className="footer-inner">
-            <div className="footer-brand">
-              <div
-                className="nav-mark"
-                style={{
-                  background: "rgba(255,255,255,.08)",
-                  borderColor: "rgba(255,255,255,.12)",
-                }}
-                aria-hidden="true"
-              >
-                <i
-                  className="ti ti-solar-panel"
-                  style={{ color: "var(--amber-400)" }}
-                />
-              </div>
-              <span className="footer-name">Solarplan</span>
-            </div>
-            <div className="footer-links">
-              <a href="#">Product</a>
-              <a href="#">Pricing</a>
-              <a href="#">Blog</a>
-              <a href="#">Privacy</a>
-              <a href="mailto:hello@solarplan.app">Contact</a>
-            </div>
-            <span className="footer-copy">
-              © 2026 Solarplan. All rights reserved.
-            </span>
+        <div className="shell footer-grid">
+          <a className="brand" href="#top">
+            {/** biome-ignore lint/performance/noImgElement: <ignore> */}
+            <img
+              className="brand-logo"
+              src="/solar-logo-dark.svg"
+              alt="Solarplan"
+            />
+          </a>
+          <p>After-sales operations for solar installers.</p>
+          <div className="footer-links">
+            <a href="mailto:mkakani1@gmail.com">Contact</a>
+            <a href="#top">Back to top ↑</a>
           </div>
         </div>
       </footer>
