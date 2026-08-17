@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import "./globals.css";
+import "./01-globals.css";
 import { Analytics } from "@vercel/analytics/next";
-import SiteShell from "./site-shell";
+import SiteShell from "./02-site-shell";
 
 export const viewport: Viewport = {
   themeColor: [
@@ -11,17 +11,19 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://solarplan.in"),
+  metadataBase: new URL("https://solarplan-site-bro6.onrender.com/"),
   title: {
-    default: "Solarplan - All you need. Nothing you don't.",
+    default: "Solarplan - All you need for Solar O&M",
     template: "%s | Solarplan",
   },
-  description: "All you need. Nothing you don't.",
+  description: "All you need for Solar O&M.",
   keywords: [
     "solarplan",
     "solar management",
-    "solar annual maintainance contaract",
+    "solar annual maintenance contract",
     "solar post sale",
+    "Solar preventive maintenance",
+    "solar breakage service",
     "solar task management",
     "solar amc",
     "solar service",
@@ -32,14 +34,14 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
-    url: "https://solarplan.in",
+    url: "https://solarplan-site-bro6.onrender.com/",
     siteName: "Solarplan",
-    title: "Solarplan - All you need. Nothing you don't.",
+    title: "Solarplan - All you need for Solar O&M.",
     description:
       "Solar service management that works for you, not against you. simple, and powerful.",
     images: [
       {
-        url: "/images/hero.png",
+        url: "/solar-logo-dark.png",
         width: 1200,
         height: 630,
         alt: "Solarplan",
@@ -48,10 +50,10 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Solarplan - All you need. Nothing you don't.",
+    title: "Solarplan - ll you need for Solar O&M.",
     description:
       "Solar service management that works for you, not against you. simple, and powerful.",
-    images: ["/images/hero.png"],
+    images: ["/solar-logo-dark.png"],
   },
   robots: {
     index: true,
